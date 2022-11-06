@@ -1218,12 +1218,6 @@ select:invalid {
   opacity: 1;
 }
 
-input:not([type=checkbox], [type=radio]),
-select,
-textarea {
-  margin-bottom: var(--spacing);
-}
-
 select::-ms-expand {
   border: 0;
   background-color: transparent;

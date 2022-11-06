@@ -53,53 +53,57 @@
 	// results of sensitivity analysis
 	const sensitivityBase = 8.718017178214817;
 	const sensitivityData = [
-	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 7.6443199153483885},
-	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 10.349869227763095},
-	  {"parameter": "rent", "modification": "Increase by 20%", "value": 16.431609878339145},
-	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 4.932022458697653},
-	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 9.035961716021573},
-	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 8.437096851276502},
-	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 6.2556627157217575},
-	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 11.504965844448627},
-	  {"parameter": "housePriceGain", "modification": "Increase by 20%", "value": 24.65521883522328},
-	  {"parameter": "housePriceGain", "modification": "Decrease by 20%", "value": 5.025395666258443},
-	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 9.906460606878042},
-	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 7.631987762635039},
-	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 7.065110693929245},
-	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 10.335370055798478},
-	  {"parameter": "interest", "modification": "Increase by 20%", "value": 5.784751891333453},
-	  {"parameter": "interest", "modification": "Decrease by 20%", "value": 12.971362995486418},
-	  {"parameter": "amortization", "modification": "Increase by 20%", "value": 8.083547902334809},
-	  {"parameter": "amortization", "modification": "Decrease by 20%", "value": 9.337558364441904},
-	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 6.793252874084687},
-	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 11.416614337430197},
-	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.493024914230151},
-	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.979151913771023},
-	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 6.896937613100356},
-	  {"parameter": "proportionalCost", "modification": "Decrease by 20%", "value": 11.548767674084452},
+	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 7.6443199153483885},
+	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 10.349869227763095},
+	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 16.431609878339145},
+	  {"parameter": "rent", "modification": "Increase by 20%", "value": 4.932022458697653},
+	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 9.035961716021573},
+	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 8.437096851276502},
+	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 6.2556627157217575},
+	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 11.504965844448627},
+	  {"parameter": "housePriceGain", "modification": "Decrease by 20%", "value": 24.65521883522328},
+	  {"parameter": "housePriceGain", "modification": "Increase by 20%", "value": 5.025395666258443},
+	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 9.906460606878042},
+	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 7.631987762635039},
+	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
+	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 10.335370055798478},
+	  {"parameter": "interest", "modification": "Decrease by 20%", "value": 5.784751891333453},
+	  {"parameter": "interest", "modification": "Increase by 20%", "value": 12.971362995486418},
+	  {"parameter": "amortization", "modification": "Decrease by 20%", "value": 8.083547902334809},
+	  {"parameter": "amortization", "modification": "Increase by 20%", "value": 9.337558364441904},
+	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 6.793252874084687},
+	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 11.416614337430197},
+	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.493024914230151},
+	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.979151913771023},
+	  {"parameter": "proportionalCost", "modification": "Decrease by 20%", "value": 6.896937613100356},
+	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 11.548767674084452},
 	];
+
 
 
 </script>
 
 <header>
 <span><a href="/">Back</a></span>
-<h1>Renting versus buying</h1>
-<p>November 2022</p>
-<p style="color: grey">A simple numerical simulation of how the choice affects your net worth.</p>
+	<hgroup>
+		<h2>Renting versus buying</h2>
+		<h3>November 2022</h3>
+	</hgroup>
+	<p class="secondary">A simple numerical simulation of how the choice affects your net worth.</p>
 </header>
 <hr />
 <p>
-	To buy or to rent? On the face of it, it seems straightforward. Renting means
-	transferring vast monthly sums to your landlord. If you buy, on the other hand, that
-	same money flows into your very own house-shaped savings account for you to draw
-	upon in your old age.
+	To buy or to rent? On the face of it it seems straightforward. If you rent, you
+	fritter away eye-watering monthly sums to your landlord. If you buy, on the other
+	hand, that same hard-earned money flows into your very own house-shaped savings
+	account for you to draw upon in your old age.
 </p><p>
-	There are, however, big financial downsides to buying. There is the one-off hit
-	incurred when you purchase the house: things like property transfer tax and notarary
-	fees. Then there are the regular interest payments which you funnel to the bank to
-	finance your debt. There are also significant running costs: more taxes,
-	maintenance... There's even a fee for the rain that falls on your lawn.
+	In reality there are also big financial downsides to buying property that might not
+	be immediately obvious. There is the one-off hit incurred when you make the
+	purchase: things like property transfer tax and notarary fees. Then there are the
+	regular interest payments which you funnel to the bank to finance your debt. There
+	are also significant running costs: more taxes, maintenance... there can even be a
+	fee for the rain that falls on your lawn.
 </p><p>
 	Let's build a simple model to investigate the trade-off numerically. We start with
 	two protagonists: <i>Buying Bob</i> and <i>Renting Rachel</i>. They both start with
@@ -107,9 +111,8 @@
 	<FormattedNumberInput wide={true} bind:value={downPayment} /> cash in the bank.
 </p>
 <p>
-	By the way, all of the parameters to this model are in text boxes. Feel free to edit
-	them to match your own situation, or just out of curiosity to see what happens to
-	the results!
+	(By the way, all of the parameters to this model are in text boxes. Feel free to edit
+	them to match your own situation, or just out of curiosity to see what happens!)
 </p>
 <h2>Renting Rachel</h2>
 <p>
@@ -124,7 +127,7 @@
 	incurs a one-off cost of
 	<FormattedNumberInput bind:value="{oneOffCost}" wide={true} />
 	(or {d3.format(".0%")(oneOffCost / housePrice)} of the house price) in property
-	transfer tax, notary fees, etc. He takes out a loan of
+	transfer tax, notary fees, and so on. He takes out a loan of
 	{format(computeLoan(housePrice, oneOffCost, downPayment))} to fund his purchase.
 </p>
 <p>Bob's regular outgoings break down as follows:</p>
@@ -181,8 +184,7 @@
 <p>
 	We tax capital gains on the stock market at
 	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per year.<a href="#footnote5"><sup>5</sup></a> House price
-	growth is not taxed (annual property tax is included in the proportional costs of
-	the previous section).
+	growth is not taxed (annual property tax is included in Bob's proportional costs).
 </p>
 
 <h2>What about income?</h2>
@@ -232,13 +234,13 @@
 </table>
 
 <p>
-	Depending on what parameters you put into the model, it's likely that you see a
+	Depending on what parameters you put into the model it's likely that you see a
 	difference. Typically, Rachel has smaller cash outgoings. If we are to assume that
-	Bob and Rachel have a comparable income, this means that she has more spare cash
-	lying around than Bob. That's advantageous to her because she's able to invest it in
-	the stock market and cream off a return. Let's assume that's exactly what she does.
+	Bob and Rachel have an equal income, this means that she has more spare cash lying
+	around than Bob. That's advantageous to her because she's able to invest it in the
+	stock market and cream off a return. Let's assume that's exactly what she does.
 </p>
-<h2>Results: what is the effect on net worth?</h2>
+<h2>Results</h2>
 <p>
 	Now that we've built our model, let's see what pops out. What we are really
 	interested in is not cash per se, but rather <b>net worth</b>. Specifically, we would like
@@ -257,7 +259,7 @@
 		{:else}
 		<p>
 			Our model says that your net worth is indeed greater and that it is so
-			after {formatIntersection(data.intersection)}:
+			after <u>{formatIntersection(data.intersection)}</u>:
 		</p>
 		{/if}
 	<div>
@@ -295,26 +297,26 @@
 	interest dominates. Deductions from his net worth initially consist of the cost of
 	purchasing the house, but come to be dominated by porportional costs such as
 	property tax. His yearly interest payments also get smaller as the loan is paid off.
-	Note that we don't include amortisation in the net worth figures, since this is a
-	straight transfer of a cash asset into a property asset.
+	(Note that we don't include amortisation in the net worth figures, since this is a
+	straight transfer of a cash asset into a property asset).
 </p>
 
 <!-- Change in net worth each year -->
 {#if netWorth}
 	{@const d = netWorthChartData(netWorth)}
 	<div>
-		<h5 class="plotTitle">Breakdown of annual change in net worth for Bob</h5>
+		<h5 class="plotTitle">Annual change in net worth for Bob</h5>
 		<NetWorthChart data={d.bobData} domainY={d.domainY} />
 	</div>
 
 	<p>
-		Rachel's situation is simpler. In the beginning her net worth, or rather her net
-		worth <i>relative to Bob</i>, simply decreases due to rent. However, over time she
-		starts receiving handsome yields from her extra spare income relative to Bob.
+		Rachel's situation is simpler. Her net worth, or rathar her net worh
+		<i>relative to Bob</i>, is bouyed by her wily investmnets in the stock market,
+		while her monthly rent payment drags it down.
 	</p>
 
 	<div>
-		<h5 class="plotTitle">Breakdown of annual change in net worth for Rachel</h5>
+		<h5 class="plotTitle">Annual change in net worth for Rachel</h5>
 		<NetWorthChart data={d.rachelData} domainY={d.domainY} reversed={true} />
 	</div>
 {/if}
@@ -356,6 +358,17 @@
 	/>
 </div>
 
+<p>
+	For example: when a green bar (an increase of the parameter) goes to the left, it
+	means that the increase caused buying to be <i>even more attractive</i> than
+	renting.
+</p>
+
+<p>
+	We can see that the most important parameters are the rate of growth of the property
+	market, the amount of rent, and the rate of interest on Bob's loan.
+</p>
+
 <hr style="margin-top: 100px" />
 
 <p class="footnote">
@@ -369,6 +382,9 @@
 	<!-- House Price Gain -->
 	<a id="footnote2"><sup>2</sup></a> The German house price index in August 2022 was
 	223 (2005=100). This is a 123% increase in 17.7 years, or around 4.6% per year.
+	This is a pretty optimistic view from the perspective of 2022: a
+	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
+	survey by Reuters</a> predicted 3% for 2023 and 2% for 2024.
 </p>
 
 <p class="footnote">
@@ -439,10 +455,6 @@
 	table > tr > td {
 		padding-left: 5px;
 		padding-right: 5px;
-	}
-
-	.pink {
-		background-color: GhostWhite;
 	}
 
 	/* hide arrows on input */

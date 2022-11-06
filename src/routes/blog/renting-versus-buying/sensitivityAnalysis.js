@@ -34,17 +34,17 @@ const modifyByPretty = d3.format('.0%')(modifyBy);
 
 for (const [parameter, defaultValue] of Object.entries(parameterDefaults)) {
 	if (!['maxYears', 'capitalGainsTax'].includes(parameter)) {
-		const a = { ...parameterDefaults, [parameter]: defaultValue * (1 - modifyBy) };
-		const b = { ...parameterDefaults, [parameter]: defaultValue * (1 + modifyBy) };
+		const decrease = { ...parameterDefaults, [parameter]: defaultValue * (1 - modifyBy) };
+		const increase = { ...parameterDefaults, [parameter]: defaultValue * (1 + modifyBy) };
 
-		const x = calculate(a);
-		const y = calculate(b);
+		const decreaseValue = calculate(decrease);
+		const increaseValue = calculate(increase);
 
 		console.log(
-			`  {"parameter": "${parameter}", "modification": "Increase by ${modifyByPretty}", "value": ${x}},`
+			`  {"parameter": "${parameter}", "modification": "Decrease by ${modifyByPretty}", "value": ${decreaseValue}},`
 		);
 		console.log(
-			`  {"parameter": "${parameter}", "modification": "Decrease by ${modifyByPretty}", "value": ${y}},`
+			`  {"parameter": "${parameter}", "modification": "Increase by ${modifyByPretty}", "value": ${increaseValue}},`
 		);
 	}
 }

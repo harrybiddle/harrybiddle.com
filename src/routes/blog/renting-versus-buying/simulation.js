@@ -320,10 +320,10 @@ export const parameterDefaults = {
 	stockMarketGain: 7, // percentage per year
 	capitalGainsTax: 26, // percentage per year
 	rent: 1_600, // money per year
-	rentGain: 1.4, // percentage per year, from https://www.statista.com/statistics/1270341/rental-index-development-germany/
+	rentGain: 3, // percentage per year, from https://www.statista.com/statistics/1270341/rental-index-development-germany/
 	housePrice: 450_000, // money
-	housePriceGain: 7, //4.6, // percentage per year, from https://www.statista.com/statistics/329715/house-price-index-in-germany/
-	downPayment: 150_000, // money
+	housePriceGain: 4.6, // percentage per year, from https://www.statista.com/statistics/329715/house-price-index-in-germany/
+	downPayment: 90_000, // money, 20% of house price
 	oneOffCost: 60_000, // money
 	interest: 4, // percentage per year
 	amortization: 2, // percentage per year
