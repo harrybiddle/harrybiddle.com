@@ -55,7 +55,7 @@ reason, negative numbers also won't work.
 </script>
 
 <input
-	style="text-align: right; width: {wide ? '4em' : '3em'}"
+	style="text-align: right; width: {wide ? '6em' : '4em'}"
 	on:keyup="{update}"
 	bind:value="{formattedValue}"
 />

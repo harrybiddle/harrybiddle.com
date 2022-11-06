@@ -309,23 +309,30 @@ export function netWorthChartData(netWorth) {
 
 	return {
 		domainY: yAxisRange,
-		data: Array.from(d3.group(filtered, d => d.model).entries())
+		data: Array.from(d3.group(filtered, d => d.model).entries()),
+		bobData: filtered.filter(d => d.model === 'bob'),
+		rachelData: filtered.filter(d => d.model === 'rachel')
 	};
 }
 
 export const parameterDefaults = {
 	maxYears: 30,
-	stockMarketGain: 1, // percentage per year
+	stockMarketGain: 7, // percentage per year
 	capitalGainsTax: 26, // percentage per year
 	rent: 1_600, // money per year
 	rentGain: 1.4, // percentage per year, from https://www.statista.com/statistics/1270341/rental-index-development-germany/
 	housePrice: 450_000, // money
-	housePriceGain: 8.5, // percentage per year, from https://www.statista.com/statistics/329715/house-price-index-in-germany/
+	housePriceGain: 7, //4.6, // percentage per year, from https://www.statista.com/statistics/329715/house-price-index-in-germany/
 	downPayment: 150_000, // money
 	oneOffCost: 60_000, // money
-	interest: 2.86, // percentage per year
+	interest: 4, // percentage per year
 	amortization: 2, // percentage per year
 	fixedCost: 630, // money per month
-	fixedCostGain: 1.4, // percentage per year
+	fixedCostGain: 2.7, // percentage per year
 	proportionalCost: 1.3 // percentage
 };
+
+export function camelToWord(text) {
+	const t = text.replace(/([A-Z])/g, ' $1');
+	return t.charAt(0).toUpperCase() + t.slice(1);
+}

@@ -2,11 +2,21 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
-		<meta name="viewport" content="width=device-width" />
+		<link rel="stylesheet" href="%sveltekit.assets%/pico.css" />
+
+		<style>
+			body {
+				font-family: Gelasio, Georgia, serif;
+			}
+		</style>
+
 		%sveltekit.head%
 	</head>
 	<body>
-		<div>%sveltekit.body%</div>
+		<main class="container" style="max-width: 560px">
+			%sveltekit.body%
+		</main>
 	</body>
 </html>

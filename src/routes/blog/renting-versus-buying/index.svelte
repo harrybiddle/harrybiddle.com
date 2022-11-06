@@ -1,8 +1,9 @@
 <script>
 	import  * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
-	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, calculateNetWorth, computeLoan } from './simulation';
+	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan } from './simulation';
 	import PlotContainer from './PlotContainer.svelte';
+	import NetWorthChart from './NetWorthChart.svelte';
 	import FormattedNumberInput from "./FormattedNumberInput.svelte";
 
 	// helper objects --------------------------------------------------------------- //
@@ -10,8 +11,7 @@
 	const formatIntersection = d => `${Math.abs(d[0]) < 0.1 ? 0 : d[0].toFixed(1)} years`;
 	const capitalise = string =>
 		string ? (string.charAt(0).toUpperCase() + string.slice(1)) : string;
-	const plotStyle = { fontFamily: "Gelasio", fontSize: "15px", overflow: true };
-	const legendStyle = { fontFamily: "Gelasio", fontSize: "13px", overflow: true };
+	const plotStyle = { fontFamily: "Gelasio", fontSize: "15px", overflow: true, background: "transparent" };
 
 	// model parameters ------------------------------------------------------------- //
 	let maxYears = parameterDefaults.maxYears;
@@ -50,13 +50,44 @@
 		);
 	}
 
+	// results of sensitivity analysis
+	const sensitivityBase = 8.718017178214817;
+	const sensitivityData = [
+	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 7.6443199153483885},
+	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 10.349869227763095},
+	  {"parameter": "rent", "modification": "Increase by 20%", "value": 16.431609878339145},
+	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 4.932022458697653},
+	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 9.035961716021573},
+	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 8.437096851276502},
+	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 6.2556627157217575},
+	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 11.504965844448627},
+	  {"parameter": "housePriceGain", "modification": "Increase by 20%", "value": 24.65521883522328},
+	  {"parameter": "housePriceGain", "modification": "Decrease by 20%", "value": 5.025395666258443},
+	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 9.906460606878042},
+	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 7.631987762635039},
+	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 7.065110693929245},
+	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 10.335370055798478},
+	  {"parameter": "interest", "modification": "Increase by 20%", "value": 5.784751891333453},
+	  {"parameter": "interest", "modification": "Decrease by 20%", "value": 12.971362995486418},
+	  {"parameter": "amortization", "modification": "Increase by 20%", "value": 8.083547902334809},
+	  {"parameter": "amortization", "modification": "Decrease by 20%", "value": 9.337558364441904},
+	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 6.793252874084687},
+	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 11.416614337430197},
+	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.493024914230151},
+	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.979151913771023},
+	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 6.896937613100356},
+	  {"parameter": "proportionalCost", "modification": "Decrease by 20%", "value": 11.548767674084452},
+	];
+
 
 </script>
 
-<div id="content">
+<header>
 <span><a href="/">Back</a></span>
 <h1>Renting versus buying</h1>
+<p>November 2022</p>
 <p style="color: grey">A simple numerical simulation of how the choice affects your net worth.</p>
+</header>
 <hr />
 <p>
 	To buy or to rent? On the face of it, it seems straightforward. Renting means
@@ -89,7 +120,7 @@
 <h2>Buying Bob</h2>
 <p>
 	Bob uses his starting capital as a downpayment to purchase a house valued at
-	<FormattedNumberInput bind:value="{housePrice}" wide={true}  />. The purchase
+	<FormattedNumberInput bind:value="{housePrice}" wide={true} />. The purchase
 	incurs a one-off cost of
 	<FormattedNumberInput bind:value="{oneOffCost}" wide={true} />
 	(or {d3.format(".0%")(oneOffCost / housePrice)} of the house price) in property
@@ -97,19 +128,19 @@
 	{format(computeLoan(housePrice, oneOffCost, downPayment))} to fund his purchase.
 </p>
 <p>Bob's regular outgoings break down as follows:</p>
-<table class="half-table">
+<table><tbody>
 	<tr>
 		<td>Interest on the loan</td>
-		<td><input type="number" style="text-align: right; width: 3em" bind:value="{interest}" />% per year</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />% per year</td>
 	</tr>
 	<tr>
 		<td>Amortization of the loan</td>
-		<td><input type="number" style="text-align: right; width: 3em" bind:value="{amortization}" />% per year</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{amortization}" />% per year</td>
 	</tr>
 	<tr>
 		<td>Costs proportional to the house value such as property tax</td>
 		<td>
-			<input type="number" style="text-align: right; width: 3em" bind:value="{proportionalCost}" />% of the
+			<input type="number" style="text-align: right; width: 4em" bind:value="{proportionalCost}" />% of the
 			value of the house per year
 		</td>
 	</tr>
@@ -121,36 +152,35 @@
 			the house per year
 		</td>
 	</tr>
-</table>
+</tbody></table>
 <h2>Inflation and growth</h2>
 <p>
 	Over time, prices in the market will fluctuate. There are four that we suppose are
 	important for our model:
 </p>
-<table class="half-table">
+<table><tbody>
 	<tr>
 		<td>Stock market growth</td>
-		<td>
-			<input type="number" style="text-align: right; width: 3em" bind:value="{stockMarketGain}" />% per year.
-		</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per year<a href="#footnote1"><sup>1</sup></a></td>
+
 	</tr>
 	<tr>
 		<td>House price growth</td>
-		<td><input type="number" style="text-align: right; width: 3em" bind:value={housePriceGain} />% per year</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per year<a href="#footnote2"><sup>2</sup></a></td>
 	</tr>
 	<tr>
 		<td>Rent inflation</td>
-		<td><input type="number" style="text-align: right; width: 3em" bind:value="{rentGain}" />% per year</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per year<a href="#footnote3"><sup>3</sup></a></td>
 	</tr>
 	<tr>
 		<td>Inflation of Bob's fixed costs</td>
-		<td><input type="number" style="text-align: right; width: 3em" bind:value="{fixedCostGain}" />% per year</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per year<a href="#footnote4"><sup>4</sup></a></td>
 	</tr>
-</table>
+</tbody></table>
 
 <p>
 	We tax capital gains on the stock market at
-	<input type="number" style="text-align: right; width: 3em" bind:value="{capitalGainsTax}" />% per year. House price
+	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per year.<a href="#footnote5"><sup>5</sup></a> House price
 	growth is not taxed (annual property tax is included in the proportional costs of
 	the previous section).
 </p>
@@ -162,35 +192,42 @@
 	<i>average month</i> in the the first year. For ease of reading, all numbers are
 	displayed to two significant figures:
 </p>
-<table style="margin-left: auto; margin-right: auto">
-	<tr>
-		<th colspan="2" style="border: 1px solid black" class="pink">
-			Bob
-		</th>
-		<th colspan="2" style="border: 1px solid black; border-left: 1px solid black" class="pink">
-			Rachel
-		</th>
-	</tr>
+<table>
+	<thead>
+		<tr>
+			<th colspan="2">
+				Bob
+			</th>
+			<th colspan="2">
+				Rachel
+			</th>
+		</tr>
+	</thead>
+
 	{#if cash}
 		{@const tableData = constructCashTableData(cash)}
+		<tbody>
 		{#each tableData as row}
 		<tr>
-			<td style="border-left: 1px solid black">{#if row[0]}{capitalise(row[0].category)}{/if}</td>
+			<td>{#if row[0]}{capitalise(row[0].category)}{/if}</td>
 			<td style="text-align: right">{#if row[0]}{format(-row[0].amount)}{/if}</td>
-			<td style="border-left: 1px solid black">{#if row[1]}{capitalise(row[1].category)}{/if}</td>
-			<td style="border-right: 1px solid black; text-align: right">{#if row[1]}{format(-row[1].amount)}{/if}</td>
+			<td>{#if row[1]}{capitalise(row[1].category)}{/if}</td>
+			<td style="text-align: right">{#if row[1]}{format(-row[1].amount)}{/if}</td>
 		</tr>
 		{/each}
-		<tr class="pink">
-			<td style="border: 1px solid black; border-right: 0px"></td>
-			<td style="font-weight: bold; border: 1px solid black; border-left: 0px; text-align: right">
-				{format(-tableData.totals[0])}
-			</td>
-			<td style="border: 1px solid black; border-right: 0px"></td>
-			<td style="font-weight: bold; border: 1px solid black; border-left: 0px; text-align: right">
-				{format(-tableData.totals[1])}
-			</td>
-		</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td>Total</td>
+				<td style="text-align: right">
+					{format(-tableData.totals[0])}
+				</td>
+				<td>Total</td>
+				<td style="text-align: right">
+					{format(-tableData.totals[1])}
+				</td>
+			</tr>
+		</tfoot>
 	{/if}
 </table>
 
@@ -201,7 +238,7 @@
 	lying around than Bob. That's advantageous to her because she's able to invest it in
 	the stock market and cream off a return. Let's assume that's exactly what she does.
 </p>
-<h2>Results</h2>
+<h2>Results: what is the effect on net worth?</h2>
 <p>
 	Now that we've built our model, let's see what pops out. What we are really
 	interested in is not cash per se, but rather <b>net worth</b>. Specifically, we would like
@@ -261,69 +298,123 @@
 	Note that we don't include amortisation in the net worth figures, since this is a
 	straight transfer of a cash asset into a property asset.
 </p>
-<p>
-	Rachel's situation is simpler. In the beginning her net worth, or rather her net
-	worth <i>relative to Bob</i>, simply decreases due to rent. However, over time she
-	starts receiving handsome yields from her extra spare income relative to Bob.
-</p>
 
 <!-- Change in net worth each year -->
 {#if netWorth}
 	{@const d = netWorthChartData(netWorth)}
-	{#each d.data as [model, data]}
 	<div>
-		<h5 class="plotTitle">Breakdown of annual change in net worth for {capitalise(model)}</h5>
-		<PlotContainer options={{
-			color: {
-				type: "categorical",
-				legend: true,
-				range: model === "rachel" ? d3.schemeCategory10
-				.slice().reverse() : d3.schemeCategory10
-
-			},
-			style: plotStyle,
-			marginLeft: 60,
-			marginTop: 10,
-    		marginBottom: 50,
-			x: {
-				label: "Year",
-				// Here we hide the tick every other year. The "ticks" option seems to
-				// be ignored for bar plots :/
-				tickFormat: y => y % 2 ? "" : y
-			},
-			y: { tickFormat: "s", domain: d.domainY },
-			marks: [
-				Plot.barY(
-					data,
-					{ x: "year", y: "amount", fill: "category"}
-				),
-				Plot.ruleY([0], { stroke: "grey" }),
-			],
-			 }}
-		/>
+		<h5 class="plotTitle">Breakdown of annual change in net worth for Bob</h5>
+		<NetWorthChart data={d.bobData} domainY={d.domainY} />
 	</div>
-	{/each}
+
+	<p>
+		Rachel's situation is simpler. In the beginning her net worth, or rather her net
+		worth <i>relative to Bob</i>, simply decreases due to rent. However, over time she
+		starts receiving handsome yields from her extra spare income relative to Bob.
+	</p>
+
+	<div>
+		<h5 class="plotTitle">Breakdown of annual change in net worth for Rachel</h5>
+		<NetWorthChart data={d.rachelData} domainY={d.domainY} reversed={true} />
+	</div>
 {/if}
 
-<h2>How sensitive is the model to its inputs?</h2>
+<h2>Which parameters have the biggest impact?</h2>
 <p>
-	The first question we might ask is how sensitive the model is to variations in the
-	input values. The key outcome is the number of years it takes for buying to be more
-	financially advantageous than renting. A simple way to test the sensitivity of the
-	model is to take each parameter in turn and modify it by plus or minus ten percent,
-	and see how much the outcome changes.
+	We now ask how sensitive the model is to variations in the input values. The key
+	outcome is <i>the number of years it takes for buying to be more financially
+	advantageous than renting</i>, if that even occurs. A simple way to test the
+	sensitivity of the model is to take each parameter in turn. modify it by plus or
+	minus ten percent, and see how much the outcome changes.
 </p>
 
-<h2>Is this model realistic?</h2>
-<p>
-	We now ask two questions. Firstly, is this above model realistic? And secondly, are
-	the parameter values realistic?
-</p>
-<p>
-	Let's start with the parameters
-</p>
-
+<div>
+	<h5 class="plotTitle">
+		Effect on model outcome of changing input parameters
+	</h5>
+	<PlotContainer options={{
+		style: plotStyle,
+		color: { legend: true, range: ["#F98159", "#9DD554"] },
+		marginLeft: 140,
+		marginBottom: 50,
+		x: {
+			label: "Years until net worth from buying exceeds that of renting",
+		},
+		y: { tickFormat: camelToWord, label: "" },
+		marks: [
+			Plot.ruleX([sensitivityBase], { stroke: "grey" }),
+			Plot.barX(
+				sensitivityData,
+				{ x1: sensitivityBase, x: "value", y: "parameter", fill: "modification", insetTop: 6, insetBottom: 6, insetLeft: 2, insetRight: 2},
+			),
+			Plot.dot(
+				sensitivityData,
+				{ x: "value", y: "parameter", fill: "modification", r: 5},
+			)
+		],
+		 }}
+	/>
 </div>
+
+<hr style="margin-top: 100px" />
+
+<p class="footnote">
+	<!-- Stock Market Gain -->
+	<a id="footnote1"><sup>1</sup></a> We take the S&P 500 to be representative of the
+	stock market. This index saw a growth of 40% over the last five years, which is
+	about 7% per year.
+</p>
+
+<p class="footnote">
+	<!-- House Price Gain -->
+	<a id="footnote2"><sup>2</sup></a> The German house price index in August 2022 was
+	223 (2005=100). This is a 123% increase in 17.7 years, or around 4.6% per year.
+</p>
+
+<p class="footnote">
+	<!-- rent gain -->
+	<a id="footnote3"><sup>3</sup></a> The Genesis-Online system of DeStatis reports the
+	consumer price index for CC13-041 (rentals) was 108.4 in 2021 (2015=100). This is an
+	8.4% increase in six years, or around 1.4% per year. Technically this does not
+	include heating costs, but we just ignore this and pretend it does.
+</p>
+
+<p class="footnote">
+	<!-- Fixed Cost Gain -->
+	<a id="footnote4"><sup>4</sup></a> The Genesis-Online system of DeStatis reports the
+	consumer price index for CC13-044 (maintenance and repair of the dwelling) as 117.4
+	in 2021 (2015=100). This is a 17.4% increase in six years, or around 2.7% per year.
+</p>
+
+<p class="footnote">
+	<!-- Capital Gains Tax -->
+	<a id="footnote5"><sup>5</sup></a> Tax on capital gains in Germany is approximately 26%. There is a tax-free allowance,
+	but for simplicity we do not include this.
+</p>
+
+<p class="footnote">
+	<!-- Down Payment -->
+</p>
+
+<p class="footnote">
+	<!-- One-Off Cost -->
+</p>
+
+<p class="footnote">
+	<!-- Interest -->
+</p>
+
+<p class="footnote">
+	<!-- Amortization -->
+</p>
+
+<p class="footnote">
+	<!-- Fixed Cost -->
+</p>
+
+<p class="footnote">
+	<!-- Proportional Cost -->
+</p>
 
 <style>
 	@font-face {
@@ -334,19 +425,13 @@
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
-	#content {
-		line-height: 1.7;
-		font-family: Gelasio, Georgia, serif;
-
-		/* centered */
-		max-width: 560px;
-		margin-left: auto;
-		margin-right: auto;
+	.footnote {
+		font-size: smaller
 	}
 
 	.plotTitle{
 		text-align: center;
-		margin-bottom: 0px;
+		margin-bottom: 0;
 	}
 
 	/* all tables have a bit of padding */
@@ -358,16 +443,6 @@
 
 	.pink {
 		background-color: GhostWhite;
-	}
-
-	/* two-column table where each table is half the width of the page */
-	.half-table { width: 100%; border: 1px solid gainsboro; }
-	.half-table > tr > th { border: 1px solid gainsboro; }
-	.half-table > tr > td {
-		border: 1px solid gainsboro;
-		width: 50%;
-		padding-left: 5px;
-		padding-right: 5px;
 	}
 
 	/* hide arrows on input */
