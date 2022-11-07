@@ -8,7 +8,7 @@
 
 	// helper objects --------------------------------------------------------------- //
 	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
-	const formatIntersection = d => `${Math.abs(d[0]) < 0.1 ? 0 : d[0].toFixed(1)} years`;
+	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const capitalise = string =>
 		string ? (string.charAt(0).toUpperCase() + string.slice(1)) : string;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "15px", overflow: true, background: "transparent" };
@@ -24,7 +24,7 @@
 	let downPayment = parameterDefaults.downPayment;
 	let oneOffCost = parameterDefaults.oneOffCost;
 	let interest = parameterDefaults.interest;
-	let amortization = parameterDefaults.amortization;
+	let amortisation = parameterDefaults.amortisation;
 	let fixedCost = parameterDefaults.fixedCost;
 	let fixedCostGain = parameterDefaults.fixedCostGain;
 	let proportionalCost = parameterDefaults.proportionalCost;
@@ -33,7 +33,7 @@
 	let netWorth, cash;
 	$: {
 		[netWorth, cash] = simulate(
-			amortization,
+			amortisation,
 			capitalGainsTax,
 			downPayment,
 			fixedCostGain,
@@ -53,43 +53,40 @@
 	// results of sensitivity analysis
 	const sensitivityBase = 8.718017178214817;
 	const sensitivityData = [
-	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 7.6443199153483885},
-	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 10.349869227763095},
-	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 16.431609878339145},
-	  {"parameter": "rent", "modification": "Increase by 20%", "value": 4.932022458697653},
-	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 9.035961716021573},
-	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 8.437096851276502},
-	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 6.2556627157217575},
-	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 11.504965844448627},
 	  {"parameter": "housePriceGain", "modification": "Decrease by 20%", "value": 24.65521883522328},
 	  {"parameter": "housePriceGain", "modification": "Increase by 20%", "value": 5.025395666258443},
-	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 9.906460606878042},
-	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 7.631987762635039},
-	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
-	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 10.335370055798478},
+	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 16.431609878339145},
+	  {"parameter": "rent", "modification": "Increase by 20%", "value": 4.932022458697653},
 	  {"parameter": "interest", "modification": "Decrease by 20%", "value": 5.784751891333453},
 	  {"parameter": "interest", "modification": "Increase by 20%", "value": 12.971362995486418},
-	  {"parameter": "amortization", "modification": "Decrease by 20%", "value": 8.083547902334809},
-	  {"parameter": "amortization", "modification": "Increase by 20%", "value": 9.337558364441904},
-	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 6.793252874084687},
-	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 11.416614337430197},
-	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.493024914230151},
-	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.979151913771023},
+	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 6.2556627157217575},
+	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 11.504965844448627},
 	  {"parameter": "proportionalCost", "modification": "Decrease by 20%", "value": 6.896937613100356},
 	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 11.548767674084452},
+	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 6.793252874084687},
+	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 11.416614337430197},
+	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
+	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 10.335370055798478},
+	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 7.6443199153483885},
+	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 10.349869227763095},
+	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 9.906460606878042},
+	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 7.631987762635039},
+	  {"parameter": "amortisation", "modification": "Decrease by 20%", "value": 8.083547902334809},
+	  {"parameter": "amortisation", "modification": "Increase by 20%", "value": 9.337558364441904},
+	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 9.035961716021573},
+	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 8.437096851276502},
+	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.493024914230151},
+	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.979151913771023},
 	];
-
-
 
 </script>
 
 <header>
-<span><a href="/">Back</a></span>
 	<hgroup>
 		<h2>Renting versus buying</h2>
 		<h3>November 2022</h3>
 	</hgroup>
-	<p class="secondary">A simple numerical simulation of how the choice affects your net worth.</p>
+	<p style="color: var(--muted-color)">A simple numerical simulation of how the choice affects your net worth.</p>
 </header>
 <hr />
 <p>
@@ -137,8 +134,8 @@
 		<td><input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />% per year</td>
 	</tr>
 	<tr>
-		<td>Amortization of the loan</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{amortization}" />% per year</td>
+		<td>Amortisation of the loan</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{amortisation}" />% per year</td>
 	</tr>
 	<tr>
 		<td>Costs proportional to the house value such as property tax</td>
@@ -164,26 +161,26 @@
 <table><tbody>
 	<tr>
 		<td>Stock market growth</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per year<a href="#footnote1"><sup>1</sup></a></td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per year<a href="#footnote1"><sup id="footnote1-return">1</sup></a></td>
 
 	</tr>
 	<tr>
 		<td>House price growth</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per year<a href="#footnote2"><sup>2</sup></a></td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per year<a href="#footnote2"><sup id="footnote2-return">2</sup></a></td>
 	</tr>
 	<tr>
 		<td>Rent inflation</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per year<a href="#footnote3"><sup>3</sup></a></td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per year<a href="#footnote3"><sup id="footnote3-return">3</sup></a></td>
 	</tr>
 	<tr>
 		<td>Inflation of Bob's fixed costs</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per year<a href="#footnote4"><sup>4</sup></a></td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per year<a href="#footnote4"><sup id="footnote4-return">4</sup></a></td>
 	</tr>
 </tbody></table>
 
 <p>
 	We tax capital gains on the stock market at
-	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per year.<a href="#footnote5"><sup>5</sup></a> House price
+	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per year.<a href="#footnote5"><sup id="footnote5-return">5</sup></a> House price
 	growth is not taxed (annual property tax is included in Bob's proportional costs).
 </p>
 
@@ -259,7 +256,7 @@
 		{:else}
 		<p>
 			Our model says that your net worth is indeed greater and that it is so
-			after <u>{formatIntersection(data.intersection)}</u>:
+			after <u>{formatIntersection(data.intersection[0])}</u>:
 		</p>
 		{/if}
 	<div>
@@ -282,7 +279,7 @@
 					data.intersection == null ? [] :
 					[
 						Plot.dot([data.intersection], {fill: "#7fc97f", "stroke": "#2ca02c", r: 5}),
-						Plot.text([data.intersection], {text: formatIntersection, dy: -15})
+						Plot.text([data.intersection], {text: d => formatIntersection(d[0]), dy: -15})
 					]
 				)
 			]
@@ -326,10 +323,15 @@
 	We now ask how sensitive the model is to variations in the input values. The key
 	outcome is <i>the number of years it takes for buying to be more financially
 	advantageous than renting</i>, if that even occurs. A simple way to test the
-	sensitivity of the model is to take each parameter in turn. modify it by plus or
-	minus ten percent, and see how much the outcome changes.
+	sensitivity of the model is to take each parameter in turn, modify it by plus or
+	minus some proportion, and see how much the outcome changes.
 </p>
 
+<p>
+	In the plot below we chose a set of parameters which made buying more
+	attractive than renting after {formatIntersection(sensitivityBase)}, and then
+	varied by plus or minus twenty percent.
+</p>
 <div>
 	<h5 class="plotTitle">
 		Effect on model outcome of changing input parameters
@@ -342,7 +344,7 @@
 		x: {
 			label: "Years until net worth from buying exceeds that of renting",
 		},
-		y: { tickFormat: camelToWord, label: "" },
+		y: { tickFormat: camelToWord, label: "", domain: sensitivityData.map(d => d.parameter) },
 		marks: [
 			Plot.ruleX([sensitivityBase], { stroke: "grey" }),
 			Plot.barX(
@@ -375,7 +377,7 @@
 	<!-- Stock Market Gain -->
 	<a id="footnote1"><sup>1</sup></a> We take the S&P 500 to be representative of the
 	stock market. This index saw a growth of 40% over the last five years, which is
-	about 7% per year.
+	about 7% per year. <a href="#footnote1-return">&#8617;</a>
 </p>
 
 <p class="footnote">
@@ -384,7 +386,8 @@
 	223 (2005=100). This is a 123% increase in 17.7 years, or around 4.6% per year.
 	This is a pretty optimistic view from the perspective of 2022: a
 	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
-	survey by Reuters</a> predicted 3% for 2023 and 2% for 2024.
+		survey by Reuters</a> predicted 3% for 2023 and 2% for 2024.
+	<a href="#footnote2-return">&#8617;</a>
 </p>
 
 <p class="footnote">
@@ -393,6 +396,7 @@
 	consumer price index for CC13-041 (rentals) was 108.4 in 2021 (2015=100). This is an
 	8.4% increase in six years, or around 1.4% per year. Technically this does not
 	include heating costs, but we just ignore this and pretend it does.
+	<a href="#footnote3-return">&#8617;</a>
 </p>
 
 <p class="footnote">
@@ -400,12 +404,14 @@
 	<a id="footnote4"><sup>4</sup></a> The Genesis-Online system of DeStatis reports the
 	consumer price index for CC13-044 (maintenance and repair of the dwelling) as 117.4
 	in 2021 (2015=100). This is a 17.4% increase in six years, or around 2.7% per year.
+	<a href="#footnote4-return">&#8617;</a>
 </p>
 
 <p class="footnote">
 	<!-- Capital Gains Tax -->
-	<a id="footnote5"><sup>5</sup></a> Tax on capital gains in Germany is approximately 26%. There is a tax-free allowance,
-	but for simplicity we do not include this.
+	<a id="footnote5"><sup>5</sup></a> Tax on capital gains in Germany is approximately
+	26%. There is a tax-free allowance, but for simplicity we do not include this.
+	 <a href="#footnote5-return">&#8617;</a>
 </p>
 
 <p class="footnote">
@@ -421,7 +427,7 @@
 </p>
 
 <p class="footnote">
-	<!-- Amortization -->
+	<!-- Amortisation -->
 </p>
 
 <p class="footnote">

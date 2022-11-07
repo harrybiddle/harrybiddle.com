@@ -5,7 +5,7 @@ export function computeLoan(housePrice, oneOffCost, downPayment) {
 }
 
 export function simulate(
-	amortization,
+	amortisation,
 	capitalGainsTax,
 	downPayment,
 	fixedCostGain,
@@ -21,7 +21,7 @@ export function simulate(
 	stockMarketGain
 ) {
 	return _simulate(
-		amortization / 100,
+		amortisation / 100,
 		capitalGainsTax / 100,
 		downPayment,
 		fixedCostGain / 100,
@@ -39,7 +39,7 @@ export function simulate(
 }
 
 export function _simulate(
-	amortization,
+	amortisation,
 	capitalGainsTax,
 	downPayment,
 	fixedCostGain,
@@ -68,15 +68,15 @@ export function _simulate(
 	});
 
 	// bob starts with a house, a loan, and no stocks
-	netWorth.push(Row(0, 'bob', 'initial capital', downPayment));
-	netWorth.push(Row(0, 'bob', 'one off costs', -oneOffCost));
+	netWorth.push(Row(0, 'bob', 'Initial Capital', downPayment));
+	netWorth.push(Row(0, 'bob', 'Purchase Costs', -oneOffCost));
 	let bobLoan = computeLoan(housePrice, oneOffCost, downPayment);
 	let bobStocks = 0;
 	let bobHouse = housePrice;
 	let _fixedCost = fixedCost;
 
 	// rachel's starts with stocks
-	netWorth.push(Row(0, 'rachel', 'initial capital', downPayment));
+	netWorth.push(Row(0, 'rachel', 'Initial Capital', downPayment));
 	let rachelStocks = downPayment;
 	let _rent = rent;
 
@@ -90,19 +90,20 @@ export function _simulate(
 			let before = rachelStocks;
 			rachelStocks = Math.max(0, rachelStocks * (1 + stockMarketGain));
 			let growth = rachelStocks - before;
-			netWorth.push(Row(y, 'rachel', 'stock market growth', growth));
 
 			// pays tax on positive stock market growth
 			let tax = Math.max(0, growth) * capitalGainsTax;
 			rachelOutgoings += tax;
-			netWorth.push(Row(y, 'rachel', 'stock market tax', -tax));
-			cash.push(Row(y, 'rachel', 'stock market tax', -tax));
+			cash.push(Row(y, 'rachel', 'Stock Market Tax', -tax));
+
+			// add post-tax quantity to net worth
+			netWorth.push(Row(y, 'rachel', 'Stock Market', growth - tax));
 		}
 
 		// pays rent
 		rachelOutgoings += _rent;
-		netWorth.push(Row(y, 'rachel', 'rent', -_rent));
-		cash.push(Row(y, 'rachel', 'rent', -_rent));
+		netWorth.push(Row(y, 'rachel', 'Rent', -_rent));
+		cash.push(Row(y, 'rachel', 'Rent', -_rent));
 
 		// Bob pre-income
 		/* ------------------------------------------------------------------------------ */
@@ -113,13 +114,14 @@ export function _simulate(
 			let before = bobStocks;
 			bobStocks = Math.max(0, bobStocks * (1 + stockMarketGain));
 			let growth = bobStocks - before;
-			netWorth.push(Row(y, 'bob', 'stock market growth', growth));
 
 			// pays tax on positive stock market growth
 			let tax = Math.max(0, growth) * capitalGainsTax;
 			bobOutgoings += tax;
-			netWorth.push(Row(y, 'bob', 'stock market tax', -tax));
-			cash.push(Row(y, 'bob', 'stock market tax', -tax));
+			cash.push(Row(y, 'bob', 'Stock Market Tax', -tax));
+
+			// add post-tax quantity to net worth
+			netWorth.push(Row(y, 'bob', 'Stock Market', growth - tax));
 		}
 
 		// house price grows
@@ -127,30 +129,30 @@ export function _simulate(
 			let before = bobHouse;
 			bobHouse = Math.max(0, bobHouse * (1 + housePriceGain));
 			let growth = bobHouse - before;
-			netWorth.push(Row(y, 'bob', 'house growth', growth));
+			netWorth.push(Row(y, 'bob', 'House Growth', growth));
 		}
 
 		// pays interest
 		let i = bobLoan * interest;
 		bobOutgoings += i;
-		netWorth.push(Row(y, 'bob', 'interest', -i));
-		cash.push(Row(y, 'bob', 'interest', -i));
+		netWorth.push(Row(y, 'bob', 'Interest', -i));
+		cash.push(Row(y, 'bob', 'Interest', -i));
 
-		// pays amortization (note, does not affect net worth!)
-		let a = bobLoan * amortization;
+		// pays amortisation (note, does not affect net worth!)
+		let a = bobLoan * amortisation;
 		bobOutgoings += a;
 		bobLoan -= a;
-		cash.push(Row(y, 'bob', 'amortization', -a));
+		cash.push(Row(y, 'bob', 'Amortisation', -a));
 
 		// pays fixed and proportional costs
 		bobOutgoings += _fixedCost;
-		netWorth.push(Row(y, 'bob', 'fixed costs', -_fixedCost));
-		cash.push(Row(y, 'bob', 'fixed costs', -_fixedCost));
+		netWorth.push(Row(y, 'bob', 'Fixed Costs', -_fixedCost));
+		cash.push(Row(y, 'bob', 'Fixed Costs', -_fixedCost));
 
 		let _proportionalCost = proportionalCost * bobHouse;
 		bobOutgoings += _proportionalCost;
-		netWorth.push(Row(y, 'bob', 'proportional costs', -_proportionalCost));
-		cash.push(Row(y, 'bob', 'proportional costs', -_proportionalCost));
+		netWorth.push(Row(y, 'bob', 'Proportional Costs', -_proportionalCost));
+		cash.push(Row(y, 'bob', 'Proportional Costs', -_proportionalCost));
 
 		// Income calculation
 		/* ------------------------------------------------------------------------------ */
@@ -159,11 +161,11 @@ export function _simulate(
 		// Investment of spare income
 		/* ------------------------------------------------------------------------------ */
 		let bobSpareIncome = income - bobOutgoings;
-		netWorth.push(Row(y, 'bob', 'spare income (invested)', bobSpareIncome));
+		netWorth.push(Row(y, 'bob', 'Spare Income', bobSpareIncome));
 		bobStocks += bobSpareIncome;
 
 		let rachelSpareIncome = income - rachelOutgoings;
-		netWorth.push(Row(y, 'rachel', 'spare income (invested)', rachelSpareIncome));
+		netWorth.push(Row(y, 'rachel', 'Spare Income', rachelSpareIncome));
 		rachelStocks += rachelSpareIncome;
 
 		// Inflation
@@ -179,8 +181,8 @@ export function calculateNetWorth(netWorth) {
 	// the net worth data is broken out per item. let's sum up the total amount per year
 	// and model
 	const changeInNetWorthPerModelAndYear = d3.rollup(
-		// the cumulative sum below relies on years being in order: let's do an extra sort
-		// to program defensively
+		// the cumulative sum below relies on years being in order: let's do a sort to
+		// guarantee this is the case
 		netWorth.sort((a, b) => d3.ascending(a.year, b.year)),
 		items => d3.sum(items, d => d.amount),
 		d => d.model,
@@ -291,10 +293,10 @@ export function netWorthChartData(netWorth) {
 
 	// first remove the entry for initial capital, since this isn't interesting for the
 	// comparison
-	const filtered = netWorth.filter(a => a.category !== 'initial capital');
+	const filtered = netWorth.filter(a => a.category !== 'Initial Capital');
 
-	// here we calculate the range of the y-axes. wew would  like the y-axis to be the
-	// same on both charts. So we need to calculate the extent of both stacked charts
+	// here we calculate the range of the y-axes. we need to calculate the extent of
+	// both models to ensure the y-axis is the same on both charts
 	const yAxisRange = d3.extent(
 		d3
 			.flatRollup(
@@ -326,7 +328,7 @@ export const parameterDefaults = {
 	downPayment: 90_000, // money, 20% of house price
 	oneOffCost: 60_000, // money
 	interest: 4, // percentage per year
-	amortization: 2, // percentage per year
+	amortisation: 2, // percentage per year
 	fixedCost: 630, // money per month
 	fixedCostGain: 2.7, // percentage per year
 	proportionalCost: 1.3 // percentage
