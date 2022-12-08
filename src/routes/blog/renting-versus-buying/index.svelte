@@ -5,13 +5,15 @@
 	import PlotContainer from './PlotContainer.svelte';
 	import NetWorthChart from './NetWorthChart.svelte';
 	import FormattedNumberInput from "./FormattedNumberInput.svelte";
+	import FootnoteTarget from "./FootnoteTarget.svelte";
+	import FootnoteSource from "./FootnoteSource.svelte";
 
 	// helper objects --------------------------------------------------------------- //
 	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const capitalise = string =>
 		string ? (string.charAt(0).toUpperCase() + string.slice(1)) : string;
-	const plotStyle = { fontFamily: "Gelasio", fontSize: "15px", overflow: true, background: "transparent" };
+	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 
 	// model parameters ------------------------------------------------------------- //
 	let maxYears = parameterDefaults.maxYears;
@@ -114,34 +116,42 @@
 <h2>Renting Rachel</h2>
 <p>
 	Rachel takes her starting capital and invests it in the stock market. She pays
-	<FormattedNumberInput bind:value="{rent}" /> per month in rent,
-	inclusive of all utilities and heating costs.
+	<FormattedNumberInput bind:value="{rent}" /> per month in
+	rent,<FootnoteSource i="1" /> inclusive of all utilities and heating costs.
 </p>
 <h2>Buying Bob</h2>
 <p>
-	Bob uses his starting capital as a downpayment to purchase a house valued at
-	<FormattedNumberInput bind:value="{housePrice}" wide={true} />. The purchase
-	incurs a one-off cost of
-	<FormattedNumberInput bind:value="{oneOffCost}" wide={true} />
-	(or {d3.format(".0%")(oneOffCost / housePrice)} of the house price) in property
-	transfer tax, notary fees, and so on. He takes out a loan of
-	{format(computeLoan(housePrice, oneOffCost, downPayment))} to fund his purchase.
+	Bob uses his starting capital as a downpayment<FootnoteSource i="2" /> to purchase a
+	house valued at
+	<FormattedNumberInput bind:value="{housePrice}" wide={true} />.<FootnoteSource i="3" />
+	The purchase incurs a one-off cost of
+	<FormattedNumberInput bind:value="{oneOffCost}" wide={true} /> (or
+	{d3.format(".0%")(oneOffCost / housePrice)} of the house
+	price)<FootnoteSource i="4" /> in property transfer tax, notary fees, and so on. He
+	takes out a loan of {format(computeLoan(housePrice, oneOffCost, downPayment))} to
+	fund his purchase.
 </p>
 <p>Bob's regular outgoings break down as follows:</p>
 <table><tbody>
 	<tr>
 		<td>Interest on the loan</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />% per year</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />%
+			per year<FootnoteSource i="5" />
+		</td>
 	</tr>
 	<tr>
 		<td>Amortisation of the loan</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{amortisation}" />% per year</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{amortisation}" />%
+			per year<FootnoteSource i="6" />
+		</td>
 	</tr>
 	<tr>
 		<td>Costs proportional to the house value such as property tax</td>
 		<td>
 			<input type="number" style="text-align: right; width: 4em" bind:value="{proportionalCost}" />% of the
-			value of the house per year
+			value of the house per year<FootnoteSource i="7" />
 		</td>
 	</tr>
 	<tr>
@@ -149,7 +159,7 @@
 		<td>
 			<FormattedNumberInput bind:value="{fixedCost}" /> per
 			month, or {d3.format(".1%")(12 * fixedCost / housePrice)} of the value of
-			the house per year
+			the house per year<FootnoteSource i="8" />
 		</td>
 	</tr>
 </tbody></table>
@@ -161,27 +171,40 @@
 <table><tbody>
 	<tr>
 		<td>Stock market growth</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per year<a href="#footnote1"><sup id="footnote1-return">1</sup></a></td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per
+			year<FootnoteSource i="9" />
+		</td>
 
 	</tr>
 	<tr>
 		<td>House price growth</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per year<a href="#footnote2"><sup id="footnote2-return">2</sup></a></td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per
+			year<FootnoteSource i="10" />
+		</td>
 	</tr>
 	<tr>
 		<td>Rent inflation</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per year<a href="#footnote3"><sup id="footnote3-return">3</sup></a></td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per
+			year<FootnoteSource i="11" />
+		</td>
 	</tr>
 	<tr>
 		<td>Inflation of Bob's fixed costs</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per year<a href="#footnote4"><sup id="footnote4-return">4</sup></a></td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per
+			year<FootnoteSource i="12" />
+		</td>
 	</tr>
 </tbody></table>
 
 <p>
 	We tax capital gains on the stock market at
-	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per year.<a href="#footnote5"><sup id="footnote5-return">5</sup></a> House price
-	growth is not taxed (annual property tax is included in Bob's proportional costs).
+	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per
+	year.<FootnoteSource i="13" /> House price growth is not taxed (annual property tax
+	is included in Bob's proportional costs).
 </p>
 
 <h2>What about income?</h2>
@@ -250,7 +273,7 @@
 	{@const data = calculateNetWorth(netWorth)}
 		{#if data.intersection == null}
 		<p>
-			Our model says that the net worth is never greater with in the first
+			Our model says that the net worth is never greater within the first
 			{maxYears} years.
 		</p>
 		{:else}
@@ -263,7 +286,7 @@
 		<h5 class="plotTitle">Net worth over time</h5>
 		<PlotContainer options={{
 			style: plotStyle,
-			color: { legend: true },
+			color: { legend: true, style: { fontSize: "17px" }, },
 			marginLeft: 60,
 			marginTop: 10,
     		marginBottom: 50,
@@ -338,8 +361,8 @@
 	</h5>
 	<PlotContainer options={{
 		style: plotStyle,
-		color: { legend: true, range: ["#F98159", "#9DD554"] },
-		marginLeft: 140,
+		color: { legend: true, range: ["#F98159", "#9DD554"], style: { fontSize: "17px" } },
+		marginLeft: 170,
 		marginBottom: 50,
 		x: {
 			label: "Years until net worth from buying exceeds that of renting",
@@ -373,70 +396,103 @@
 
 <hr style="margin-top: 100px" />
 
-<p class="footnote">
-	<!-- Stock Market Gain -->
-	<a id="footnote1"><sup>1</sup></a> We take the S&P 500 to be representative of the
-	stock market. This index saw a growth of 40% over the last five years, which is
-	about 7% per year. <a href="#footnote1-return">&#8617;</a>
-</p>
+<FootnoteTarget i="1">
+	<!-- Rent -->
+	The Genesis-Online system of DeStatis reports the number and total area of real
+	estate for Berlin (table 31231-0003) for the end of 2021, from which we can derive
+	an average living area of 73m². Statista reports an average monthly rent, which we
+	presume is inclusive of heating costs, of 12.78 €/m².
+</FootnoteTarget>
 
-<p class="footnote">
-	<!-- House Price Gain -->
-	<a id="footnote2"><sup>2</sup></a> The German house price index in August 2022 was
-	223 (2005=100). This is a 123% increase in 17.7 years, or around 4.6% per year.
-	This is a pretty optimistic view from the perspective of 2022: a
-	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
-		survey by Reuters</a> predicted 3% for 2023 and 2% for 2024.
-	<a href="#footnote2-return">&#8617;</a>
-</p>
-
-<p class="footnote">
-	<!-- rent gain -->
-	<a id="footnote3"><sup>3</sup></a> The Genesis-Online system of DeStatis reports the
-	consumer price index for CC13-041 (rentals) was 108.4 in 2021 (2015=100). This is an
-	8.4% increase in six years, or around 1.4% per year. Technically this does not
-	include heating costs, but we just ignore this and pretend it does.
-	<a href="#footnote3-return">&#8617;</a>
-</p>
-
-<p class="footnote">
-	<!-- Fixed Cost Gain -->
-	<a id="footnote4"><sup>4</sup></a> The Genesis-Online system of DeStatis reports the
-	consumer price index for CC13-044 (maintenance and repair of the dwelling) as 117.4
-	in 2021 (2015=100). This is a 17.4% increase in six years, or around 2.7% per year.
-	<a href="#footnote4-return">&#8617;</a>
-</p>
-
-<p class="footnote">
-	<!-- Capital Gains Tax -->
-	<a id="footnote5"><sup>5</sup></a> Tax on capital gains in Germany is approximately
-	26%. There is a tax-free allowance, but for simplicity we do not include this.
-	 <a href="#footnote5-return">&#8617;</a>
-</p>
-
-<p class="footnote">
+<FootnoteTarget i="2">
 	<!-- Down Payment -->
-</p>
+	A <a href="https://www.interhyp.de/medien/ueber-interhyp/presse/baufinanzierung-in-deutschland-2020-interhyp-studie.pdf">
+	study by InterHyp</a> in 2020 reports an average downpayment of 26% of the house value
+	in 2020.
+</FootnoteTarget>
 
-<p class="footnote">
+<FootnoteTarget i="3">
+	<!-- House price -->
+	<a href="https://www.immowelt.de/immobilienpreise/berlin">ImmoWelt reports an
+	average of 5,128 €/m² in Berlin</a>.
+</FootnoteTarget>
+
+<FootnoteTarget i="4">
 	<!-- One-Off Cost -->
-</p>
+	The one-off cost consists of 7.14% broker commission (<i>Maklerprovision</i>),
+	6% property transfer tax (<i>Grunderwerbssteuer</i>), 2% notary fees (<i>Notarkosten</i>),
+	and 0.5% for the land registry entry (<i>Grundbucheintrag</i>).
+</FootnoteTarget>
 
-<p class="footnote">
+<FootnoteTarget i="5">
 	<!-- Interest -->
-</p>
+	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
+	article by <i>Stiftung Warentest</i></a> from November 2022 reports a
+	fifteen-year fixed-rate interest of 3.89% for a loan of 80% of the house price.
+</FootnoteTarget>
 
-<p class="footnote">
+<FootnoteTarget i="6">
 	<!-- Amortisation -->
-</p>
+	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
+	article by <i>Stiftung Warentest</i></a> from November 2022 reports a typical
+	amortisation rate of 2%.
+</FootnoteTarget>
 
-<p class="footnote">
-	<!-- Fixed Cost -->
-</p>
-
-<p class="footnote">
+<FootnoteTarget i="7">
 	<!-- Proportional Cost -->
-</p>
+	The <a href="https://de.wikipedia.org/wiki/Grundsteuer_(Deutschland)#Berechnung_(Wert_%C3%97_Grundsteuermesszahl_%C3%97_Hebesatz)">
+	Wikipedia article on property tax in Germany</a> on contains details about the
+	calculation. We combine this with <a href="https://www.lexoffice.de/wissenswelt/gewerbesteuerhebesatz/berlin/#hebesatz-bb">
+	municipal tax values for Berlin</a> to arrive at a figure of 0.13%.
+</FootnoteTarget>
+
+<FootnoteTarget i="8">
+	<!-- Fixed Costs -->
+	The Berlin Senate Department for Urban Development and Housing published
+	<a href="https://www.stadtentwicklung.berlin.de/wohnen/betriebskosten/de/tabelle.shtml">
+	average utilities figures from 2017</a>, indicating a monthly sum of 2.29 €/m², if
+	we exclude proprety tax. To this number we apply a rough inflation figure
+	(table 61111-0004, variable CC13-04) of 22% from October 2017 to October 2022.
+</FootnoteTarget>
+
+<FootnoteTarget i="9">
+	<!-- Stock Market Gain -->
+	We take the S&P 500 to be representative of the stock market. This index saw a
+	growth of 40% over the last five years, which is about 7% per year.
+</FootnoteTarget>
+
+<FootnoteTarget i="10">
+	<!-- House Price Gain -->
+	The Genesis-Online system of DeStatis reports the
+	house price index (table 61262-0002) for Q2 2022 as 167.3 (Q2 2000 = 83.8). This is
+	a 199% increase in 22 years, or around 3.2% per year. This is a pretty optimistic
+	view from the perspective of 2022: a
+	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
+		survey by Reuters</a> predicted 2% for 2024.
+</FootnoteTarget>
+
+<FootnoteTarget i="11">
+	<!-- Rent Gain -->
+	The Genesis-Online system of DeStatis reports the
+	consumer price index (table 61111-0004) for rentals (variable CC13-0411) as 108.5 in
+	June 2021 (June 2015 = 100). This is an 8.5% increase in six years, or around 1.4%
+	per year. Technically this does not include heating costs, but we just ignore this
+	and pretend it does.
+</FootnoteTarget>
+
+<FootnoteTarget i="12">
+	<!-- Fixed Cost Gain -->
+	The Genesis-Online system of DeStatis reports the
+	consumer price index (table 61111-0004) for <i>maintenance and repair of the
+	dwelling</i> (variable CC13-043) as 118.1 in July 2021 (July 2015 = 100.1). This is
+	an 18.0% increase in six years, or 2.8% per year.
+</FootnoteTarget>
+
+<FootnoteTarget i="13">
+	<!-- Capital Gains Tax -->
+	Tax on capital gains in Germany is approximately
+	26%. There is a tax-free allowance, but for simplicity we do not include this.
+</FootnoteTarget>
 
 <style>
 	@font-face {
@@ -446,10 +502,6 @@
         src: local('Gelasio Regular'), local('Gelasio-Regular'), url(https://fonts.gstatic.com/s/gelasio/v1/cIf9MaFfvUQxTTqS9C6hYQ.woff2) format('woff2');
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
-
-	.footnote {
-		font-size: smaller
-	}
 
 	.plotTitle{
 		text-align: center;

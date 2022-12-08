@@ -317,21 +317,26 @@ export function netWorthChartData(netWorth) {
 	};
 }
 
+const twoSF = x => parseFloat(x.toPrecision(2));
+
+const areaM2 = 73;
+const housePrice = 5_128 * areaM2;
+
 export const parameterDefaults = {
 	maxYears: 30,
 	stockMarketGain: 7, // percentage per year
 	capitalGainsTax: 26, // percentage per year
-	rent: 1_600, // money per year
-	rentGain: 3, // percentage per year, from https://www.statista.com/statistics/1270341/rental-index-development-germany/
-	housePrice: 450_000, // money
-	housePriceGain: 4.6, // percentage per year, from https://www.statista.com/statistics/329715/house-price-index-in-germany/
-	downPayment: 90_000, // money, 20% of house price
-	oneOffCost: 60_000, // money
-	interest: 4, // percentage per year
+	rent: twoSF(12.78 * areaM2), // money per month
+	rentGain: 3, // percentage per year
+	housePrice: twoSF(housePrice), // money
+	housePriceGain: 3.2, // percentage per year
+	downPayment: twoSF(0.26 * housePrice), // money
+	oneOffCost: twoSF(0.1564 * housePrice), // money
+	interest: 3.89, // percentage per year
 	amortisation: 2, // percentage per year
-	fixedCost: 630, // money per month
-	fixedCostGain: 2.7, // percentage per year
-	proportionalCost: 1.3 // percentage
+	fixedCost: twoSF(2.29 * 1.22 * areaM2), // money per month
+	fixedCostGain: 2.8, // percentage per year
+	proportionalCost: 0.13 // percentage
 };
 
 export function camelToWord(text) {

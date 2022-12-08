@@ -13,11 +13,10 @@
 	color: {
 		type: "categorical",
 		legend: true,
-		range: reversed ? d3.schemeCategory10
-		.slice().reverse() : d3.schemeCategory10
-
+		range: reversed ? d3.schemeCategory10.slice().reverse() : d3.schemeCategory10,
+		style: { fontSize: "17px" },
 	},
-	style: { fontFamily: "Gelasio", fontSize: "15px", overflow: true, background: "transparent", },
+	style: { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent", },
 	marginLeft: 60,
 	marginTop: 10,
 	marginBottom: 50,
