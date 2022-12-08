@@ -22,9 +22,8 @@
 	marginBottom: 50,
 	x: {
 		label: "Year",
-		// Here we hide the tick every other year. The "ticks" option seems to
-		// be ignored for bar plots :/
-		tickFormat: y => y % 2 ? "" : y
+		// Here we hide some ticks. The "ticks" option seems to be ignored for bar plots :/
+		tickFormat: y => y % 5 ? "" : y
 	},
 	y: { tickFormat: "s", domain: domainY },
 	marks: [
