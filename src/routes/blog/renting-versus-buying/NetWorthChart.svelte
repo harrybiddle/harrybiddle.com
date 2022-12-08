@@ -8,7 +8,7 @@
     export let domainY = [];
 </script>
 
-<!-- prettier-ignore -->
+
 <PlotContainer options={{
 	color: {
 		type: "categorical",
