@@ -6,8 +6,6 @@
 		"build": "vite build",
 		"package": "svelte-kit package",
 		"preview": "vite preview",
-		"lint": "prettier --check --plugin-search-dir=. . && eslint .",
-		"format": "prettier --write --plugin-search-dir=. .",
 		"test": "mocha",
 		"sensitivity": "node src/routes/blog/renting-versus-buying/sensitivityAnalysis.js"
 	},
