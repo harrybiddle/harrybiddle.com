@@ -319,7 +319,7 @@ export function netWorthChartData(netWorth) {
 
 const twoSF = x => parseFloat(x.toPrecision(2));
 
-const areaM2 = 73;
+export const areaM2 = 73;
 const housePrice = 5_128 * areaM2;
 
 export const parameterDefaults = {

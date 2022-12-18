@@ -1,7 +1,7 @@
 <script>
 	import  * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
-	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan } from './simulation';
+	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan, areaM2 } from './simulation';
 	import PlotContainer from './PlotContainer.svelte';
 	import NetWorthChart from './NetWorthChart.svelte';
 	import FormattedNumberInput from "./FormattedNumberInput.svelte";
@@ -110,8 +110,10 @@
 	<FormattedNumberInput wide={true} bind:value={downPayment} /> cash in the bank.
 </p>
 <p>
-	(By the way, all of the parameters to this model are in text boxes. Feel free to edit
-	them to match your own situation, or just out of curiosity to see what happens!)
+	The default parameters are based onbuying versus renting a {areaM2}m&#178 freehold
+	property in Berlin, Germany. However, all of the parameters to this model are
+	adjustable: feel free to edit them to match your own situation, or just out of
+	curiosity to see what happens!
 </p>
 <h2>Renting Rachel</h2>
 <p>
