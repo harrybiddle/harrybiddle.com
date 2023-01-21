@@ -71,6 +71,7 @@ export function _simulate(
 	netWorth.push(Row(0, 'bob', 'Initial Capital', downPayment));
 	netWorth.push(Row(0, 'bob', 'Purchase Costs', -oneOffCost));
 	let bobLoan = computeLoan(housePrice, oneOffCost, downPayment);
+	let bobMortgagePayment = (interest + amortisation) * bobLoan;
 	let bobStocks = 0;
 	let bobHouse = housePrice;
 	let _fixedCost = fixedCost;
@@ -132,17 +133,19 @@ export function _simulate(
 			netWorth.push(Row(y, 'bob', 'House Growth', growth));
 		}
 
-		// pays interest
-		let i = bobLoan * interest;
-		bobOutgoings += i;
-		netWorth.push(Row(y, 'bob', 'Interest', -i));
-		cash.push(Row(y, 'bob', 'Interest', -i));
+		if (bobLoan > 0) {
+			// pays interest
+			let i = bobLoan * interest;
+			bobOutgoings += i;
+			netWorth.push(Row(y, 'bob', 'Interest', -i));
+			cash.push(Row(y, 'bob', 'Interest', -i));
 
-		// pays amortisation (note, does not affect net worth!)
-		let a = bobLoan * amortisation;
-		bobOutgoings += a;
-		bobLoan -= a;
-		cash.push(Row(y, 'bob', 'Amortisation', -a));
+			// pays amortisation (note, does not affect net worth!)
+			let a = Math.min(bobLoan, bobMortgagePayment - i);
+			bobOutgoings += a;
+			bobLoan -= a;
+			cash.push(Row(y, 'bob', 'Amortisation', -a));
+		}
 
 		// pays fixed and proportional costs
 		bobOutgoings += _fixedCost;
@@ -319,7 +322,7 @@ export function netWorthChartData(netWorth) {
 
 const twoSF = x => parseFloat(x.toPrecision(2));
 
-export const areaM2 = 73;
+export const areaM2 = 73;  // UK: 90 m2
 const housePrice = 5_128 * areaM2;
 
 export const parameterDefaults = {

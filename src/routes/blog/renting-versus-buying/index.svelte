@@ -404,6 +404,14 @@
 	estate for Berlin (table 31231-0003) for the end of 2021, from which we can derive
 	an average living area of 73m². Statista reports an average monthly rent, which we
 	presume is inclusive of heating costs, of 12.78 €/m².
+	{#if false}
+		A <a href="https://www.gov.uk/government/publications/floor-space-in-english-homes">
+		report in 2018 on typical floor space</a> roughly maps 90 m² to a three-bedroom dwelling.
+		Data on <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/privaterentalmarketsummarystatisticsinengland">
+		median monthly rental prices for the private rental market</a> reports that a
+		three-bedroom dwelling in Cambridge in September 2022 had a median rental
+		price of £1,450 per month.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="2">
@@ -411,12 +419,25 @@
 	A <a href="https://www.interhyp.de/medien/ueber-interhyp/presse/baufinanzierung-in-deutschland-2020-interhyp-studie.pdf">
 	study by InterHyp</a> in 2020 reports an average downpayment of 26% of the house value
 	in 2020.
+	{#if false}
+		UK Finance publishes <a href="https://www.ukfinance.org.uk/data-and-research/data/mortgages/lending-trends">
+		data on mortgage trends</a>, which shows that the average downpayment for
+		first-time buyers in 2019 was 23% of the property value.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="3">
 	<!-- House price -->
 	<a href="https://www.immowelt.de/immobilienpreise/berlin">ImmoWelt reports an
 	average of 5,128 €/m² in Berlin</a>.
+	{#if false}
+		<a href="https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/housepricepersquaremetreandhousepriceperroomenglandandwales">
+		Data on house price by size of property</a> reveals that the average property
+		in Cambridge cost 4,743 £/m² in 2016. We multiply that by a growth of 26.8% for
+		houses in Cambridge from January 2017 to October 2022, derived from the
+		<a href="https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-october-2022">
+		UK House Price Index</a>.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="4">
@@ -424,6 +445,10 @@
 	The one-off cost consists of 7.14% broker commission (<i>Maklerprovision</i>),
 	6% property transfer tax (<i>Grunderwerbssteuer</i>), 2% notary fees (<i>Notarkosten</i>),
 	and 0.5% for the land registry entry (<i>Grundbucheintrag</i>).
+	{#if false}
+		The one-off cost consists of 0% stamp duty (assuming a first-time buyer
+		purchasing a house under £425,000), a £500 house survey and £1,300 legal fees.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="5">
@@ -431,6 +456,12 @@
 	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
 	article by <i>Stiftung Warentest</i></a> from November 2022 reports a
 	fifteen-year fixed-rate interest of 3.89% for a loan of 80% of the house price.
+	{#if false}
+		In November 2022,
+		<a href="https://moneyfacts.co.uk/news/mortgages/average-five-year-fixed-mortgage-rate-drops-below-6/">Money
+		Facts reported that the interest rate on an average five-year fixed mortgage was
+		5.95%.</a>
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="6">
@@ -438,6 +469,9 @@
 	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
 	article by <i>Stiftung Warentest</i></a> from November 2022 reports a typical
 	amortisation rate of 2%.
+	{#if false}
+
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="7">
@@ -471,6 +505,11 @@
 	view from the perspective of 2022: a
 	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
 		survey by Reuters</a> predicted 2% for 2024.
+	{#if false}
+		The <a href="https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-october-2022">
+		UK House Price Index</a>, filtered to Cambridge, shows a growth of 711%
+		from January 1995 to October 2022, or 7.52% per year.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="11">
@@ -480,6 +519,12 @@
 	June 2021 (June 2015 = 100). This is an 8.5% increase in six years, or around 1.4%
 	per year. Technically this does not include heating costs, but we just ignore this
 	and pretend it does.
+	{#if false}
+		The <a href="https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/indexofprivatehousingrentalpricesreferencetables">
+		UK Index of Private Housing Rental Prices</a> for the east of England was 85.4
+		in January 2005 and 120.5 in November 2022: a growth of 41.1% in 17.8 years,
+		or 1.95% per year.
+	{/if}
 </FootnoteTarget>
 
 <FootnoteTarget i="12">
