@@ -1,3 +1,8 @@
+<svelte:head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" integrity="sha512-csNcFYJniKjJxRWRV1R7fvnXrycHP6qDR21mgz1ZP55xY5d+aHLfo9/FcGDQLfn2IfngbAHd8LdfsagcCqgTcQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-SGWgwwRA8xZgEoKiex3UubkSkV1zSE1BS6O4pXcaxcNtUlQsOmOmhVnDwIvqGRfEmuz83tIGL13cXMZn6upPyg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</svelte:head>
+
 <script>
 	import  * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
@@ -81,6 +86,38 @@
 	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.979151913771023},
 	];
 
+	function downloadResultsAsCsv() {
+		const data = [
+			{
+				"Column 1": "1-1",
+				"Column 2": "1-2",
+				"Column 3": "1-3",
+				"Column 4": "1-4"
+			},
+			{
+				"Column 1": "2-1",
+				"Column 2": "2-2",
+				"Column 3": "2-3",
+				"Column 4": "2-4"
+			},
+			{
+				"Column 1": "3-1",
+				"Column 2": "3-2",
+				"Column 3": "3-3",
+				"Column 4": "3-4"
+			},
+			{
+				"Column 1": 4,
+				"Column 2": 5,
+				"Column 3": 6,
+				"Column 4": 7
+			}
+		];
+		const dataString = Papa.unparse(data);
+		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
+		saveAs(blob, "results.csv");
+	}
+
 </script>
 
 <header>
@@ -88,7 +125,9 @@
 		<h2>Renting versus buying</h2>
 		<h3>November 2022</h3>
 	</hgroup>
-	<p style="color: var(--muted-color)">A simple numerical simulation of how the choice affects your net worth.</p>
+	<p style="color: var(--muted-color)">
+		A simple numerical simulation of how the choice affects your net worth.
+	</p>
 </header>
 <hr />
 <p>
@@ -263,9 +302,9 @@
 <h2>Results</h2>
 <p>
 	Now that we've built our model, let's see what pops out. What we are really
-	interested in is not cash per se, but rather <b>net worth</b>. Specifically, we would like
-	to know: <i>is your net worth greater if you purchase a house than if you rent
-	one?</i> And if so, <i>after how many years?</i>
+	interested in is not cash per se, but rather <b>net worth</b>. Specifically, we
+	would like to know: <i>is your net worth greater if you purchase a house than if you
+	rent one?</i> And if so, <i>after how many years?</i>
 </p>
 
 <!-- Net worth comparison -->
@@ -339,6 +378,13 @@
 		<h5 class="plotTitle">Annual change in net worth for Rachel</h5>
 		<NetWorthChart data={d.rachelData} domainY={d.domainY} reversed={true} />
 	</div>
+{/if}
+
+{#if false}
+<p>
+	You can also <a target="_blank" on:click={downloadResultsAsCsv}>download the full
+	set of results as a CSV file.</a>
+</p>
 {/if}
 
 <h2>Which parameters have the biggest impact?</h2>
