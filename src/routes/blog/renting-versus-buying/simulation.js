@@ -67,16 +67,25 @@ export function _simulate(
 		amount
 	});
 
+	const NewRow = (year, model, category, subCategory, cashExpenditure, netWorthContributor, amount) => ({
+		year, model, category, subCategory, cashExpenditure, netWorthContributor, amount
+	});
+	let data = [];
+
 	// bob starts with a house, a loan, and no stocks
 	netWorth.push(Row(0, 'bob', 'Initial Capital', downPayment));
 	netWorth.push(Row(0, 'bob', 'Purchase Costs', -oneOffCost));
+	data.push(NewRow(0, "bob", "Income", "Initial Capital", false, true, downPayment));
+	data.push(NewRow(0, "bob", "Income", "Purchase Costs", false, true, -oneOffCost));
 	let bobLoan = computeLoan(housePrice, oneOffCost, downPayment);
+	let bobMortgagePayment = bobLoan * (amortisation +  interest);
 	let bobStocks = 0;
 	let bobHouse = housePrice;
 	let _fixedCost = fixedCost;
 
 	// rachel's starts with stocks
 	netWorth.push(Row(0, 'rachel', 'Initial Capital', downPayment));
+	data.push(NewRow(0, "rachel", "Income", "Initial Capital", false, true, downPayment));
 	let rachelStocks = downPayment;
 	let _rent = rent;
 
@@ -139,7 +148,10 @@ export function _simulate(
 		cash.push(Row(y, 'bob', 'Interest', -i));
 
 		// pays amortisation (note, does not affect net worth!)
-		let a = bobLoan * amortisation;
+		let a = Math.min(
+			bobLoan,
+			Math.max(0, bobMortgagePayment - i)
+		);
 		bobOutgoings += a;
 		bobLoan -= a;
 		cash.push(Row(y, 'bob', 'Amortisation', -a));

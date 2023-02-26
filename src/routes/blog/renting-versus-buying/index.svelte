@@ -113,10 +113,11 @@
 				"Column 4": 7
 			}
 		];
-		const dataString = Papa.unparse(data);
+		const dataString = Papa.unparse(cash);
 		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
 		saveAs(blob, "results.csv");
 	}
+
 
 </script>
 
@@ -380,7 +381,7 @@
 	</div>
 {/if}
 
-{#if false}
+{#if true}
 <p>
 	You can also <a target="_blank" on:click={downloadResultsAsCsv}>download the full
 	set of results as a CSV file.</a>
