@@ -58,23 +58,12 @@ export function _simulate(
 	// Model Run
 	/* ---------------------------------------------------------------------------------- */
 
-	let netWorth = [];
-	let cash = [];
-	const Row = (year, model, category, amount) => ({
-		year,
-		model,
-		category,
-		amount
-	});
-
-	const NewRow = (year, model, category, subCategory, cashExpenditure, netWorthContributor, amount) => ({
-		year, model, category, subCategory, cashExpenditure, netWorthContributor, amount
+	const NewRow = (year, model, superCategory, category, cashExpenditure, netWorthContributor, amount) => ({
+		year, model, superCategory, category, cashExpenditure, netWorthContributor, amount
 	});
 	let data = [];
 
 	// bob starts with a house, a loan, and no stocks
-	netWorth.push(Row(0, 'bob', 'Initial Capital', downPayment));
-	netWorth.push(Row(0, 'bob', 'Purchase Costs', -oneOffCost));
 	data.push(NewRow(0, "bob", "Income", "Initial Capital", false, true, downPayment));
 	data.push(NewRow(0, "bob", "Income", "Purchase Costs", false, true, -oneOffCost));
 	let bobLoan = computeLoan(housePrice, oneOffCost, downPayment);
@@ -84,7 +73,6 @@ export function _simulate(
 	let _fixedCost = fixedCost;
 
 	// rachel's starts with stocks
-	netWorth.push(Row(0, 'rachel', 'Initial Capital', downPayment));
 	data.push(NewRow(0, "rachel", "Income", "Initial Capital", false, true, downPayment));
 	let rachelStocks = downPayment;
 	let _rent = rent;
@@ -103,16 +91,15 @@ export function _simulate(
 			// pays tax on positive stock market growth
 			let tax = Math.max(0, growth) * capitalGainsTax;
 			rachelOutgoings += tax;
-			cash.push(Row(y, 'rachel', 'Stock Market Tax', -tax));
+			data.push(NewRow(y, "rachel", "Expenditure", "Stock Market Tax", true, false, -tax))
 
 			// add post-tax quantity to net worth
-			netWorth.push(Row(y, 'rachel', 'Stock Market', growth - tax));
+			data.push(NewRow(y, "rachel", "Income", "Stock Market", false, true, growth - tax))
 		}
 
 		// pays rent
 		rachelOutgoings += _rent;
-		netWorth.push(Row(y, 'rachel', 'Rent', -_rent));
-		cash.push(Row(y, 'rachel', 'Rent', -_rent));
+		data.push(NewRow(y, "rachel", "Expenditure", "Rent", true, true, -_rent))
 
 		// Bob pre-income
 		/* ------------------------------------------------------------------------------ */
@@ -127,10 +114,10 @@ export function _simulate(
 			// pays tax on positive stock market growth
 			let tax = Math.max(0, growth) * capitalGainsTax;
 			bobOutgoings += tax;
-			cash.push(Row(y, 'bob', 'Stock Market Tax', -tax));
+			data.push(NewRow(y, "bob", "Expenditure", "Stock Market Tax", true, false, -tax))
 
 			// add post-tax quantity to net worth
-			netWorth.push(Row(y, 'bob', 'Stock Market', growth - tax));
+			data.push(NewRow(y, "bob", "Income", "Stock Market", false, true, growth - tax))
 		}
 
 		// house price grows
@@ -138,14 +125,13 @@ export function _simulate(
 			let before = bobHouse;
 			bobHouse = Math.max(0, bobHouse * (1 + housePriceGain));
 			let growth = bobHouse - before;
-			netWorth.push(Row(y, 'bob', 'House Growth', growth));
+			data.push(NewRow(y, "bob", "Income", "House Growth", false, true, growth))
 		}
 
 		// pays interest
 		let i = bobLoan * interest;
 		bobOutgoings += i;
-		netWorth.push(Row(y, 'bob', 'Interest', -i));
-		cash.push(Row(y, 'bob', 'Interest', -i));
+		data.push(NewRow(y, "bob", "Expenditure", "Interest", true, true, -i))
 
 		// pays amortisation (note, does not affect net worth!)
 		let a = Math.min(
@@ -154,17 +140,15 @@ export function _simulate(
 		);
 		bobOutgoings += a;
 		bobLoan -= a;
-		cash.push(Row(y, 'bob', 'Amortisation', -a));
+		data.push(NewRow(y, "bob", "Expenditure", "Amortisation", true, false, -a))
 
 		// pays fixed and proportional costs
 		bobOutgoings += _fixedCost;
-		netWorth.push(Row(y, 'bob', 'Fixed Costs', -_fixedCost));
-		cash.push(Row(y, 'bob', 'Fixed Costs', -_fixedCost));
+		data.push(NewRow(y, "bob", "Expenditure", "Fixed Costs", true, true, -_fixedCost))
 
 		let _proportionalCost = proportionalCost * bobHouse;
 		bobOutgoings += _proportionalCost;
-		netWorth.push(Row(y, 'bob', 'Proportional Costs', -_proportionalCost));
-		cash.push(Row(y, 'bob', 'Proportional Costs', -_proportionalCost));
+		data.push(NewRow(y, "bob", "Expenditure", "Proportional Costs", true, true, -_proportionalCost))
 
 		// Income calculation
 		/* ------------------------------------------------------------------------------ */
@@ -173,11 +157,11 @@ export function _simulate(
 		// Investment of spare income
 		/* ------------------------------------------------------------------------------ */
 		let bobSpareIncome = income - bobOutgoings;
-		netWorth.push(Row(y, 'bob', 'Spare Income', bobSpareIncome));
+		data.push(NewRow(y, "bob", "Income", "Spare Income", false, true, bobSpareIncome))
 		bobStocks += bobSpareIncome;
 
 		let rachelSpareIncome = income - rachelOutgoings;
-		netWorth.push(Row(y, 'rachel', 'Spare Income', rachelSpareIncome));
+		data.push(NewRow(y, "rachel", "Income", "Spare Income", false, true, rachelSpareIncome))
 		rachelStocks += rachelSpareIncome;
 
 		// Inflation
@@ -186,7 +170,9 @@ export function _simulate(
 		_fixedCost *= 1 + fixedCostGain;
 	}
 
-	return [netWorth, cash].map(data => data.filter(d => d.amount !== 0));
+	const newCash = data.filter(r => r.cashExpenditure)
+	const newNetWorth = data.filter(r => r.netWorthContributor)
+	return [newNetWorth, newCash].map(data => data.filter(d => d.amount !== 0));
 }
 
 export function calculateNetWorth(netWorth) {
