@@ -91,7 +91,6 @@ export function _simulate(
             // pays tax on positive stock market growth
             let tax = Math.max(0, growth) * capitalGainsTax;
             rachelOutgoings += tax;
-            data.push(NewRow(y, "rachel", "Expenditure", "Stock Market Tax", true, false, -tax))
 
             // add post-tax quantity to net worth
             data.push(NewRow(y, "rachel", "Income", "Stock Market", false, true, growth - tax))
@@ -114,7 +113,6 @@ export function _simulate(
             // pays tax on positive stock market growth
             let tax = Math.max(0, growth) * capitalGainsTax;
             bobOutgoings += tax;
-            data.push(NewRow(y, "bob", "Expenditure", "Stock Market Tax", true, false, -tax))
 
             // add post-tax quantity to net worth
             data.push(NewRow(y, "bob", "Income", "Stock Market", false, true, growth - tax))
