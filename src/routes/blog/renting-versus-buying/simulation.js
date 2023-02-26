@@ -169,10 +169,7 @@ export function _simulate(
 		_rent *= 1 + rentGain;
 		_fixedCost *= 1 + fixedCostGain;
 	}
-
-	const newCash = data.filter(r => r.cashExpenditure)
-	const newNetWorth = data.filter(r => r.netWorthContributor)
-	return [newNetWorth, newCash].map(data => data.filter(d => d.amount !== 0));
+	return data.filter(d => d.amount !== 0)
 }
 
 export function calculateNetWorth(netWorth) {

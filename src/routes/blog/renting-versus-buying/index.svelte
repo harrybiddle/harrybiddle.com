@@ -37,9 +37,9 @@
 	let proportionalCost = parameterDefaults.proportionalCost;
 
 	// simulate --------------------------------------------------------------------- //
-	let netWorth, cash;
+	let data, netWorth, cash;
 	$: {
-		[netWorth, cash] = simulate(
+		data = simulate(
 			amortisation,
 			capitalGainsTax,
 			downPayment,
@@ -55,6 +55,8 @@
 			rentGain,
 			stockMarketGain
 		);
+		cash = data.filter(r => r.cashExpenditure)
+		netWorth = data.filter(r => r.netWorthContributor)
 	}
 
 	// results of sensitivity analysis
