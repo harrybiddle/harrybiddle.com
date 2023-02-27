@@ -6,7 +6,7 @@
 <script>
 	import  * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
-	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan, pivotData } from './simulation';
+	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan, prepareDataForCsvDownload } from './simulation';
 	import PlotContainer from './PlotContainer.svelte';
 	import NetWorthChart from './NetWorthChart.svelte';
 	import FormattedNumberInput from "./FormattedNumberInput.svelte";
@@ -89,7 +89,7 @@
 	];
 
 	function downloadResultsAsCsv() {
-		const dataString = Papa.unparse(pivotData(data));
+		const dataString = Papa.unparse(prepareDataForCsvDownload(data));
 		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
 		saveAs(blob, "results.csv");
 	}

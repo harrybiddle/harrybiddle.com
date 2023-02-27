@@ -337,7 +337,7 @@ export function camelToWord(text) {
     return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-export function pivotData(data) {
+export function prepareDataForCsvDownload(data) {
     /* This function takes the data array, which is in long form:
 
            [
@@ -384,7 +384,7 @@ export function pivotData(data) {
     const [minYear, maxYear] = d3.extent(data, (d) => d.year);
     const amounts = range(minYear, maxYear + 1).map((y) => [y, 0]);
 
-    return Object.entries(rows).map(([key, values]) => {
+    const pivoted = Object.entries(rows).map(([key, values]) => {
         // extract the values from the object key
         // (javascript forces us to go via a string, since Map keys and Object properties
         // can only really be strings)
@@ -423,6 +423,12 @@ export function pivotData(data) {
             ...yearColumns
         };
     });
+
+    return pivoted.sort((a, b) =>
+        a["Model"].localeCompare(b["Model"]) ||
+        a["Category"].localeCompare(b["Category"]) ||
+        a["Sub-Category"].localeCompare(b["Sub-Category"])
+    );
 }
 
 function range (start, stop, step = 1) {
