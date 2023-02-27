@@ -361,7 +361,6 @@ export function prepareDataForCsvDownload(data) {
                     "Model": "bob",
                     "Category": "Income",
                     "Sub-Category": "Initial Capital",
-                    "Affects Cash": "false",
                     "Affects Net Worth": "true",
                     "Year 0": "97000",
                     "Year 1": "",
@@ -376,7 +375,6 @@ export function prepareDataForCsvDownload(data) {
         d.model,
         d.superCategory,
         d.category,
-        d.cashExpenditure,
         d.netWorthContributor
     ]);
 
@@ -392,7 +390,6 @@ export function prepareDataForCsvDownload(data) {
             model,
             superCategory,
             category,
-            cashExpenditure,
             netWorthContributor
         ] = key.split(",");
 
@@ -418,17 +415,34 @@ export function prepareDataForCsvDownload(data) {
             Model: titleCase(model),
             Category: superCategory,
             "Sub-Category": category,
-            "Affects Cash": cashExpenditure,
             "Affects Net Worth": netWorthContributor,
             ...yearColumns
         };
     });
 
-    return pivoted.sort((a, b) =>
+    const sorted = pivoted.sort((a, b) =>
         a["Model"].localeCompare(b["Model"]) ||
         a["Category"].localeCompare(b["Category"]) ||
         a["Sub-Category"].localeCompare(b["Sub-Category"])
     );
+
+    let previousModel = undefined;
+    let previousCategory = undefined;
+    sorted.forEach(item => {
+        // Affects Net Worth
+        if (item["Category"] !== "Expenditure") {
+            item["Affects Net Worth"] = ""
+        }
+
+        // Model
+        if (item["Model"] === previousModel) { item["Model"] = "" }
+        else { previousModel = item["Model"] }
+
+        // Category
+        if (item["Category"] === previousCategory) { item["Category"] = "" }
+        else { previousCategory = item["Category"] }
+    })
+    return sorted;
 }
 
 function range (start, stop, step = 1) {
