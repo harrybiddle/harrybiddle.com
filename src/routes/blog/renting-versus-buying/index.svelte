@@ -3,8 +3,12 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-SGWgwwRA8xZgEoKiex3UubkSkV1zSE1BS6O4pXcaxcNtUlQsOmOmhVnDwIvqGRfEmuz83tIGL13cXMZn6upPyg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </svelte:head>
 
+<!--TODO:-->
+<!-- - Remove special text boxes with commas: just not working!-->
+<!-- - Change purchase costs to %-->
+
 <script>
-	import  * as d3 from 'd3';
+	import * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
 	import { parameterDefaults, simulate, netWorthChartData, constructCashTableData, camelToWord, calculateNetWorth, computeLoan, prepareDataForCsvDownload } from './simulation';
 	import PlotContainer from './PlotContainer.svelte';
@@ -89,6 +93,7 @@
 	];
 
 	function downloadResultsAsCsv() {
+		console.log(prepareDataForCsvDownload(data))
 		const dataString = Papa.unparse(prepareDataForCsvDownload(data));
 		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
 		saveAs(blob, "results.csv");
@@ -112,43 +117,53 @@
 	fritter away eye-watering monthly sums to your landlord. If you buy, on the other
 	hand, that same hard-earned money flows into your very own house-shaped savings
 	account for you to draw upon in your old age.
-</p><p>
+</p>
+<p>
 	In reality there are also big financial downsides to buying property that might not
 	be immediately obvious. There is the one-off hit incurred when you make the
 	purchase: things like property transfer tax and notarary fees. Then there are the
 	regular interest payments which you funnel to the bank to finance your debt. There
 	are also significant running costs: more taxes, maintenance... there can even be a
 	fee for the rain that falls on your lawn.
-</p><p>
-	Let's build a simple model to investigate the trade-off numerically. We start with
-	two protagonists: <i>Buying Bob</i> and <i>Renting Rachel</i>. They both start with
-	an identical starting capital of
-	<FormattedNumberInput wide={true} bind:value={downPayment} /> cash in the bank.
 </p>
 <p>
-	(By the way, all of the parameters to this model are in text boxes. Feel free to edit
-	them to match your own situation, or just out of curiosity to see what happens!)
+	Let's build a simple model to investigate the trade-off, with the following parameters:
 </p>
-<h2>Renting Rachel</h2>
-<p>
-	Rachel takes her starting capital and invests it in the stock market. She pays
-	<FormattedNumberInput bind:value="{rent}" /> per month in
-	rent,<FootnoteSource i="1" /> inclusive of all utilities and heating costs.
-</p>
-<h2>Buying Bob</h2>
-<p>
-	Bob uses his starting capital as a downpayment<FootnoteSource i="2" /> to purchase a
-	house valued at
-	<FormattedNumberInput bind:value="{housePrice}" wide={true} />.<FootnoteSource i="3" />
-	The purchase incurs a one-off cost of
-	<FormattedNumberInput bind:value="{oneOffCost}" wide={true} /> (or
-	{d3.format(".0%")(oneOffCost / housePrice)} of the house
-	price)<FootnoteSource i="4" /> in property transfer tax, notary fees, and so on. He
-	takes out a loan of {format(computeLoan(housePrice, oneOffCost, downPayment))} to
-	fund his purchase.
-</p>
-<p>Bob's regular outgoings break down as follows:</p>
 <table><tbody>
+	<tr>
+		<td>Starting capital</td>
+		<td><FormattedNumberInput wide={true} bind:value={downPayment} /></td>
+	</tr>
+	<tr><th colspan="2">Renting</th></tr>
+	<tr>
+		<td>Rent, inclusive of all utilities and heating costs<FootnoteSource i="1" /></td>
+		<td><FormattedNumberInput bind:value="{rent}" /> per month</td>
+	</tr>
+	<tr>
+		<td>Rent inflation</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per
+			year<FootnoteSource i="11" />
+		</td>
+	</tr>
+	<tr><th colspan="2">Buying</th></tr>
+	<tr>
+		<td>House price<FootnoteSource i="3" /></td>
+		<td><FormattedNumberInput bind:value="{housePrice}" wide={true} /></td>
+	</tr>
+	<tr>
+		<td>Purchase cost (property transfer tax, notary fees, and so on)<FootnoteSource i="4" /></td>
+		<td><FormattedNumberInput bind:value="{oneOffCost}" wide={true} /> (or
+	{d3.format(".0%")(oneOffCost / housePrice)} of the house
+	price)</td>
+	</tr>
+	<tr>
+		<td>House price growth</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per
+			year<FootnoteSource i="10" />
+		</td>
+	</tr>
 	<tr>
 		<td>Interest on the loan</td>
 		<td>
@@ -178,50 +193,29 @@
 			the house per year<FootnoteSource i="8" />
 		</td>
 	</tr>
-</tbody></table>
-<h2>Inflation and growth</h2>
-<p>
-	Over time, prices in the market will fluctuate. There are four that we suppose are
-	important for our model:
-</p>
-<table><tbody>
+	<tr>
+		<td>Inflation of fixed costs</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per
+			year<FootnoteSource i="12" />
+		</td>
+	</tr>
+	<tr>
+		<th colspan="2">Market conditions</th>
+	</tr>
 	<tr>
 		<td>Stock market growth</td>
 		<td>
 			<input type="number" style="text-align: right; width: 4em" bind:value="{stockMarketGain}" />% per
 			year<FootnoteSource i="9" />
 		</td>
-
 	</tr>
 	<tr>
-		<td>House price growth</td>
-		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per
-			year<FootnoteSource i="10" />
-		</td>
-	</tr>
-	<tr>
-		<td>Rent inflation</td>
-		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per
-			year<FootnoteSource i="11" />
-		</td>
-	</tr>
-	<tr>
-		<td>Inflation of Bob's fixed costs</td>
-		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{fixedCostGain}" />% per
-			year<FootnoteSource i="12" />
-		</td>
+		<td>Capital gains tax<FootnoteSource i="13" />. House price growth is not taxed (annual property tax is included in Bob's proportional costs).</td>
+		<td><input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per
+	year. </td>
 	</tr>
 </tbody></table>
-
-<p>
-	We tax capital gains on the stock market at
-	<input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per
-	year.<FootnoteSource i="13" /> House price growth is not taxed (annual property tax
-	is included in Bob's proportional costs).
-</p>
 
 <h2>What about income?</h2>
 <p>
