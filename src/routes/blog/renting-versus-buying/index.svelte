@@ -6,6 +6,13 @@
 <!--TODO:-->
 <!-- - Remove special text boxes with commas: just not working!-->
 <!-- - Change purchase costs to %-->
+<!-- - Store values in a cookie and add a "reset" button-->
+<!-- - Move results graph right below parameters-->
+<!-- - Collapse some more advanced parameters-->
+<!-- - Consider expandable dropdown for references, rather than footnotes-->
+<!-- - Fix default rent inflation-->
+<!-- - Add monte-carlo simulation-->
+<!-- - Add mathematical analysis-->
 
 <script>
 	import * as d3 from 'd3';
