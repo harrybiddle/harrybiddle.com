@@ -120,21 +120,15 @@
 </header>
 <hr />
 <p>
-	To buy or to rent? On the face of it it seems straightforward. If you rent, you
-	fritter away eye-watering monthly sums to your landlord. If you buy, on the other
-	hand, that same hard-earned money flows into your very own house-shaped savings
-	account for you to draw upon in your old age.
+	Should I buy, or should I rent? On the face of it it seems like a house would be a
+	sort of savings account. All that money you would have otherwise lost to rent...
+	But in reality there are also big financial downsides to buying property that might
+	not be immediately obvious, not least theamount of interest payments you make to a
+	bank, or the opportunity cost of not investing in the stock market.
 </p>
 <p>
-	In reality there are also big financial downsides to buying property that might not
-	be immediately obvious. There is the one-off hit incurred when you make the
-	purchase: things like property transfer tax and notarary fees. Then there are the
-	regular interest payments which you funnel to the bank to finance your debt. There
-	are also significant running costs: more taxes, maintenance... there can even be a
-	fee for the rain that falls on your lawn.
-</p>
-<p>
-	Let's build a simple model to investigate the trade-off, with the following parameters:
+	Let's build a simple model to investigate the trade-off, with the following
+	parameters:
 </p>
 <table><tbody>
 	<tr>
@@ -223,66 +217,10 @@
 	year. </td>
 	</tr>
 </tbody></table>
-
-<h2>What about income?</h2>
 <p>
-	There's one more difference between Bob and Rachel that we'll need to account for.
-	To understand this, let's look at Bob and Rachel's pure cash outgoings during an
-	<i>average month</i> in the the first year. For ease of reading, all numbers are
-	displayed to two significant figures:
-</p>
-<table>
-	<thead>
-		<tr>
-			<th colspan="2">
-				Bob
-			</th>
-			<th colspan="2">
-				Rachel
-			</th>
-		</tr>
-	</thead>
-
-	{#if cash}
-		{@const tableData = constructCashTableData(cash)}
-		<tbody>
-		{#each tableData as row}
-		<tr>
-			<td>{#if row[0]}{capitalise(row[0].category)}{/if}</td>
-			<td style="text-align: right">{#if row[0]}{format(-row[0].amount)}{/if}</td>
-			<td>{#if row[1]}{capitalise(row[1].category)}{/if}</td>
-			<td style="text-align: right">{#if row[1]}{format(-row[1].amount)}{/if}</td>
-		</tr>
-		{/each}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td>Total</td>
-				<td style="text-align: right">
-					{format(-tableData.totals[0])}
-				</td>
-				<td>Total</td>
-				<td style="text-align: right">
-					{format(-tableData.totals[1])}
-				</td>
-			</tr>
-		</tfoot>
-	{/if}
-</table>
-
-<p>
-	Depending on what parameters you put into the model it's likely that you see a
-	difference. Typically, Rachel has smaller cash outgoings. If we are to assume that
-	Bob and Rachel have an equal income, this means that she has more spare cash lying
-	around than Bob. That's advantageous to her because she's able to invest it in the
-	stock market and cream off a return. Let's assume that's exactly what she does.
-</p>
-<h2>Results</h2>
-<p>
-	Now that we've built our model, let's see what pops out. What we are really
-	interested in is not cash per se, but rather <b>net worth</b>. Specifically, we
-	would like to know: <i>is your net worth greater if you purchase a house than if you
-	rent one?</i> And if so, <i>after how many years?</i>
+	What we are really interested in is <b>comparative net worth</b>. Specifically,
+	<i>is your net worth greater if you purchase rather than rent property?</i> And if
+	so, <i>after how many years?</i>
 </p>
 
 <!-- Net worth comparison -->
@@ -291,16 +229,16 @@
 		{#if data.intersection == null}
 		<p>
 			Our model says that the net worth is never greater within the first
-			{maxYears} years.
+			{maxYears} years if you buy.
 		</p>
 		{:else}
 		<p>
-			Our model says that your net worth is indeed greater and that it is so
-			after <u>{formatIntersection(data.intersection[0])}</u>:
+			Our model says that your net worth is indeed greater if you buy, and that it
+			is so after <u>{formatIntersection(data.intersection[0])}</u>:
 		</p>
 		{/if}
 	<div>
-		<h5 class="plotTitle">Net worth over time</h5>
+		<h5 class="plotTitle">Comparative net worth over time</h5>
 		<PlotContainer options={{
 			style: plotStyle,
 			color: { legend: true, style: { fontSize: "17px" }, },
@@ -364,6 +302,61 @@
 	set of results as a CSV file.</a>
 </p>
 {/if}
+
+<h2>What about income?</h2>
+<p>
+	There's one more difference between Bob and Rachel that we'll need to account for.
+	To understand this, let's look at Bob and Rachel's pure cash outgoings during an
+	<i>average month</i> in the the first year. For ease of reading, all numbers are
+	displayed to two significant figures:
+</p>
+<table>
+	<thead>
+		<tr>
+			<th colspan="2">
+				Bob
+			</th>
+			<th colspan="2">
+				Rachel
+			</th>
+		</tr>
+	</thead>
+
+	{#if cash}
+		{@const tableData = constructCashTableData(cash)}
+		<tbody>
+		{#each tableData as row}
+		<tr>
+			<td>{#if row[0]}{capitalise(row[0].category)}{/if}</td>
+			<td style="text-align: right">{#if row[0]}{format(-row[0].amount)}{/if}</td>
+			<td>{#if row[1]}{capitalise(row[1].category)}{/if}</td>
+			<td style="text-align: right">{#if row[1]}{format(-row[1].amount)}{/if}</td>
+		</tr>
+		{/each}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td>Total</td>
+				<td style="text-align: right">
+					{format(-tableData.totals[0])}
+				</td>
+				<td>Total</td>
+				<td style="text-align: right">
+					{format(-tableData.totals[1])}
+				</td>
+			</tr>
+		</tfoot>
+	{/if}
+</table>
+
+<p>
+	Depending on what parameters you put into the model it's likely that you see a
+	difference. Typically, Rachel has smaller cash outgoings. If we are to assume that
+	Bob and Rachel have an equal income, this means that she has more spare cash lying
+	around than Bob. That's advantageous to her because she's able to invest it in the
+	stock market and cream off a return. Let's assume that's exactly what she does.
+</p>
+
 
 <h2>Which parameters have the biggest impact?</h2>
 <p>
