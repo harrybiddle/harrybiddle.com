@@ -7,12 +7,13 @@
 <!-- - Remove special text boxes with commas: just not working!-->
 <!-- - Change purchase costs to %-->
 <!-- - Store values in a cookie and add a "reset" button-->
-<!-- - Move results graph right below parameters-->
-<!-- - Collapse some more advanced parameters-->
 <!-- - Consider expandable dropdown for references, rather than footnotes-->
 <!-- - Fix default rent inflation-->
 <!-- - Add monte-carlo simulation-->
 <!-- - Add mathematical analysis-->
+<!-- - Better description of model -->
+<!-- - Sensitivity analyses uses current parameters -->
+<!-- - Preview of results? -->
 
 <script>
 	import * as d3 from 'd3';
@@ -30,6 +31,7 @@
 	const capitalise = string =>
 		string ? (string.charAt(0).toUpperCase() + string.slice(1)) : string;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
+	let showingMoreParameters = false;
 
 	// model parameters ------------------------------------------------------------- //
 	let maxYears = parameterDefaults.maxYears;
@@ -121,36 +123,49 @@
 <hr />
 <p>
 	Should I buy, or should I rent? On the face of it it seems like a house would be a
-	sort of savings account. All that money you would have otherwise lost to rent...
-	But in reality there are also big financial downsides to buying property that might
-	not be immediately obvious, not least theamount of interest payments you make to a
-	bank, or the opportunity cost of not investing in the stock market.
+	sort of savings account. All that money you would have otherwise lost to rent! Yet
+	there are also big financial downsides to buying property, such as the interest
+	payments you lose servicing your debt, or the opportunity cost of not investing in
+	the stock market.
 </p>
 <p>
 	Let's build a simple model to investigate the trade-off, with the following
 	parameters:
 </p>
-<table><tbody>
+<table id="parametersTable"><tbody>
 	<tr>
 		<td>Starting capital</td>
 		<td><FormattedNumberInput wide={true} bind:value={downPayment} /></td>
 	</tr>
-	<tr><th colspan="2">Renting</th></tr>
+	<tr>
+		<td>House price<FootnoteSource i="3" /></td>
+		<td><FormattedNumberInput bind:value="{housePrice}" wide={true} /></td>
+	</tr>
 	<tr>
 		<td>Rent, inclusive of all utilities and heating costs<FootnoteSource i="1" /></td>
 		<td><FormattedNumberInput bind:value="{rent}" /> per month</td>
 	</tr>
+	<tr>
+		<td>Interest on the loan</td>
+		<td>
+			<input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />%
+			per year<FootnoteSource i="5" />
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
+				<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
+			</a>
+		</td>
+	</tr>
+	{#if showingMoreParameters}
 	<tr>
 		<td>Rent inflation</td>
 		<td>
 			<input type="number" style="text-align: right; width: 4em" bind:value="{rentGain}" />% per
 			year<FootnoteSource i="11" />
 		</td>
-	</tr>
-	<tr><th colspan="2">Buying</th></tr>
-	<tr>
-		<td>House price<FootnoteSource i="3" /></td>
-		<td><FormattedNumberInput bind:value="{housePrice}" wide={true} /></td>
 	</tr>
 	<tr>
 		<td>Purchase cost (property transfer tax, notary fees, and so on)<FootnoteSource i="4" /></td>
@@ -163,13 +178,6 @@
 		<td>
 			<input type="number" style="text-align: right; width: 4em" bind:value={housePriceGain} />% per
 			year<FootnoteSource i="10" />
-		</td>
-	</tr>
-	<tr>
-		<td>Interest on the loan</td>
-		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{interest}" />%
-			per year<FootnoteSource i="5" />
 		</td>
 	</tr>
 	<tr>
@@ -216,11 +224,12 @@
 		<td><input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per
 	year. </td>
 	</tr>
+	{/if}
 </tbody></table>
 <p>
-	What we are really interested in is <b>comparative net worth</b>. Specifically,
-	<i>is your net worth greater if you purchase rather than rent property?</i> And if
-	so, <i>after how many years?</i>
+	We are interested in <b>comparative net worth</b>. Specifically, <i>is your net
+	worth greater if you purchase rather than rent property?</i> And if so, <i>after
+	how many years?</i>
 </p>
 
 <!-- Net worth comparison -->
@@ -280,7 +289,7 @@
 {#if netWorth}
 	{@const d = netWorthChartData(netWorth)}
 	<div>
-		<h5 class="plotTitle">Annual change in net worth for Buy</h5>
+		<h5 class="plotTitle">Annual change in net worth when buying</h5>
 		<NetWorthChart data={d.buyData} domainY={d.domainY} />
 	</div>
 
@@ -291,7 +300,7 @@
 	</p>
 
 	<div>
-		<h5 class="plotTitle">Annual change in net worth for Rent</h5>
+		<h5 class="plotTitle">Annual change in net worth when renting</h5>
 		<NetWorthChart data={d.rentData} domainY={d.domainY} reversed={true} />
 	</div>
 {/if}
@@ -303,7 +312,7 @@
 </p>
 {/if}
 
-<h2>What about income?</h2>
+<h2>How the model works</h2>
 <p>
 	There's one more difference between Buy and Rent that we'll need to account for.
 	To understand this, let's look at Buy and Rent's pure cash outgoings during an
@@ -543,4 +552,11 @@
 		text-align: right;
 	}
 
+	/* parameters table. First column is always 2/3rds width to prevent flickering when
+	 * showing/hiding more parameters
+	 */
+	#parametersTable th:first-child,
+	#parametersTable td:first-child {
+		width: 66.67%;
+	}
 </style>
