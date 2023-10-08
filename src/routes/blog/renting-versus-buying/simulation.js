@@ -63,104 +63,104 @@ export function _simulate(
     });
     let data = [];
 
-    // bob starts with a house, a loan, and no stocks
-    data.push(NewRow(0, "bob", "Income", "Initial Capital", false, true, downPayment));
-    data.push(NewRow(0, "bob", "Income", "Purchase Costs", false, true, -oneOffCost));
-    let bobLoan = computeLoan(housePrice, oneOffCost, downPayment);
-    let bobMortgagePayment = bobLoan * (amortisation +  interest);
-    let bobStocks = 0;
-    let bobHouse = housePrice;
+    // buy starts with a house, a loan, and no stocks
+    data.push(NewRow(0, "buy", "Income", "Initial Capital", false, true, downPayment));
+    data.push(NewRow(0, "buy", "Income", "Purchase Costs", false, true, -oneOffCost));
+    let buyLoan = computeLoan(housePrice, oneOffCost, downPayment);
+    let buyMortgagePayment = buyLoan * (amortisation +  interest);
+    let buyStocks = 0;
+    let buyHouse = housePrice;
     let _fixedCost = fixedCost;
 
-    // rachel's starts with stocks
-    data.push(NewRow(0, "rachel", "Income", "Initial Capital", false, true, downPayment));
-    let rachelStocks = downPayment;
+    // rent's starts with stocks
+    data.push(NewRow(0, "rent", "Income", "Initial Capital", false, true, downPayment));
+    let rentStocks = downPayment;
     let _rent = rent;
 
     for (let y = 1; y < maxYears + 1; y++) {
-        // Rachel pre-income
+        // Rent pre-income
         /* ------------------------------------------------------------------------------ */
-        let rachelOutgoings = 0;
+        let rentOutgoings = 0;
 
         // stock market grows
         {
-            let before = rachelStocks;
-            rachelStocks = Math.max(0, rachelStocks * (1 + stockMarketGain));
-            let growth = rachelStocks - before;
+            let before = rentStocks;
+            rentStocks = Math.max(0, rentStocks * (1 + stockMarketGain));
+            let growth = rentStocks - before;
 
             // pays tax on positive stock market growth
             let tax = Math.max(0, growth) * capitalGainsTax;
-            rachelOutgoings += tax;
+            rentOutgoings += tax;
 
             // add post-tax quantity to net worth
-            data.push(NewRow(y, "rachel", "Income", "Stock Market", false, true, growth - tax))
+            data.push(NewRow(y, "rent", "Income", "Stock Market", false, true, growth - tax))
         }
 
         // pays rent
-        rachelOutgoings += _rent;
-        data.push(NewRow(y, "rachel", "Expenditure", "Rent", true, true, -_rent))
+        rentOutgoings += _rent;
+        data.push(NewRow(y, "rent", "Expenditure", "Rent", true, true, -_rent))
 
-        // Bob pre-income
+        // Buy pre-income
         /* ------------------------------------------------------------------------------ */
-        let bobOutgoings = 0;
+        let buyOutgoings = 0;
 
         // stock market grows
         {
-            let before = bobStocks;
-            bobStocks = Math.max(0, bobStocks * (1 + stockMarketGain));
-            let growth = bobStocks - before;
+            let before = buyStocks;
+            buyStocks = Math.max(0, buyStocks * (1 + stockMarketGain));
+            let growth = buyStocks - before;
 
             // pays tax on positive stock market growth
             let tax = Math.max(0, growth) * capitalGainsTax;
-            bobOutgoings += tax;
+            buyOutgoings += tax;
 
             // add post-tax quantity to net worth
-            data.push(NewRow(y, "bob", "Income", "Stock Market", false, true, growth - tax))
+            data.push(NewRow(y, "buy", "Income", "Stock Market", false, true, growth - tax))
         }
 
         // house price grows
         {
-            let before = bobHouse;
-            bobHouse = Math.max(0, bobHouse * (1 + housePriceGain));
-            let growth = bobHouse - before;
-            data.push(NewRow(y, "bob", "Income", "House Growth", false, true, growth))
+            let before = buyHouse;
+            buyHouse = Math.max(0, buyHouse * (1 + housePriceGain));
+            let growth = buyHouse - before;
+            data.push(NewRow(y, "buy", "Income", "House Growth", false, true, growth))
         }
 
         // pays interest
-        let i = bobLoan * interest;
-        bobOutgoings += i;
-        data.push(NewRow(y, "bob", "Expenditure", "Interest", true, true, -i))
+        let i = buyLoan * interest;
+        buyOutgoings += i;
+        data.push(NewRow(y, "buy", "Expenditure", "Interest", true, true, -i))
 
         // pays amortisation (note, does not affect net worth!)
         let a = Math.min(
-            bobLoan,
-            Math.max(0, bobMortgagePayment - i)
+            buyLoan,
+            Math.max(0, buyMortgagePayment - i)
         );
-        bobOutgoings += a;
-        bobLoan -= a;
-        data.push(NewRow(y, "bob", "Expenditure", "Amortisation", true, false, -a))
+        buyOutgoings += a;
+        buyLoan -= a;
+        data.push(NewRow(y, "buy", "Expenditure", "Amortisation", true, false, -a))
 
         // pays fixed and proportional costs
-        bobOutgoings += _fixedCost;
-        data.push(NewRow(y, "bob", "Expenditure", "Fixed Costs", true, true, -_fixedCost))
+        buyOutgoings += _fixedCost;
+        data.push(NewRow(y, "buy", "Expenditure", "Fixed Costs", true, true, -_fixedCost))
 
-        let _proportionalCost = proportionalCost * bobHouse;
-        bobOutgoings += _proportionalCost;
-        data.push(NewRow(y, "bob", "Expenditure", "Proportional Costs", true, true, -_proportionalCost))
+        let _proportionalCost = proportionalCost * buyHouse;
+        buyOutgoings += _proportionalCost;
+        data.push(NewRow(y, "buy", "Expenditure", "Proportional Costs", true, true, -_proportionalCost))
 
         // Income calculation
         /* ------------------------------------------------------------------------------ */
-        let income = Math.max(rachelOutgoings, bobOutgoings);
+        let income = Math.max(rentOutgoings, buyOutgoings);
 
         // Investment of spare income
         /* ------------------------------------------------------------------------------ */
-        let bobSpareIncome = income - bobOutgoings;
-        data.push(NewRow(y, "bob", "Income", "Spare Income", false, true, bobSpareIncome))
-        bobStocks += bobSpareIncome;
+        let buySpareIncome = income - buyOutgoings;
+        data.push(NewRow(y, "buy", "Income", "Spare Income", false, true, buySpareIncome))
+        buyStocks += buySpareIncome;
 
-        let rachelSpareIncome = income - rachelOutgoings;
-        data.push(NewRow(y, "rachel", "Income", "Spare Income", false, true, rachelSpareIncome))
-        rachelStocks += rachelSpareIncome;
+        let rentSpareIncome = income - rentOutgoings;
+        data.push(NewRow(y, "rent", "Income", "Spare Income", false, true, rentSpareIncome))
+        rentStocks += rentSpareIncome;
 
         // Inflation
         /* ------------------------------------------------------------------------------ */
@@ -195,17 +195,17 @@ export function calculateNetWorth(netWorth) {
                     }
                 }, [])
                 // convert a flat array-of-arrays like [[0, 100], ...] to an array of objects like
-                // [{year: 0, amount: 100, model: "bob"}, ...], for more readable code later
+                // [{year: 0, amount: 100, model: "buy"}, ...], for more readable code later
                 .map(([year, amount]) => ({ year, amount, model }))
         );
     }
-    const bob = cumulativeSum('bob');
-    const rachel = cumulativeSum('rachel');
+    const buy = cumulativeSum('buy');
+    const rent = cumulativeSum('rent');
     const intersection = intersect(
-        bob.map(d => [d.year, d.amount]),
-        rachel.map(d => [d.year, d.amount])
+        buy.map(d => [d.year, d.amount]),
+        rent.map(d => [d.year, d.amount])
     );
-    return Object.assign([...bob, ...rachel], { intersection });
+    return Object.assign([...buy, ...rent], { intersection });
 }
 
 export function intersect(a, b) {
@@ -271,11 +271,11 @@ export function constructCashTableData(cash) {
         .filter(d => d.year === 1)
         .map(d => ({ ...d, amount: d.amount / 12 }))
         .sort((a, b) => d3.ascending(a.amount, b.amount));
-    const bobCash = cashFirstYear.filter(d => d.model === 'bob');
-    const rachelCash = cashFirstYear.filter(d => d.model === 'rachel');
-    const zipped = zipLongest(bobCash, rachelCash);
+    const buyCash = cashFirstYear.filter(d => d.model === 'buy');
+    const rentCash = cashFirstYear.filter(d => d.model === 'rent');
+    const zipped = zipLongest(buyCash, rentCash);
     return Object.assign(zipped, {
-        totals: [d3.sum(bobCash, d => d.amount), d3.sum(rachelCash, d => d.amount)]
+        totals: [d3.sum(buyCash, d => d.amount), d3.sum(rentCash, d => d.amount)]
     });
 }
 
@@ -305,8 +305,8 @@ export function netWorthChartData(netWorth) {
     return {
         domainY: yAxisRange,
         data: Array.from(d3.group(filtered, d => d.model).entries()),
-        bobData: filtered.filter(d => d.model === 'bob'),
-        rachelData: filtered.filter(d => d.model === 'rachel')
+        buyData: filtered.filter(d => d.model === 'buy'),
+        rentData: filtered.filter(d => d.model === 'rent')
     };
 }
 
@@ -343,7 +343,7 @@ export function prepareDataForCsvDownload(data) {
            [
                {
                    "year": 0,
-                   "model": "bob",
+                   "model": "buy",
                    "superCategory": "Income",
                    "category": "Initial Capital",
                    "cashExpenditure": false,
@@ -358,7 +358,7 @@ export function prepareDataForCsvDownload(data) {
 
             [
                 {
-                    "Model": "bob",
+                    "Model": "buy",
                     "Category": "Income",
                     "Sub-Category": "Initial Capital",
                     "Affects Net Worth": "true",

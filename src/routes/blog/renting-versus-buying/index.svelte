@@ -212,7 +212,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td>Capital gains tax<FootnoteSource i="13" />. House price growth is not taxed (annual property tax is included in Bob's proportional costs).</td>
+		<td>Capital gains tax<FootnoteSource i="13" />. House price growth is not taxed (annual property tax is included in Buy's proportional costs).</td>
 		<td><input type="number" style="text-align: right; width: 4em" bind:value="{capitalGainsTax}" />% per
 	year. </td>
 	</tr>
@@ -267,7 +267,7 @@
 
 <p>
 	To understand why, let's have a look at the contributions to the change in net worth
-	each year. Typically, Bob's biggest contributor to net worth is growth of the house
+	each year. Typically, Buy's biggest contributor to net worth is growth of the house
 	value. We've modelled this as a percentage, so eventually the magic of compound
 	interest dominates. Deductions from his net worth initially consist of the cost of
 	purchasing the house, but come to be dominated by porportional costs such as
@@ -280,19 +280,19 @@
 {#if netWorth}
 	{@const d = netWorthChartData(netWorth)}
 	<div>
-		<h5 class="plotTitle">Annual change in net worth for Bob</h5>
-		<NetWorthChart data={d.bobData} domainY={d.domainY} />
+		<h5 class="plotTitle">Annual change in net worth for Buy</h5>
+		<NetWorthChart data={d.buyData} domainY={d.domainY} />
 	</div>
 
 	<p>
-		Rachel's situation is simpler. Her net worth, or rathar her net worh
-		<i>relative to Bob</i>, is bouyed by her wily investmnets in the stock market,
+		Rent's situation is simpler. Her net worth, or rathar her net worh
+		<i>relative to Buy</i>, is bouyed by her wily investmnets in the stock market,
 		while her monthly rent payment drags it down.
 	</p>
 
 	<div>
-		<h5 class="plotTitle">Annual change in net worth for Rachel</h5>
-		<NetWorthChart data={d.rachelData} domainY={d.domainY} reversed={true} />
+		<h5 class="plotTitle">Annual change in net worth for Rent</h5>
+		<NetWorthChart data={d.rentData} domainY={d.domainY} reversed={true} />
 	</div>
 {/if}
 
@@ -305,8 +305,8 @@
 
 <h2>What about income?</h2>
 <p>
-	There's one more difference between Bob and Rachel that we'll need to account for.
-	To understand this, let's look at Bob and Rachel's pure cash outgoings during an
+	There's one more difference between Buy and Rent that we'll need to account for.
+	To understand this, let's look at Buy and Rent's pure cash outgoings during an
 	<i>average month</i> in the the first year. For ease of reading, all numbers are
 	displayed to two significant figures:
 </p>
@@ -314,10 +314,10 @@
 	<thead>
 		<tr>
 			<th colspan="2">
-				Bob
+				Buy
 			</th>
 			<th colspan="2">
-				Rachel
+				Rent
 			</th>
 		</tr>
 	</thead>
@@ -351,9 +351,9 @@
 
 <p>
 	Depending on what parameters you put into the model it's likely that you see a
-	difference. Typically, Rachel has smaller cash outgoings. If we are to assume that
-	Bob and Rachel have an equal income, this means that she has more spare cash lying
-	around than Bob. That's advantageous to her because she's able to invest it in the
+	difference. Typically, Rent has smaller cash outgoings. If we are to assume that
+	Buy and Rent have an equal income, this means that she has more spare cash lying
+	around than Buy. That's advantageous to her because she's able to invest it in the
 	stock market and cream off a return. Let's assume that's exactly what she does.
 </p>
 
@@ -408,7 +408,7 @@
 
 <p>
 	We can see that the most important parameters are the rate of growth of the property
-	market, the amount of rent, and the rate of interest on Bob's loan.
+	market, the amount of rent, and the rate of interest on Buy's loan.
 </p>
 
 <hr style="margin-top: 100px" />
