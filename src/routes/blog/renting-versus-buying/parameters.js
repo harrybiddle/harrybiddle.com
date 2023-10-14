@@ -1,8 +1,18 @@
-// src/stores/enabled.ts
 import { writable } from 'svelte/store'
 
-export const maxYears = writable((typeof localStorage !== 'undefined') ? localStorage.getItem("maxYears") || 30 : null)
+// helper function
+function localStorageStore(key, initial) {
+    const localStorageDefined = typeof localStorage !== 'undefined';
 
-if (typeof localStorage !== 'undefined') {
-    maxYears.subscribe((value) => localStorage.setItem("maxYears", value))
+    const value = (localStorageDefined ? localStorage.getItem(key) : null) || initial;
+    const store = writable(value);
+    store.defaultValue = initial;
+    if (localStorageDefined) {
+        store.subscribe(value => localStorage.setItem(key, value));
+    }
+    store.resetToDefaultValue = () => store.set(initial);
+    return store;
 }
+
+// parameter definitions
+export const maxYears = localStorageStore("maxYears", 30);
