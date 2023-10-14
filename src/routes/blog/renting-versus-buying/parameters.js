@@ -1,18 +1,20 @@
 import { writable } from 'svelte/store'
 
-// helper function
-function localStorageStore(key, initial) {
-    const localStorageDefined = typeof localStorage !== 'undefined';
+let allStores = []
 
+export function localStorageStore(key, initial, _func) {
+    const func = _func ? _func : x => x
+    const localStorageDefined = typeof localStorage !== 'undefined';
     const value = (localStorageDefined ? localStorage.getItem(key) : null) || initial;
     const store = writable(value);
-    store.defaultValue = initial;
+    store.initialValue = initial;
     if (localStorageDefined) {
-        store.subscribe(value => localStorage.setItem(key, value));
+        store.subscribe(value => localStorage.setItem(key, func(value)));
     }
-    store.resetToDefaultValue = () => store.set(initial);
+    allStores.push(store);
     return store;
 }
 
-// parameter definitions
-export const maxYears = localStorageStore("maxYears", 30);
+export function resetParametersToDefaults() {
+    allStores.forEach(store => store.set(store.initialValue))
+}
