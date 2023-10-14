@@ -152,14 +152,14 @@ export function _simulate(
         /* ------------------------------------------------------------------------------ */
         let income = Math.max(rentOutgoings, buyOutgoings);
 
-        // Investment of spare income
+        // Investment of spare cash
         /* ------------------------------------------------------------------------------ */
         let buySpareIncome = income - buyOutgoings;
-        data.push(NewRow(y, "buy", "Income", "Spare Income", false, true, buySpareIncome))
+        data.push(NewRow(y, "buy", "Income", "Spare Cash", false, true, buySpareIncome))
         buyStocks += buySpareIncome;
 
         let rentSpareIncome = income - rentOutgoings;
-        data.push(NewRow(y, "rent", "Income", "Spare Income", false, true, rentSpareIncome))
+        data.push(NewRow(y, "rent", "Income", "Spare Cash", false, true, rentSpareIncome))
         rentStocks += rentSpareIncome;
 
         // Inflation

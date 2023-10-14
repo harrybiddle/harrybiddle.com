@@ -4,16 +4,19 @@
 </svelte:head>
 
 <!--TODO:-->
+<!-- - Store FileSaver and papaparse in this repository rather than fetching from cdnjs -->
 <!-- - Remove special text boxes with commas: just not working!-->
 <!-- - Change purchase costs to %-->
+<!-- - Generally review all parameters & default values -->
 <!-- - Store values in a cookie and add a "reset" button-->
 <!-- - Consider expandable dropdown for references, rather than footnotes-->
 <!-- - Fix default rent inflation-->
 <!-- - Add monte-carlo simulation-->
 <!-- - Add mathematical analysis-->
-<!-- - Better description of model -->
+<!-- - Modelling assumptions -->
 <!-- - Sensitivity analyses uses current parameters -->
-<!-- - Preview of results? -->
+<!-- - Preview of results before download -->
+<!-- - consistent legend colours in net worth graphs -->
 
 <script>
 	import * as d3 from 'd3';
@@ -24,17 +27,15 @@
 	import FormattedNumberInput from "./FormattedNumberInput.svelte";
 	import FootnoteTarget from "./FootnoteTarget.svelte";
 	import FootnoteSource from "./FootnoteSource.svelte";
+	import { maxYears } from './parameters.js';
 
 	// helper objects --------------------------------------------------------------- //
 	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
-	const capitalise = string =>
-		string ? (string.charAt(0).toUpperCase() + string.slice(1)) : string;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 	let showingMoreParameters = false;
 
 	// model parameters ------------------------------------------------------------- //
-	let maxYears = parameterDefaults.maxYears;
 	let stockMarketGain = parameterDefaults.stockMarketGain;
 	let capitalGainsTax = parameterDefaults.capitalGainsTax;
 	let rent = parameterDefaults.rent;
@@ -154,9 +155,12 @@
 	</tr>
 	<tr>
 		<td colspan="2">
-			<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
-				<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
-			</a>
+			<div style="display: flex; justify-content: center; align-items: center">
+				<button style="margin: 0px">Reset</button>
+				<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
+					<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
+				</a>
+			</div>
 		</td>
 	</tr>
 	{#if showingMoreParameters}
@@ -275,14 +279,8 @@
 {/if}
 
 <p>
-	To understand why, let's have a look at the contributions to the change in net worth
-	each year. Typically, Buy's biggest contributor to net worth is growth of the house
-	value. We've modelled this as a percentage, so eventually the magic of compound
-	interest dominates. Deductions from his net worth initially consist of the cost of
-	purchasing the house, but come to be dominated by porportional costs such as
-	property tax. His yearly interest payments also get smaller as the loan is paid off.
-	(Note that we don't include amortisation in the net worth figures, since this is a
-	straight transfer of a cash asset into a property asset).
+	To understand why, let's have a look at the annual change in comparative net worth.
+	Here is a graph breaking down the contributions when you buy:
 </p>
 
 <!-- Change in net worth each year -->
@@ -292,17 +290,24 @@
 		<h5 class="plotTitle">Annual change in net worth when buying</h5>
 		<NetWorthChart data={d.buyData} domainY={d.domainY} />
 	</div>
-
 	<p>
-		Rent's situation is simpler. Her net worth, or rathar her net worh
-		<i>relative to Buy</i>, is bouyed by her wily investmnets in the stock market,
-		while her monthly rent payment drags it down.
+		The biggest positive contribution to net worth is usually growth of the house
+		value. Deducations are dominated by purchase costs in the first year, and annual
+		interest payments get smaller as the loan is paid off.
 	</p>
-
+	<p>
+		The situation when renting is simpler. There are two main components: monthly
+		rent and the growth of the initial capital invested in the stock market:
+	</p>
 	<div>
 		<h5 class="plotTitle">Annual change in net worth when renting</h5>
 		<NetWorthChart data={d.rentData} domainY={d.domainY} reversed={true} />
 	</div>
+	<p>
+		The model also considers <i>spare cash</i>. If either buying or renting results
+		in a smaller monthly cash outflow, <i>relative to the other scenario</i> you
+		have spare cash to invest in the stock market.
+	</p>
 {/if}
 
 {#if true}
@@ -311,61 +316,6 @@
 	set of results as a CSV file.</a>
 </p>
 {/if}
-
-<h2>How the model works</h2>
-<p>
-	There's one more difference between Buy and Rent that we'll need to account for.
-	To understand this, let's look at Buy and Rent's pure cash outgoings during an
-	<i>average month</i> in the the first year. For ease of reading, all numbers are
-	displayed to two significant figures:
-</p>
-<table>
-	<thead>
-		<tr>
-			<th colspan="2">
-				Buy
-			</th>
-			<th colspan="2">
-				Rent
-			</th>
-		</tr>
-	</thead>
-
-	{#if cash}
-		{@const tableData = constructCashTableData(cash)}
-		<tbody>
-		{#each tableData as row}
-		<tr>
-			<td>{#if row[0]}{capitalise(row[0].category)}{/if}</td>
-			<td style="text-align: right">{#if row[0]}{format(-row[0].amount)}{/if}</td>
-			<td>{#if row[1]}{capitalise(row[1].category)}{/if}</td>
-			<td style="text-align: right">{#if row[1]}{format(-row[1].amount)}{/if}</td>
-		</tr>
-		{/each}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td>Total</td>
-				<td style="text-align: right">
-					{format(-tableData.totals[0])}
-				</td>
-				<td>Total</td>
-				<td style="text-align: right">
-					{format(-tableData.totals[1])}
-				</td>
-			</tr>
-		</tfoot>
-	{/if}
-</table>
-
-<p>
-	Depending on what parameters you put into the model it's likely that you see a
-	difference. Typically, Rent has smaller cash outgoings. If we are to assume that
-	Buy and Rent have an equal income, this means that she has more spare cash lying
-	around than Buy. That's advantageous to her because she's able to invest it in the
-	stock market and cream off a return. Let's assume that's exactly what she does.
-</p>
-
 
 <h2>Which parameters have the biggest impact?</h2>
 <p>
@@ -418,6 +368,11 @@
 <p>
 	We can see that the most important parameters are the rate of growth of the property
 	market, the amount of rent, and the rate of interest on Buy's loan.
+</p>
+
+<h2>Modelling assumptions</h2>
+<p>
+	TODO
 </p>
 
 <hr style="margin-top: 100px" />
