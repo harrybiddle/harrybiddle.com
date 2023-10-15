@@ -5,76 +5,90 @@ export function computeLoan(housePrice, oneOffCost, downPayment) {
 }
 
 export function simulate(
-    amortisation,
+    maxYears,
     capitalGainsTax,
-    downPayment,
-    fixedCostGain,
-    fixedCost,
+    houseAmortisationRate,
+    houseHeatingCost,
+    houseHeatingGain,
+    houseInterestRate,
+    houseMaintenanceCost,
+    houseMaintenanceGain,
+    houseOtherCost,
+    houseOtherGain,
     housePrice,
     housePriceGain,
-    interest,
-    maxYears,
-    oneOffCost,
-    proportionalCost,
+    housePurchaseCost,
+    houseTax,
     rent,
     rentGain,
-    stockMarketGain
+    startingCapital,
+    stockMarketGain,
 ) {
     return _simulate(
-        amortisation / 100,
-        capitalGainsTax / 100,
-        downPayment,
-        fixedCostGain / 100,
-        fixedCost * 12,
-        housePrice,
-        housePriceGain / 100,
-        interest / 100,
-        maxYears,
-        oneOffCost,
-        proportionalCost / 100,
-        rent * 12,
-        rentGain / 100,
-        stockMarketGain / 100
+        parseInt(maxYears),
+        Math.max(0, parseFloat(capitalGainsTax) / 100),
+        Math.max(0, parseFloat(houseAmortisationRate) / 100),
+        parseFloat(houseHeatingCost) * 12,
+        parseFloat(houseHeatingGain) / 100,
+        Math.max(0, parseFloat(houseInterestRate) / 100),
+        parseFloat(houseMaintenanceCost) * 12,
+        parseFloat(houseMaintenanceGain) / 100,
+        parseFloat(houseOtherCost) * 12,
+        parseFloat(houseOtherGain) / 100,
+        parseFloat(housePrice),
+        parseFloat(housePriceGain) / 100,
+        parseFloat(housePurchaseCost) / 100,
+        parseFloat(houseTax) / 100,
+        parseFloat(rent) * 12,
+        parseFloat(rentGain) / 100,
+        parseFloat(startingCapital),
+        parseFloat(stockMarketGain) / 100,
     );
 }
 
-export function _simulate(
-    amortisation,
+function _simulate(
+    maxYears,
     capitalGainsTax,
-    downPayment,
-    fixedCostGain,
-    fixedCost,
+    houseAmortisationRate,
+    houseHeatingCost,
+    houseHeatingGain,
+    houseInterestRate,
+    houseMaintenanceCost,
+    houseMaintenanceGain,
+    houseOtherCost,
+    houseOtherGain,
     housePrice,
     housePriceGain,
-    interest,
-    maxYears,
-    oneOffCost,
-    proportionalCost,
+    housePurchaseCost,
+    houseTax,
     rent,
     rentGain,
-    stockMarketGain
+    startingCapital,
+    stockMarketGain,
 ) {
     /* ---------------------------------------------------------------------------------- */
     // Model Run
     /* ---------------------------------------------------------------------------------- */
-
     const NewRow = (year, model, superCategory, category, cashExpenditure, netWorthContributor, amount) => ({
         year, model, superCategory, category, cashExpenditure, netWorthContributor, amount
     });
     let data = [];
 
     // buy starts with a house, a loan, and no stocks
-    data.push(NewRow(0, "buy", "Income", "Initial Capital", false, true, downPayment));
+    const oneOffCost = housePurchaseCost * housePrice;
+    data.push(NewRow(0, "buy", "Income", "Initial Capital", false, true, startingCapital));
     data.push(NewRow(0, "buy", "Income", "Purchase Costs", false, true, -oneOffCost));
-    let buyLoan = computeLoan(housePrice, oneOffCost, downPayment);
-    let buyMortgagePayment = buyLoan * (amortisation +  interest);
+    let buyLoan = computeLoan(housePrice, oneOffCost, startingCapital);
+    let buyMortgagePayment = buyLoan * (houseAmortisationRate +  houseInterestRate);
     let buyStocks = 0;
-    let buyHouse = housePrice;
-    let _fixedCost = fixedCost;
+    let _housePrice = housePrice;
+    let _houseHeatingCost = houseHeatingCost;
+    let _houseMaintenanceCost = houseMaintenanceCost;
+    let _houseOtherCost = houseOtherCost;
 
     // rent's starts with stocks
-    data.push(NewRow(0, "rent", "Income", "Initial Capital", false, true, downPayment));
-    let rentStocks = downPayment;
+    data.push(NewRow(0, "rent", "Income", "Initial Capital", false, true, startingCapital));
+    let rentStocks = startingCapital;
     let _rent = rent;
 
     for (let y = 1; y < maxYears + 1; y++) {
@@ -111,6 +125,7 @@ export function _simulate(
             let growth = buyStocks - before;
 
             // pays tax on positive stock market growth
+            // TODO exclude tax from outgoings for a simpler graph
             let tax = Math.max(0, growth) * capitalGainsTax;
             buyOutgoings += tax;
 
@@ -119,15 +134,14 @@ export function _simulate(
         }
 
         // house price grows
-        {
-            let before = buyHouse;
-            buyHouse = Math.max(0, buyHouse * (1 + housePriceGain));
-            let growth = buyHouse - before;
-            data.push(NewRow(y, "buy", "Income", "House Growth", false, true, growth))
-        }
+        let before = _housePrice;
+        _housePrice = Math.max(0, _housePrice * (1 + housePriceGain));
+        let growth = _housePrice - before;
+        data.push(NewRow(y, "buy", "Income", "House Growth", false, true, growth))
 
         // pays interest
-        let i = buyLoan * interest;
+        // TODO: handle negative values?
+        let i = buyLoan * houseInterestRate;
         buyOutgoings += i;
         data.push(NewRow(y, "buy", "Expenditure", "Interest", true, true, -i))
 
@@ -141,12 +155,14 @@ export function _simulate(
         data.push(NewRow(y, "buy", "Expenditure", "Amortisation", true, false, -a))
 
         // pays fixed and proportional costs
-        buyOutgoings += _fixedCost;
-        data.push(NewRow(y, "buy", "Expenditure", "Fixed Costs", true, true, -_fixedCost))
+        const f = _houseHeatingCost + _houseMaintenanceCost +_houseOtherCost;
+        console.log(`Fixed cots ${f/12}`)
+        buyOutgoings += f;
+        data.push(NewRow(y, "buy", "Expenditure", "Fixed Costs", true, true, -f))
 
-        let _proportionalCost = proportionalCost * buyHouse;
-        buyOutgoings += _proportionalCost;
-        data.push(NewRow(y, "buy", "Expenditure", "Proportional Costs", true, true, -_proportionalCost))
+        let p = houseTax * _housePrice;
+        buyOutgoings += p;
+        data.push(NewRow(y, "buy", "Expenditure", "Property Tax", true, true, -p))
 
         // Income calculation
         /* ------------------------------------------------------------------------------ */
@@ -155,6 +171,7 @@ export function _simulate(
         // Investment of spare cash
         /* ------------------------------------------------------------------------------ */
         let buySpareIncome = income - buyOutgoings;
+        console.log(`${y} -buyOutgoings ${buyOutgoings}, rentOutgoings ${rentOutgoings}`)
         data.push(NewRow(y, "buy", "Income", "Spare Cash", false, true, buySpareIncome))
         buyStocks += buySpareIncome;
 
@@ -165,7 +182,9 @@ export function _simulate(
         // Inflation
         /* ------------------------------------------------------------------------------ */
         _rent *= 1 + rentGain;
-        _fixedCost *= 1 + fixedCostGain;
+        _houseHeatingCost *= 1 + houseHeatingGain;
+        _houseMaintenanceCost *= 1 + houseMaintenanceGain;
+        _houseOtherCost *= 1 + houseOtherGain;
     }
     return data.filter(d => d.amount !== 0)
 }

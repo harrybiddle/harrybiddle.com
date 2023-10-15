@@ -4,72 +4,82 @@
 </svelte:head>
 
 <!--TODO:-->
+<!-- - Sensitivity analyses uses current parameters -->
 <!-- - Store FileSaver and papaparse in this repository rather than fetching from cdnjs -->
-<!-- - Remove special text boxes with commas: just not working!-->
-<!-- - Change purchase costs to %-->
 <!-- - Generally review all parameters & default values -->
+<!-- - Nicer parameter table CSS and layout -->
 <!-- - Consider expandable dropdown for references, rather than footnotes-->
-<!-- - Fix default rent inflation-->
 <!-- - Add monte-carlo simulation-->
 <!-- - Add mathematical analysis-->
 <!-- - Modelling assumptions -->
-<!-- - Sensitivity analyses uses current parameters -->
 <!-- - Preview of results before download -->
 <!-- - consistent legend colours in net worth graphs -->
+<!-- - add income to graphs to prevent them going down? -->
 
 <script>
-	import * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
-	import { simulate, netWorthChartData, camelToWord, calculateNetWorth, prepareDataForCsvDownload } from './simulation';
-	import PlotContainer from './PlotContainer.svelte';
-	import NetWorthChart from './NetWorthChart.svelte';
-	import FootnoteTarget from "./FootnoteTarget.svelte";
+	import * as d3 from 'd3';
 	import FootnoteSource from "./FootnoteSource.svelte";
+	import FootnoteTarget from "./FootnoteTarget.svelte";
+	import NetWorthChart from './NetWorthChart.svelte';
+	import PlotContainer from './PlotContainer.svelte';
 	import { resetParametersToDefaults, localStorageStore } from './parameters.js';
+	import { simulate, netWorthChartData, camelToWord, calculateNetWorth, prepareDataForCsvDownload } from './simulation';
 
 	// helper objects --------------------------------------------------------------- //
 	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
+	const formatCurrency = x => `€${d3.format(',.0f')(x)}`;
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 	let showingMoreParameters = false;
 
 	// model parameters ------------------------------------------------------------- //
-	const areaM2 = 73;
-	const _housePrice = 5_128 * areaM2;
+	const houseAreaM2 = 100;
+	const _housePrice = 470_000; //4_500 * houseAreaM2;
 	const twoSF = x => parseFloat(x.toPrecision(2));
+	const maxYears = 30;
+	const inflationPercentage = 2;  // TODO: break down
 
-	const maxYears = localStorageStore("maxYears", 30, x => Math.min(x, 100));
-	const stockMarketGain = localStorageStore("stockMarketGain", 7);  // percentage per year
 	const capitalGainsTax = localStorageStore("capitalGainsTax", 26);  // percentage per year
-	const rent = localStorageStore("rent", twoSF(12.78 * areaM2));  // money per month
-	const rentGain = localStorageStore("rentGain", 3);  // percentage per year
+	const houseAmortisationRate = localStorageStore("houseAmortisationRate", 1.5);  // percentage per year
+	const houseHeatingCost = localStorageStore("houseHeatingCost", 1.42);  // euros per m2
+	const houseHeatingGain = localStorageStore("houseHeatingGain", inflationPercentage);  // percentage per year
+	const houseInterestRate = localStorageStore("houseInterestRate", 4.19);  // percentage per year
+	const houseArea = localStorageStore("houseArea", houseAreaM2);  // m2
+	const houseMaintenanceCost = localStorageStore("houseMaintenanceCost", 1.13);  // euros per m2
+	const houseMaintenanceGain = localStorageStore("houseMaintenanceGain", inflationPercentage);  // percentage per year
+	const houseOtherCost = localStorageStore("houseOtherCost", 1.74);  // euros per m2
+	const houseOtherGain = localStorageStore("houseOtherGain", inflationPercentage);  // percentage per year
 	const housePrice = localStorageStore("housePrice", twoSF(_housePrice));  // money
-	const housePriceGain = localStorageStore("housePriceGain", 3.2);  // percentage per year
-	const downPayment = localStorageStore("downPayment", twoSF(0.26 * _housePrice));  // money
-	const oneOffCost = localStorageStore("oneOffCost", twoSF(0.1564 * _housePrice));  // money
-	const interest = localStorageStore("interest", 3.89);  // percentage per year
-	const amortisation = localStorageStore("amortisation", 2);  // percentage per year
-	const fixedCost = localStorageStore("fixedCost", twoSF(2.29 * 1.22 * areaM2));  // money per month
-	const fixedCostGain = localStorageStore("fixedCostGain", 2.8);  // percentage per year
-	const proportionalCost = localStorageStore("proportionalCost", 0.13);  // percentage
+	const housePriceGain = localStorageStore("housePriceGain", 2);  // percentage per year
+	const housePurchaseCost = localStorageStore("housePurchaseCost", 12.07);  // percentage
+	const houseTax = localStorageStore("houseTax", 0.1);  // percentage
+	const rent = localStorageStore("rent", twoSF(12.78 * houseAreaM2));  // money per month
+	const rentGain = localStorageStore("rentGain", inflationPercentage);  // percentage per year
+	const startingCapital = localStorageStore("startingCapital", twoSF(0.26 * _housePrice));  // money
+	const stockMarketGain = localStorageStore("stockMarketGain", 6);  // percentage per year
 
 	// simulate --------------------------------------------------------------------- //
 	let data, netWorth, cash;
 	$: {
 		data = simulate(
-			$amortisation,
+			maxYears,
 			$capitalGainsTax,
-			$downPayment,
-			$fixedCostGain,
-			$fixedCost,
+			$houseAmortisationRate,
+			$houseHeatingCost * $houseArea,
+			$houseHeatingGain,
+			$houseInterestRate,
+			$houseMaintenanceCost * $houseArea,
+			$houseMaintenanceGain,
+			$houseOtherCost * $houseArea,
+			$houseOtherGain,
 			$housePrice,
 			$housePriceGain,
-			$interest,
-			$maxYears,
-			$oneOffCost,
-			$proportionalCost,
+			$housePurchaseCost,
+			$houseTax,
 			$rent,
 			$rentGain,
+			$startingCapital,
 			$stockMarketGain,
 		);
 		cash = data.filter(r => r.cashExpenditure)
@@ -91,8 +101,8 @@
 	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 11.548767674084452},
 	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 6.793252874084687},
 	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 11.416614337430197},
-	  {"parameter": "oneOffCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
-	  {"parameter": "oneOffCost", "modification": "Increase by 20%", "value": 10.335370055798478},
+	  {"parameter": "housePurchaseCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
+	  {"parameter": "housePurchaseCost", "modification": "Increase by 20%", "value": 10.335370055798478},
 	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 7.6443199153483885},
 	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 10.349869227763095},
 	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 9.906460606878042},
@@ -111,8 +121,6 @@
 		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
 		saveAs(blob, "results.csv");
 	}
-
-
 </script>
 
 <header>
@@ -139,21 +147,40 @@
 <table id="parametersTable"><tbody>
 	<tr>
 		<td>Starting capital</td>
-		<td><input type="number" bind:value={$downPayment} /></td>
+		<td><input type="number" bind:value={$startingCapital} />{formatCurrency($startingCapital)}</td>
+	</tr>
+	<tr>
+		<td>
+			Rent<FootnoteSource i="1" /><br />
+			<span style="font-size: small">inclusive of all utilities and heating costs</span>
+		</td>
+		<td>
+			<input type="number"  bind:value="{$rent}" />per month
+		</td>
 	</tr>
 	<tr>
 		<td>House price<FootnoteSource i="3" /></td>
-		<td><input type="number"  bind:value="{$housePrice}" /></td>
+		<td><input type="number"  bind:value="{$housePrice}" />{formatCurrency($housePrice)}</td>
 	</tr>
 	<tr>
-		<td>Rent, inclusive of all utilities and heating costs<FootnoteSource i="1" /></td>
-		<td><input type="number"  bind:value="{$rent}" /> per month</td>
-	</tr>
-	<tr>
-		<td>Interest on the loan</td>
+		<td>House price growth</td>
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$interest}" />%
-			per year<FootnoteSource i="5" />
+			<input type="number" bind:value={$housePriceGain} />% per
+			year<FootnoteSource i="10" />
+		</td>
+	</tr>
+	<tr>
+		<td>Stock market growth</td>
+		<td>
+			<input type="number" bind:value="{$stockMarketGain}" />% per
+			year<FootnoteSource i="9" />
+		</td>
+	</tr>
+	<tr>
+		<td>Interest on the loan<FootnoteSource i="5" /></td>
+		<td>
+			<input type="number" bind:value="{$houseInterestRate}" />
+			{$houseInterestRate}% per year
 		</td>
 	</tr>
 	<tr>
@@ -167,65 +194,90 @@
 	<tr>
 		<td>Rent inflation</td>
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$rentGain}" />% per
-			year<FootnoteSource i="11" />
+			<input type="number" bind:value="{$rentGain}" />
+			{$rentGain}% per year<FootnoteSource i="11" />
 		</td>
 	</tr>
 	<tr>
 		<td>Purchase cost (property transfer tax, notary fees, and so on)<FootnoteSource i="4" /></td>
-		<td><input type="number" bind:value="{$oneOffCost}" /> (or
-	{d3.format(".0%")($oneOffCost / $housePrice)} of the house
-	price)</td>
+		<td>
+			<input type="number" bind:value="{$housePurchaseCost}" />
+			{$housePurchaseCost}% of the house price
+		</td>
 	</tr>
 	<tr>
-		<td>House price growth</td>
+		<td>House area</td>
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value={$housePriceGain} />% per
-			year<FootnoteSource i="10" />
+			<input type="number" bind:value={$houseArea} />
+			{$houseArea}m&sup2;
 		</td>
 	</tr>
 	<tr>
 		<td>Amortisation of the loan</td>
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$amortisation}" />%
+			<input type="number" bind:value="{$houseAmortisationRate}" />%
 			per year<FootnoteSource i="6" />
 		</td>
 	</tr>
 	<tr>
-		<td>Costs proportional to the house value such as property tax</td>
+		<td>Property tax</td>
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$proportionalCost}" />% of the
+			<input type="number" bind:value="{$houseTax}" />% of the
 			value of the house per year<FootnoteSource i="7" />
 		</td>
 	</tr>
 	<tr>
-		<td>Fixed costs such as utilities and maintenance</td>
+		<td>Heating costs</td>
+		<!-- TODO: apply to rental and house? -->
 		<td>
-			<input type="number" bind:value="{$fixedCost}" /> per
-			month, or {d3.format(".1%")(12 * $fixedCost / $housePrice)} of the value of
-			the house per year<FootnoteSource i="8" />
+			<input type="number" bind:value="{$houseHeatingCost}" /> per m&sup2 per
+			month.
 		</td>
 	</tr>
 	<tr>
-		<td>Inflation of fixed costs</td>
+		<td>Inflation of heating costs</td>
+		<!-- TODO: apply to rental and house? -->
 		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$fixedCostGain}" />% per
-			year<FootnoteSource i="12" />
+			<input type="number" bind:value="{$houseHeatingGain}" />% per
+			year.
+		</td>
+	</tr>
+	<tr>
+		<td>Maintenance costs</td>
+		<!-- TODO: apply to rental and house? -->
+		<td>
+			<input type="number" bind:value="{$houseMaintenanceCost}" /> per m&sup2 per
+			month.
+		</td>
+	</tr>
+	<tr>
+		<td>Inflation of maintenance costs</td>
+		<!-- TODO: apply to rental and house? -->
+		<td>
+			<input type="number" bind:value="{$houseMaintenanceGain}" />% per
+			year.
+		</td>
+	</tr>
+	<tr>
+		<td>Other housing costs<FootnoteSource i="8" /></td>
+		<td>
+			<input type="number" bind:value="{$houseOtherCost}" />
+			per m&sup2 per month
+		</td>
+	</tr>
+	<tr>
+		<td>Inflation of other housing costs<FootnoteSource i="12" /></td>
+		<td>
+			<input type="number" bind:value="{$houseOtherGain}" />
+			{$houseOtherGain}% per year
 		</td>
 	</tr>
 	<tr>
 		<th colspan="2">Market conditions</th>
 	</tr>
 	<tr>
-		<td>Stock market growth</td>
-		<td>
-			<input type="number" style="text-align: right; width: 4em" bind:value="{$stockMarketGain}" />% per
-			year<FootnoteSource i="9" />
-		</td>
-	</tr>
-	<tr>
 		<td>Capital gains tax<FootnoteSource i="13" />. House price growth is not taxed (annual property tax is included in Buy's proportional costs).</td>
-		<td><input type="number" style="text-align: right; width: 4em" bind:value="{$capitalGainsTax}" />% per
+		<td><input type="number" bind:value="{$capitalGainsTax}" />% per
 	year. </td>
 	</tr>
 	{/if}
@@ -247,7 +299,7 @@
 		{#if data.intersection == null}
 		<p>
 			Our model says that the net worth is never greater within the first
-			{$maxYears} years if you buy.
+			{maxYears} years if you buy.
 		</p>
 		{:else}
 		<p>
