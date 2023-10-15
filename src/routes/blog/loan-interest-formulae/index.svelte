@@ -87,7 +87,7 @@
 	interest rate <i>r</i> and a monthly amortisation rate <i>a</i>. In Germany, an
 	interest rate ("Sollzins") on a mortgage might be 4.2% and the amortisation
 	("Tilgung") 1.5%, and you would <i>divide</i> by twelve to get the monthly rates
-	they represent, giving you <i>r = 0.35% = 0.0035</i> and <i>a = 0.125% = 0.00125</i>.
+	they represent, giving you <i>r = 0.35%</i> and <i>a = 0.125%</i>.
 </p>
 <p>
 	Your payment in the first month&#8212;let's call it <i>p</i>&#8212;consists of the
