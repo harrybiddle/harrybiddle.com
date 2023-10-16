@@ -28,7 +28,6 @@
 
 	// helper objects --------------------------------------------------------------- //
 	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
-	const formatCurrency = x => `€${d3.format(',.0f')(x)}`;
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 	let showingMoreParameters = false;
@@ -144,149 +143,122 @@
 	Let's build a simple model to investigate the trade-off, with the following
 	parameters:
 </p>
-<table id="parametersTable"><tbody>
-	<tr>
-		<td>Starting capital</td>
-		<td><input type="number" bind:value={$startingCapital} />{formatCurrency($startingCapital)}</td>
-	</tr>
-	<tr>
-		<td>
-			Rent<FootnoteSource i="1" /><br />
-			<span style="font-size: small">inclusive of all utilities and heating costs</span>
-		</td>
-		<td>
-			<input type="number"  bind:value="{$rent}" />per month
-		</td>
-	</tr>
-	<tr>
-		<td>House price<FootnoteSource i="3" /></td>
-		<td><input type="number"  bind:value="{$housePrice}" />{formatCurrency($housePrice)}</td>
-	</tr>
-	<tr>
-		<td>House price growth</td>
-		<td>
-			<input type="number" bind:value={$housePriceGain} />% per
-			year<FootnoteSource i="10" />
-		</td>
-	</tr>
-	<tr>
-		<td>Stock market growth</td>
-		<td>
-			<input type="number" bind:value="{$stockMarketGain}" />% per
-			year<FootnoteSource i="9" />
-		</td>
-	</tr>
-	<tr>
-		<td>Interest on the loan<FootnoteSource i="5" /></td>
-		<td>
-			<input type="number" bind:value="{$houseInterestRate}" />
-			{$houseInterestRate}% per year
-		</td>
-	</tr>
-	<tr>
-		<td colspan="2" style="text-align: center">
-			<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
-				<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
-			</a>
-		</td>
-	</tr>
-	{#if showingMoreParameters}
-	<tr>
-		<td>Rent inflation</td>
-		<td>
-			<input type="number" bind:value="{$rentGain}" />
-			{$rentGain}% per year<FootnoteSource i="11" />
-		</td>
-	</tr>
-	<tr>
-		<td>Purchase cost (property transfer tax, notary fees, and so on)<FootnoteSource i="4" /></td>
-		<td>
-			<input type="number" bind:value="{$housePurchaseCost}" />
-			{$housePurchaseCost}% of the house price
-		</td>
-	</tr>
-	<tr>
-		<td>House area</td>
-		<td>
-			<input type="number" bind:value={$houseArea} />
-			{$houseArea}m&sup2;
-		</td>
-	</tr>
-	<tr>
-		<td>Amortisation of the loan</td>
-		<td>
-			<input type="number" bind:value="{$houseAmortisationRate}" />%
-			per year<FootnoteSource i="6" />
-		</td>
-	</tr>
-	<tr>
-		<td>Property tax</td>
-		<td>
-			<input type="number" bind:value="{$houseTax}" />% of the
-			value of the house per year<FootnoteSource i="7" />
-		</td>
-	</tr>
-	<tr>
-		<td>Heating costs</td>
-		<!-- TODO: apply to rental and house? -->
-		<td>
-			<input type="number" bind:value="{$houseHeatingCost}" /> per m&sup2 per
-			month.
-		</td>
-	</tr>
-	<tr>
-		<td>Inflation of heating costs</td>
-		<!-- TODO: apply to rental and house? -->
-		<td>
-			<input type="number" bind:value="{$houseHeatingGain}" />% per
-			year.
-		</td>
-	</tr>
-	<tr>
-		<td>Maintenance costs</td>
-		<!-- TODO: apply to rental and house? -->
-		<td>
-			<input type="number" bind:value="{$houseMaintenanceCost}" /> per m&sup2 per
-			month.
-		</td>
-	</tr>
-	<tr>
-		<td>Inflation of maintenance costs</td>
-		<!-- TODO: apply to rental and house? -->
-		<td>
-			<input type="number" bind:value="{$houseMaintenanceGain}" />% per
-			year.
-		</td>
-	</tr>
-	<tr>
-		<td>Other housing costs<FootnoteSource i="8" /></td>
-		<td>
-			<input type="number" bind:value="{$houseOtherCost}" />
-			per m&sup2 per month
-		</td>
-	</tr>
-	<tr>
-		<td>Inflation of other housing costs<FootnoteSource i="12" /></td>
-		<td>
-			<input type="number" bind:value="{$houseOtherGain}" />
-			{$houseOtherGain}% per year
-		</td>
-	</tr>
-	<tr>
-		<th colspan="2">Market conditions</th>
-	</tr>
-	<tr>
-		<td>Capital gains tax<FootnoteSource i="13" />. House price growth is not taxed (annual property tax is included in Buy's proportional costs).</td>
-		<td><input type="number" bind:value="{$capitalGainsTax}" />% per
-	year. </td>
-	</tr>
-	{/if}
-	<tr>
-		<td colspan="2">
-			<button style="width: 33%; margin: 0; margin-left: auto; margin-right: auto" on:click={resetParametersToDefaults}>Reset to default values</button>
-		</td>
-	</tr>
-</tbody></table>
+<article>
+	<table id="parametersTable"><tbody>
+		<tr>
+			<td>Starting capital<br /></td>
+			<td><input type="number" bind:value={$startingCapital} /></td>
+			<td>€</td>
+		</tr>
+		<tr>
+			<td>
+				Rent<FootnoteSource i="1" />
+				<br /><small>Inclusive of all utilities and heating costs</small>
+			</td>
+			<td><input type="number" bind:value="{$rent}" /></td>
+			<td>€ / month</td>
+		</tr>
+		<tr>
+			<td>House price<FootnoteSource i="3" /></td>
+			<td><input type="number"  bind:value="{$housePrice}" /></td>
+			<td>€</td>
+		</tr>
+		<tr>
+			<td>House price growth<FootnoteSource i="10" /></td>
+			<td><input type="number" bind:value={$housePriceGain} /></td>
+			<td>% / year</td>
+		</tr>
+		<tr>
+			<td>Stock market growth<FootnoteSource i="9" /></td>
+			<td><input type="number" bind:value="{$stockMarketGain}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr>
+			<td>Interest on the loan<FootnoteSource i="5" /></td>
+			<td><input type="number" bind:value="{$houseInterestRate}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr>
+			<td colspan="2" style="text-align: center">
+				<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
+					<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
+				</a>
+			</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Rent inflation<FootnoteSource i="11" /></td>
+			<td><input type="number" bind:value="{$rentGain}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>
+				Purchase cost<FootnoteSource i="4" /><br />
+				<small>Property transfer tax, notary fees, and so on</small>
+			</td>
+			<td><input type="number" bind:value="{$housePurchaseCost}" /></td>
+			<td>%</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>House area</td>
+			<td><input type="number" bind:value={$houseArea} /></td>
+			<td>m&sup2</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Amortisation of the loan<FootnoteSource i="6" /></td>
+			<td><input type="number" bind:value="{$houseAmortisationRate}" /></td>
+			<td>% / year </td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Property tax</td>
+			<td><input type="number" bind:value="{$houseTax}" /></td>
+			<td>% / year<FootnoteSource i="7" /></td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Heating costs</td>
+			<!-- TODO: apply to rental and house? -->
+			<td><input type="number" bind:value="{$houseHeatingCost}" /></td>
+			<td>€ / m&sup2 / month</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Inflation of heating costs</td>
+			<!-- TODO: apply to rental and house? -->
+			<td><input type="number" bind:value="{$houseHeatingGain}" /></td>
+			<td>% / year </td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Maintenance costs</td>
+			<!-- TODO: apply to rental and house? -->
+			<td><input type="number" bind:value="{$houseMaintenanceCost}" /></td>
+			<td>€ / m&sup2 / month</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Inflation of maintenance costs</td>
+			<!-- TODO: apply to rental and house? -->
+			<td><input type="number" bind:value="{$houseMaintenanceGain}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>
+				Other housing costs<FootnoteSource i="8" /><br />
+				<small>Rubbish collection, stormwater fee, etc.</small>
+			</td>
+			<td><input type="number" bind:value="{$houseOtherCost}" /></td>
+			<td>€ / m&sup2 / month</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Inflation of other housing costs<FootnoteSource i="12" /></td>
+			<td><input type="number" bind:value="{$houseOtherGain}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+			<td>Capital gains tax<FootnoteSource i="13" /></td>
+			<td><input type="number" bind:value="{$capitalGainsTax}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr>
+	</tbody></table>
+	<button style="width: 33%; margin: 0; margin-left: auto; margin-right: auto" on:click={resetParametersToDefaults}>Reset to default values</button>
+</article>
 <p>
 	We are interested in <b>comparative net worth</b>. Specifically, <i>is your net
 	worth greater if you purchase rather than rent property?</i> And if so, <i>after
@@ -570,5 +542,26 @@
 	#parametersTable th:first-child,
 	#parametersTable td:first-child {
 		width: 66.67%;
+	}
+	#parametersTable td {
+		vertical-align:top;
+		line-height: 28.8px;
+		border: 0;
+	}
+	input {
+		width: 70px;
+	}
+	#parametersTable small {
+		font-size: small
+	}
+	#parametersTable tr>td:nth-child(2) {
+		/* input box */
+		padding-right: 0;
+	}
+	#parametersTable tr>td:nth-child(3) {
+		/* units after input box, e.g. % per year */
+		font-size: small;
+		white-space: nowrap;
+		padding-left: 5px;
 	}
 </style>
