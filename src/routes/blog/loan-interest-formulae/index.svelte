@@ -37,14 +37,14 @@
 		width: 100px;
 		text-align: right;
 	}
-	tr > td:nth-child(2) {
+	td.formula {
 		/* column before input box containig e.g "l =" */
 		text-align: right;
 		white-space: nowrap;
 		padding-right: 0;
 	}
-	tr > td:nth-child(3) {
-		/* column with input box */
+	td.value {
+		/* column with input box / value */
 		text-align: right;
 		padding-left: 5px;
 		padding-right: 0;
@@ -140,50 +140,47 @@
 	<table>
 		<tr>
 			<td>Loan principal</td>
-			<td><i>l</i> = </td>
-			<td><input type="number" bind:value={loan}></td>
+			<td class="formula"><i>l</i> = </td>
+			<td class="value"><input type="number" bind:value={loan}></td>
 			<td></td>
 		</tr>
 		<tr>
 			<td>Interest rate</td>
-			<td><i>12r</i> = </td>
-			<td><input type="number" bind:value={interestRate}></td>
+			<td class="formula"><i>12r</i> = </td>
+			<td class="value"><input type="number" bind:value={interestRate}></td>
 			<td>%</td>
 		</tr>
 		<tr>
 			<td>Amortisation rate</td>
-			<td><i>12a</i> = </td>
-			<td><input type="number" bind:value={amortisationRate}></td>
+			<td class="formula"><i>12a</i> = </td>
+			<td class="value"><input type="number" bind:value={amortisationRate}></td>
 			<td>%</td>
 		</tr>
 		<tr>
 			<td>Months</td>
-			<td><i>n</i> = </td>
-			<td><input type="number" bind:value={numberMonths}></td>
+			<td class="formula"><i>n</i> = </td>
+			<td class="value"><input type="number" bind:value={numberMonths}></td>
 			<td></td>
 		</tr>
 		<tr>
 			<td>Monthly payment</td>
-			<td><i>p</i> = </td>
-			<td>{formatCurrency(monthlyPayment)}</td>
+			<td class="formula"><i>p</i> = </td>
+			<td class="value">{formatCurrency(monthlyPayment)}</td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Outstanding loan after {numberMonths} months</td>
-			<td><i>l<sub>{numberMonths}</sub></i> = </td>
-			<td>{formatCurrency(outstandingLoan)}</td>
+			<td colspan="2">Outstanding loan after {numberMonths} months</td>
+			<td class="value">{formatCurrency(outstandingLoan)}</td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Cumulative interest paid after {numberMonths} months</td>
-			<td></td>
-			<td>{formatCurrency(cumulativeInterest)}</td>
+			<td colspan="2">Cumulative interest paid after {numberMonths} months</td>
+			<td class="value">{formatCurrency(cumulativeInterest)}</td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Month in which last payment will be made</td>
-			<td></td>
-			<td>{formatZeroDP(Math.ceil(lastMonth))}<br /><span style="font-size: small">(or {formatOneDP(lastMonth / 12)} years)</span></td>
+			<td colspan="2">Month in which last payment will be made</td>
+			<td class="value">{formatZeroDP(Math.ceil(lastMonth))}<br /><span style="font-size: small">(or {formatOneDP(lastMonth / 12)} years)</span></td>
 			<td></td>
 		</tr>
 	</table>
