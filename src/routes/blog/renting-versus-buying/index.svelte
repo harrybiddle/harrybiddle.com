@@ -4,20 +4,18 @@
 </svelte:head>
 
 <!--TODO:-->
-<!-- - Generally review all parameters & default values and update footnotes-->
+<!-- - Generally review all parameters & default values and update footnotes -->
 <!-- - Sensitive analysis: add infinity (?), better handle base case is null -->
-<!-- - Monte-carlo analysis -->
+<!-- - Add hover for graphs -->
+<!-- - Three options: Germany, UK, Berlin? -->
 <!-- - Add default for UK? -->
-<!-- - Cold rent -->
-<!-- - Derive area from rent? -->
 <!-- - Arrows on senstivity analysis ("buying more attractive; renting more attractive") -->
 <!-- - Skip sensitivity analysis when no intersection -->
 <!-- - Only run sensitivy analysis up until first intersection -->
 <!-- - Store FileSaver and papaparse in this repository rather than fetching from cdnjs -->
-<!-- - Add monte-carlo simulation-->
+<!-- - Add monte-carlo simulation?-->
 <!-- - Add mathematical analysis-->
-<!-- - Modelling assumptions -->
-<!-- - Preview of results before download -->
+<!-- - Preview of results before download? -->
 <!-- - Consistent legend colours in net worth graphs -->
 <!-- - Add income to graphs to prevent them going down? -->
 
@@ -33,20 +31,18 @@
 	import { sensitivityAnalysis } from './sensitivityAnalysis';
 
 	// helper objects --------------------------------------------------------------- //
-	const format2sf = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 	const formatLocale = x => x.toLocaleString();
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 	let showingMoreParameters = false;
 
 	// model parameters ------------------------------------------------------------- //
-	const area = 100;
+	const _area = 100;
 	const _rentPerM2 = 12.78;
 	const _housePricePerM2 = 5_128;
-	const _housePrice = _housePricePerM2 * area;
+	const _housePrice = _housePricePerM2 * _area;
 	const twoSF = x => parseFloat(x.toPrecision(2));
 	const threeSF = x => parseFloat(x.toPrecision(3));
-	const inflationPercentage = 2;  // TODO: break down
 
 	const capitalGainsTax = localStorageStore("capitalGainsTax", 26);  // percentage per year
 	const heatingGain = localStorageStore("heatingGain", 4.8);  // percentage per year
@@ -62,9 +58,9 @@
 	const houseTax = localStorageStore("houseTax", 0.1);  // percentage
 	const maintenanceGain = localStorageStore("maintenanceGain", 2.8);  // percentage per year
 	const maxYears = localStorageStore("maxYears", 30);
-	const otherCostGain = localStorageStore("otherCostGain", inflationPercentage);  // percentage per year
-	const rent = localStorageStore("rent", twoSF(_rentPerM2 * area));  // euros per month
-	const rentGain = localStorageStore("rentGain", inflationPercentage);  // percentage per year
+	const otherCostGain = localStorageStore("otherCostGain", 2);  // percentage per year
+	const rent = localStorageStore("rent", twoSF(_rentPerM2 * _area));  // euros per month
+	const rentGain = localStorageStore("rentGain", 2);  // percentage per year
 	const rentPerM2 = localStorageStore("rentPerM2", _rentPerM2);  // euros per m2 per month
 	const startingCapital = localStorageStore("startingCapital", twoSF(0.26 * _housePrice));  // euros
 	const stockMarketGain = localStorageStore("stockMarketGain", 7);  // percentage per year
@@ -100,7 +96,6 @@
 	}
 
 	function downloadResultsAsCsv() {
-		console.log(prepareDataForCsvDownload(data))
 		const dataString = Papa.unparse(prepareDataForCsvDownload(data));
 		const blob = new Blob([dataString], { type: "text/csv;charset=utf-8" });
 		saveAs(blob, "results.csv");
