@@ -3,7 +3,7 @@
 </script>
 
 <p class="footnote">
-	<a id="footnote-{i}">
+	<a href="#footnote-{i}-return" id="footnote-{i}">
 		<sup>{i}</sup>
 	</a>
 	<slot></slot>

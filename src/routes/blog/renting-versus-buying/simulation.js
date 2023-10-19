@@ -5,64 +5,73 @@ export function computeLoan(housePrice, oneOffCost, downPayment) {
 }
 
 export function simulate(
-    maxYears,
     capitalGainsTax,
+    heatingCostGain,
     houseAmortisationRate,
     houseHeatingCost,
-    houseHeatingGain,
     houseInterestRate,
     houseMaintenanceCost,
-    houseMaintenanceGain,
     houseOtherCost,
-    houseOtherGain,
     housePrice,
     housePriceGain,
     housePurchaseCost,
     houseTax,
+    maintenanceCostGain,
+    maxYears,
+    otherCostgain,
     rent,
     rentGain,
+    rentalHeatingCost,
+    rentalMaintenanceCost,
+    rentalOtherCost,
     startingCapital,
     stockMarketGain,
 ) {
     return _simulate(
-        parseInt(maxYears),
-        Math.max(0, parseFloat(capitalGainsTax) / 100),
-        Math.max(0, parseFloat(houseAmortisationRate) / 100),
+        parseFloat(capitalGainsTax) / 100,
+        parseFloat(heatingCostGain) / 100,
+        parseFloat(houseAmortisationRate) / 100,
         parseFloat(houseHeatingCost) * 12,
-        parseFloat(houseHeatingGain) / 100,
-        Math.max(0, parseFloat(houseInterestRate) / 100),
+        parseFloat(houseInterestRate) / 100,
         parseFloat(houseMaintenanceCost) * 12,
-        parseFloat(houseMaintenanceGain) / 100,
         parseFloat(houseOtherCost) * 12,
-        parseFloat(houseOtherGain) / 100,
         parseFloat(housePrice),
         parseFloat(housePriceGain) / 100,
         parseFloat(housePurchaseCost) / 100,
         parseFloat(houseTax) / 100,
+        parseFloat(maintenanceCostGain) / 100,
+        parseInt(maxYears),
+        parseFloat(otherCostgain) / 100,
         parseFloat(rent) * 12,
         parseFloat(rentGain) / 100,
+        parseFloat(rentalHeatingCost) * 12,
+        parseFloat(rentalMaintenanceCost) * 12,
+        parseFloat(rentalOtherCost) * 12,
         parseFloat(startingCapital),
         parseFloat(stockMarketGain) / 100,
     );
 }
 
 function _simulate(
-    maxYears,
     capitalGainsTax,
+    heatingCostGain,
     houseAmortisationRate,
     houseHeatingCost,
-    houseHeatingGain,
     houseInterestRate,
     houseMaintenanceCost,
-    houseMaintenanceGain,
     houseOtherCost,
-    houseOtherGain,
     housePrice,
     housePriceGain,
     housePurchaseCost,
     houseTax,
+    maintenanceCostGain,
+    maxYears,
+    otherCostgain,
     rent,
     rentGain,
+    rentalHeatingCost,
+    rentalMaintenanceCost,
+    rentalOtherCost,
     startingCapital,
     stockMarketGain,
 ) {
@@ -90,6 +99,9 @@ function _simulate(
     data.push(NewRow(0, "rent", "Income", "Initial Capital", false, true, startingCapital));
     let rentStocks = startingCapital;
     let _rent = rent;
+    let _rentalHeatingCost = rentalHeatingCost;
+    let _rentalMaintenanceCost = rentalMaintenanceCost;
+    let _rentalOtherCost = rentalOtherCost;
 
     for (let y = 1; y < maxYears + 1; y++) {
         // Rent pre-income
@@ -109,6 +121,11 @@ function _simulate(
             // add post-tax quantity to net worth
             data.push(NewRow(y, "rent", "Income", "Stock Market", false, true, growth - tax))
         }
+
+        // pays fixed costs
+        const c = _houseHeatingCost + _houseMaintenanceCost +_houseOtherCost;
+        rentOutgoings += c;
+        data.push(NewRow(y, "rent", "Expenditure", "Fixed Costs", true, true, -c))
 
         // pays rent
         rentOutgoings += _rent;
@@ -156,7 +173,6 @@ function _simulate(
 
         // pays fixed and proportional costs
         const f = _houseHeatingCost + _houseMaintenanceCost +_houseOtherCost;
-        console.log(`Fixed cots ${f/12}`)
         buyOutgoings += f;
         data.push(NewRow(y, "buy", "Expenditure", "Fixed Costs", true, true, -f))
 
@@ -171,7 +187,6 @@ function _simulate(
         // Investment of spare cash
         /* ------------------------------------------------------------------------------ */
         let buySpareIncome = income - buyOutgoings;
-        console.log(`${y} -buyOutgoings ${buyOutgoings}, rentOutgoings ${rentOutgoings}`)
         data.push(NewRow(y, "buy", "Income", "Spare Cash", false, true, buySpareIncome))
         buyStocks += buySpareIncome;
 
@@ -182,9 +197,12 @@ function _simulate(
         // Inflation
         /* ------------------------------------------------------------------------------ */
         _rent *= 1 + rentGain;
-        _houseHeatingCost *= 1 + houseHeatingGain;
-        _houseMaintenanceCost *= 1 + houseMaintenanceGain;
-        _houseOtherCost *= 1 + houseOtherGain;
+        _houseHeatingCost *= 1 + heatingCostGain;
+        _houseMaintenanceCost *= 1 + maintenanceCostGain;
+        _houseOtherCost *= 1 + otherCostgain;
+        _rentalHeatingCost *= 1 + heatingCostGain;
+        _rentalMaintenanceCost *= 1 + maintenanceCostGain;
+        _rentalOtherCost *= 1 + otherCostgain;
     }
     return data.filter(d => d.amount !== 0)
 }

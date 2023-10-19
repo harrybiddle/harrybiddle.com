@@ -1,62 +1,63 @@
-import { simulate, calculateNetWorth, parameterDefaults } from './simulation.js';
+import { simulate, calculateNetWorth } from './simulation.js';
 import * as d3 from 'd3';
 
-function calculate(parameters) {
-	const [netWorth, cash] = simulate(
-		parameters.amortisation,
+function calculateIntersection(parameters) {
+	const data = simulate(
 		parameters.capitalGainsTax,
-		parameters.downPayment,
-		parameters.fixedCostGain,
-		parameters.fixedCost,
+		parameters.heatingCostGain,
+		parameters.houseAmortisationRate,
+		parameters.houseHeatingCost,
+		parameters.houseInterestRate,
+		parameters.houseMaintenanceCost,
+		parameters.houseOtherCost,
 		parameters.housePrice,
 		parameters.housePriceGain,
-		parameters.interest,
+		parameters.housePurchaseCost,
+		parameters.houseTax,
+		parameters.maintenanceCostGain,
 		parameters.maxYears,
-		parameters.oneOffCost,
-		parameters.proportionalCost,
+		parameters.otherCostgain,
 		parameters.rent,
 		parameters.rentGain,
-		parameters.stockMarketGain
+		parameters.rentalHeatingCost,
+		parameters.rentalMaintenanceCost,
+		parameters.rentalOtherCost,
+		parameters.startingCapital,
+		parameters.stockMarketGain,
 	);
-
+	const netWorth = data.filter(r => r.netWorthContributor)
 	const intersection = calculateNetWorth(netWorth).intersection;
 	if (intersection == null) return null;
 	else return intersection[0];
 }
 
-const base = calculate(parameterDefaults);
+export function sensitivityAnalysis(parameterDefaults) {
+	const base = calculateIntersection(parameterDefaults);
 
-const modifyBy = 0.2;
+	const modifyBy = 0.2;
 
-const modifyByPretty = d3.format('.0%')(modifyBy);
-
-let data = [];
-
-for (const [parameter, defaultValue] of Object.entries(parameterDefaults)) {
-	if (!['maxYears', 'capitalGainsTax'].includes(parameter)) {
-		const decrease = { ...parameterDefaults, [parameter]: defaultValue * (1 - modifyBy) };
-		const increase = { ...parameterDefaults, [parameter]: defaultValue * (1 + modifyBy) };
-		data.push({ parameter, decrease: calculate(decrease), increase: calculate(increase) });
+	let data = []
+	for (const [parameter, defaultValue] of Object.entries(parameterDefaults)) {
+		if (!['maxYears', 'capitalGainsTax'].includes(parameter)) {
+			const decrease = {...parameterDefaults, [parameter]: defaultValue * (1 - modifyBy)};
+			const increase = {...parameterDefaults, [parameter]: defaultValue * (1 + modifyBy)};
+			data.push({parameter, decrease: calculateIntersection(decrease), increase: calculateIntersection(increase)});
+		}
 	}
-}
 
-// sort by size
-data = data.sort((a, b) =>
-	d3.descending(
-		Math.abs(a.decrease - base) + Math.abs(a.increase - base),
-		Math.abs(b.decrease - base) + Math.abs(b.increase - base)
-	)
-);
+	data = data.sort((a, b) =>
+       d3.descending(
+               Math.abs(a.decrease - base) + Math.abs(a.increase - base),
+               Math.abs(b.decrease - base) + Math.abs(b.increase - base)
+       )
+	);
+	data = data.slice(0, 8);
 
-// print
-console.log(`const sensitivityBase = ${base};`);
-console.log('const sensitivityData = [');
-for (const row of data) {
-	console.log(
-		`  {"parameter": "${row.parameter}", "modification": "Decrease by ${modifyByPretty}", "value": ${row.decrease}},`
-	);
-	console.log(
-		`  {"parameter": "${row.parameter}", "modification": "Increase by ${modifyByPretty}", "value": ${row.increase}},`
-	);
+	let ret = Object.assign([], ({base}));;
+	for (const row of data) {
+		ret.push({parameter: row.parameter, modification: "Decrease by 20%", value: row.decrease})
+		ret.push({parameter: row.parameter, modification: "Increase by 20%", value: row.increase})
+	}
+
+	return ret;
 }
-console.log('];');

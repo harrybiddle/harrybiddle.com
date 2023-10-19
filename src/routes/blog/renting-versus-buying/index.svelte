@@ -4,17 +4,22 @@
 </svelte:head>
 
 <!--TODO:-->
-<!-- - Sensitivity analyses uses current parameters -->
+<!-- - Generally review all parameters & default values and update footnotes-->
+<!-- - Sensitive analysis: add infinity (?), better handle base case is null -->
+<!-- - Monte-carlo analysis -->
+<!-- - Add default for UK? -->
+<!-- - Cold rent -->
+<!-- - Derive area from rent? -->
+<!-- - Arrows on senstivity analysis ("buying more attractive; renting more attractive") -->
+<!-- - Skip sensitivity analysis when no intersection -->
+<!-- - Only run sensitivy analysis up until first intersection -->
 <!-- - Store FileSaver and papaparse in this repository rather than fetching from cdnjs -->
-<!-- - Generally review all parameters & default values -->
-<!-- - Nicer parameter table CSS and layout -->
-<!-- - Consider expandable dropdown for references, rather than footnotes-->
 <!-- - Add monte-carlo simulation-->
 <!-- - Add mathematical analysis-->
 <!-- - Modelling assumptions -->
 <!-- - Preview of results before download -->
-<!-- - consistent legend colours in net worth graphs -->
-<!-- - add income to graphs to prevent them going down? -->
+<!-- - Consistent legend colours in net worth graphs -->
+<!-- - Add income to graphs to prevent them going down? -->
 
 <script>
 	import * as Plot from '@observablehq/plot';
@@ -25,94 +30,74 @@
 	import PlotContainer from './PlotContainer.svelte';
 	import { resetParametersToDefaults, localStorageStore } from './parameters.js';
 	import { simulate, netWorthChartData, camelToWord, calculateNetWorth, prepareDataForCsvDownload } from './simulation';
+	import { sensitivityAnalysis } from './sensitivityAnalysis';
 
 	// helper objects --------------------------------------------------------------- //
-	const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
+	const format2sf = x => d3.format(',.2r')(Math.round(x / 10) * 10);
+	const formatLocale = x => x.toLocaleString();
 	const formatIntersection = d => `${Math.abs(d) < 0.1 ? 0 : d.toFixed(1)} years`;
 	const plotStyle = { fontFamily: "Gelasio", fontSize: "18px", overflow: true, background: "transparent" };
 	let showingMoreParameters = false;
 
 	// model parameters ------------------------------------------------------------- //
-	const houseAreaM2 = 100;
-	const _housePrice = 470_000; //4_500 * houseAreaM2;
+	const area = 100;
+	const _rentPerM2 = 12.78;
+	const _housePricePerM2 = 5_128;
+	const _housePrice = _housePricePerM2 * area;
 	const twoSF = x => parseFloat(x.toPrecision(2));
-	const maxYears = 30;
+	const threeSF = x => parseFloat(x.toPrecision(3));
 	const inflationPercentage = 2;  // TODO: break down
 
 	const capitalGainsTax = localStorageStore("capitalGainsTax", 26);  // percentage per year
+	const heatingGain = localStorageStore("heatingGain", 4.8);  // percentage per year
 	const houseAmortisationRate = localStorageStore("houseAmortisationRate", 1.5);  // percentage per year
-	const houseHeatingCost = localStorageStore("houseHeatingCost", 1.42);  // euros per m2
-	const houseHeatingGain = localStorageStore("houseHeatingGain", inflationPercentage);  // percentage per year
-	const houseInterestRate = localStorageStore("houseInterestRate", 4.19);  // percentage per year
-	const houseArea = localStorageStore("houseArea", houseAreaM2);  // m2
-	const houseMaintenanceCost = localStorageStore("houseMaintenanceCost", 1.13);  // euros per m2
-	const houseMaintenanceGain = localStorageStore("houseMaintenanceGain", inflationPercentage);  // percentage per year
+	const housePricePerM2 = localStorageStore("housePricePerM2", twoSF(_housePricePerM2));  // euros per m2
+	const houseHeatingCost = localStorageStore("houseHeatingCost", threeSF(0.1226 * 125 / 12));  // euros per m2 per month
+	const houseInterestRate = localStorageStore("houseInterestRate", 3.89);  // percentage per year
+	const houseMaintenanceCost = localStorageStore("houseMaintenanceCost", 1.12);  // euros per m2 per month
 	const houseOtherCost = localStorageStore("houseOtherCost", 1.74);  // euros per m2
-	const houseOtherGain = localStorageStore("houseOtherGain", inflationPercentage);  // percentage per year
-	const housePrice = localStorageStore("housePrice", twoSF(_housePrice));  // money
+	const housePrice = localStorageStore("housePrice", twoSF(_housePrice));  // euros
 	const housePriceGain = localStorageStore("housePriceGain", 2);  // percentage per year
 	const housePurchaseCost = localStorageStore("housePurchaseCost", 12.07);  // percentage
 	const houseTax = localStorageStore("houseTax", 0.1);  // percentage
-	const rent = localStorageStore("rent", twoSF(12.78 * houseAreaM2));  // money per month
+	const maintenanceGain = localStorageStore("maintenanceGain", 2.8);  // percentage per year
+	const maxYears = localStorageStore("maxYears", 30);
+	const otherCostGain = localStorageStore("otherCostGain", inflationPercentage);  // percentage per year
+	const rent = localStorageStore("rent", twoSF(_rentPerM2 * area));  // euros per month
 	const rentGain = localStorageStore("rentGain", inflationPercentage);  // percentage per year
-	const startingCapital = localStorageStore("startingCapital", twoSF(0.26 * _housePrice));  // money
-	const stockMarketGain = localStorageStore("stockMarketGain", 6);  // percentage per year
+	const rentPerM2 = localStorageStore("rentPerM2", _rentPerM2);  // euros per m2 per month
+	const startingCapital = localStorageStore("startingCapital", twoSF(0.26 * _housePrice));  // euros
+	const stockMarketGain = localStorageStore("stockMarketGain", 7);  // percentage per year
 
 	// simulate --------------------------------------------------------------------- //
 	let data, netWorth, cash;
 	$: {
 		data = simulate(
-			maxYears,
-			$capitalGainsTax,
-			$houseAmortisationRate,
-			$houseHeatingCost * $houseArea,
-			$houseHeatingGain,
-			$houseInterestRate,
-			$houseMaintenanceCost * $houseArea,
-			$houseMaintenanceGain,
-			$houseOtherCost * $houseArea,
-			$houseOtherGain,
-			$housePrice,
-			$housePriceGain,
-			$housePurchaseCost,
-			$houseTax,
-			$rent,
-			$rentGain,
-			$startingCapital,
-			$stockMarketGain,
+    			$capitalGainsTax,
+    			$heatingGain,
+    			$houseAmortisationRate,
+    			$houseHeatingCost * $housePrice / $housePricePerM2,
+    			$houseInterestRate,
+    			$houseMaintenanceCost * $housePrice / $housePricePerM2,
+    			$houseOtherCost * $housePrice / $housePricePerM2,
+    			$housePrice,
+    			$housePriceGain,
+    			$housePurchaseCost,
+    			$houseTax,
+    			$maintenanceGain,
+    			$maxYears,
+    			$otherCostGain,
+    			$rent,
+    			$rentGain,
+    			$houseHeatingCost * $rent / $rentPerM2,
+    			$houseMaintenanceCost * $rent / $rentPerM2,
+    			$houseOtherCost * $rent / $rentPerM2,
+    			$startingCapital,
+    			$stockMarketGain,
 		);
 		cash = data.filter(r => r.cashExpenditure)
 		netWorth = data.filter(r => r.netWorthContributor)
 	}
-
-	// results of sensitivity analysis
-	const sensitivityBase = 8.718017178214817;
-	const sensitivityData = [
-	  {"parameter": "housePriceGain", "modification": "Decrease by 20%", "value": 24.65521883522328},
-	  {"parameter": "housePriceGain", "modification": "Increase by 20%", "value": 5.025395666258443},
-	  {"parameter": "rent", "modification": "Decrease by 20%", "value": 16.431609878339145},
-	  {"parameter": "rent", "modification": "Increase by 20%", "value": 4.932022458697653},
-	  {"parameter": "interest", "modification": "Decrease by 20%", "value": 5.784751891333453},
-	  {"parameter": "interest", "modification": "Increase by 20%", "value": 12.971362995486418},
-	  {"parameter": "housePrice", "modification": "Decrease by 20%", "value": 6.2556627157217575},
-	  {"parameter": "housePrice", "modification": "Increase by 20%", "value": 11.504965844448627},
-	  {"parameter": "proportionalCost", "modification": "Decrease by 20%", "value": 6.896937613100356},
-	  {"parameter": "proportionalCost", "modification": "Increase by 20%", "value": 11.548767674084452},
-	  {"parameter": "fixedCost", "modification": "Decrease by 20%", "value": 6.793252874084687},
-	  {"parameter": "fixedCost", "modification": "Increase by 20%", "value": 11.416614337430197},
-	  {"parameter": "housePurchaseCost", "modification": "Decrease by 20%", "value": 7.065110693929245},
-	  {"parameter": "housePurchaseCost", "modification": "Increase by 20%", "value": 10.335370055798478},
-	  {"parameter": "stockMarketGain", "modification": "Decrease by 20%", "value": 7.6443199153483885},
-	  {"parameter": "stockMarketGain", "modification": "Increase by 20%", "value": 10.349869227763095},
-	  {"parameter": "downPayment", "modification": "Decrease by 20%", "value": 9.906460606878042},
-	  {"parameter": "downPayment", "modification": "Increase by 20%", "value": 7.631987762635039},
-	  {"parameter": "amortisation", "modification": "Decrease by 20%", "value": 8.083547902334809},
-	  {"parameter": "amortisation", "modification": "Increase by 20%", "value": 9.337558364441904},
-	  {"parameter": "rentGain", "modification": "Decrease by 20%", "value": 9.035961716021573},
-	  {"parameter": "rentGain", "modification": "Increase by 20%", "value": 8.437096851276502},
-	  {"parameter": "fixedCostGain", "modification": "Decrease by 20%", "value": 8.493024914230151},
-	  {"parameter": "fixedCostGain", "modification": "Increase by 20%", "value": 8.979151913771023},
-	];
 
 	function downloadResultsAsCsv() {
 		console.log(prepareDataForCsvDownload(data))
@@ -146,30 +131,35 @@
 <article>
 	<table id="parametersTable"><tbody>
 		<tr>
-			<td>Starting capital<br /></td>
+			<td>Starting capital<FootnoteSource i="1" /><br /></td>
 			<td><input type="number" bind:value={$startingCapital} /></td>
 			<td>€</td>
 		</tr>
 		<tr>
 			<td>
-				Rent<FootnoteSource i="1" />
-				<br /><small>Inclusive of all utilities and heating costs</small>
+				Cold rent<!--<FootnoteSource i="2" />-->
+				<br /><small>Excluding utilities and other costs</small>
 			</td>
 			<td><input type="number" bind:value="{$rent}" /></td>
 			<td>€ / month</td>
 		</tr>
 		<tr>
-			<td>House price<FootnoteSource i="3" /></td>
+			<td>Cold rent inflation<FootnoteSource i="2" /></td>
+			<td><input type="number" bind:value="{$rentGain}" /></td>
+			<td>% / year</td>
+		</tr>
+		<tr>
+			<td>House price<!--<FootnoteSource i="4" />--></td>
 			<td><input type="number"  bind:value="{$housePrice}" /></td>
 			<td>€</td>
 		</tr>
 		<tr>
-			<td>House price growth<FootnoteSource i="10" /></td>
+			<td>House price growth<FootnoteSource i="3" /></td>
 			<td><input type="number" bind:value={$housePriceGain} /></td>
 			<td>% / year</td>
 		</tr>
 		<tr>
-			<td>Stock market growth<FootnoteSource i="9" /></td>
+			<td>Stock market growth<FootnoteSource i="4" /></td>
 			<td><input type="number" bind:value="{$stockMarketGain}" /></td>
 			<td>% / year</td>
 		</tr>
@@ -179,79 +169,83 @@
 			<td>% / year</td>
 		</tr>
 		<tr>
-			<td colspan="2" style="text-align: center">
+			<td colspan="3" style="text-align: center">
 				<a on:click={() => (showingMoreParameters = !showingMoreParameters)}>
 					<small>Show {showingMoreParameters ? 'fewer' : 'more'} parameters</small>
 				</a>
 			</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Rent inflation<FootnoteSource i="11" /></td>
-			<td><input type="number" bind:value="{$rentGain}" /></td>
-			<td>% / year</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Years to simulate</td>
+			<td><input type="number" bind:value="{$maxYears}" min="0" max="100" /></td>
+			<td></td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
 			<td>
-				Purchase cost<FootnoteSource i="4" /><br />
+				Purchase cost<FootnoteSource i="6" /><br />
 				<small>Property transfer tax, notary fees, and so on</small>
 			</td>
 			<td><input type="number" bind:value="{$housePurchaseCost}" /></td>
 			<td>%</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>House area</td>
-			<td><input type="number" bind:value={$houseArea} /></td>
-			<td>m&sup2</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Cold rent per area<!--<FootnoteSource i="10" />--></td>
+			<td><input type="number" bind:value={$rentPerM2} /></td>
+			<td>€ / m&sup2 / month</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Amortisation of the loan<FootnoteSource i="6" /></td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>House price per area<!--<FootnoteSource i="11" />--></td>
+			<td><input type="number" bind:value={$housePricePerM2} /></td>
+			<td>€ / m&sup2</td>
+		</tr>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Amortisation of the loan<FootnoteSource i="7" /></td>
 			<td><input type="number" bind:value="{$houseAmortisationRate}" /></td>
 			<td>% / year </td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Property tax</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Property tax<FootnoteSource i="8" /></td>
 			<td><input type="number" bind:value="{$houseTax}" /></td>
-			<td>% / year<FootnoteSource i="7" /></td>
+			<td>% / year</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Heating costs</td>
-			<!-- TODO: apply to rental and house? -->
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Heating costs<FootnoteSource i="9" /></td>
 			<td><input type="number" bind:value="{$houseHeatingCost}" /></td>
 			<td>€ / m&sup2 / month</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Inflation of heating costs</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Inflation of heating costs<FootnoteSource i="10" /></td>
 			<!-- TODO: apply to rental and house? -->
-			<td><input type="number" bind:value="{$houseHeatingGain}" /></td>
+			<td><input type="number" bind:value="{$heatingGain}" /></td>
 			<td>% / year </td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Maintenance costs</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Maintenance costs<FootnoteSource i="11" /></td>
 			<!-- TODO: apply to rental and house? -->
 			<td><input type="number" bind:value="{$houseMaintenanceCost}" /></td>
 			<td>€ / m&sup2 / month</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Inflation of maintenance costs</td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Inflation of maintenance costs<FootnoteSource i="12" /></td>
 			<!-- TODO: apply to rental and house? -->
-			<td><input type="number" bind:value="{$houseMaintenanceGain}" /></td>
+			<td><input type="number" bind:value="{$maintenanceGain}" /></td>
 			<td>% / year</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
 			<td>
-				Other housing costs<FootnoteSource i="8" /><br />
+				Other housing/rental costs<FootnoteSource i="13" /><br />
 				<small>Rubbish collection, stormwater fee, etc.</small>
 			</td>
 			<td><input type="number" bind:value="{$houseOtherCost}" /></td>
 			<td>€ / m&sup2 / month</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Inflation of other housing costs<FootnoteSource i="12" /></td>
-			<td><input type="number" bind:value="{$houseOtherGain}" /></td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Inflation of other housing/rental costs<!--<FootnoteSource i="19" />--></td>
+			<td><input type="number" bind:value="{$otherCostGain}" /></td>
 			<td>% / year</td>
 		</tr>
-		<tr style="{showingMoreParameters ? '' : 'visibility: collapse'}">
-			<td>Capital gains tax<FootnoteSource i="13" /></td>
+		<tr class="{showingMoreParameters ? '' : 'collapsed'}">
+			<td>Capital gains tax<FootnoteSource i="14" /></td>
 			<td><input type="number" bind:value="{$capitalGainsTax}" /></td>
 			<td>% / year</td>
 		</tr>
@@ -271,7 +265,7 @@
 		{#if data.intersection == null}
 		<p>
 			Our model says that the net worth is never greater within the first
-			{maxYears} years if you buy.
+			{$maxYears} years if you buy.
 		</p>
 		{:else}
 		<p>
@@ -320,29 +314,32 @@
 		<NetWorthChart data={d.buyData} domainY={d.domainY} />
 	</div>
 	<p>
-		The biggest positive contribution to net worth is usually growth of the house
-		value. Deducations are dominated by purchase costs in the first year, and annual
-		interest payments get smaller as the loan is paid off.
+		Depending on your inputs, the biggest positive contribution to net worth is
+		usually growth of the house value. Deducations are dominated by purchase costs
+		in the first year, and annual interest payments get smaller as the loan is paid
+		off.
 	</p>
 	<p>
 		The situation when renting is simpler. There are two main components: monthly
-		rent and the growth of the initial capital invested in the stock market:
+		rent, and the growth of the initial capital invested in the stock market:
 	</p>
 	<div>
 		<h5 class="plotTitle">Annual change in net worth when renting</h5>
 		<NetWorthChart data={d.rentData} domainY={d.domainY} reversed={true} />
 	</div>
 	<p>
-		The model also considers <i>spare cash</i>. If either buying or renting results
-		in a smaller monthly cash outflow, <i>relative to the other scenario</i> you
-		have spare cash to invest in the stock market.
+		Any difference in yearly cash expenditure between the two scenarios is called
+		"spare cash" and is assumed to be dutifully invested in the stock market. If
+		buying costs you €{formatLocale(1800)} in one month but renting only
+		€{formatLocale(1500)}, the renter is assumed to have invested the €300
+		difference in the stock market.
 	</p>
 {/if}
 
 {#if true}
 <p>
-	You can also <a target="_blank" on:click={downloadResultsAsCsv}>download the full
-	set of results as a CSV file.</a>
+	You can also <a target="_blank" on:click={downloadResultsAsCsv}>download the results
+	as a CSV file.</a>
 </p>
 {/if}
 
@@ -352,42 +349,58 @@
 	outcome is <i>the number of years it takes for buying to be more financially
 	advantageous than renting</i>, if that even occurs. A simple way to test the
 	sensitivity of the model is to take each parameter in turn, modify it by plus or
-	minus some proportion, and see how much the outcome changes.
+	minus twenty percent, and see how much the outcome changes.
 </p>
-
-<p>
-	In the plot below we chose a set of parameters which made buying more
-	attractive than renting after {formatIntersection(sensitivityBase)}, and then
-	varied by plus or minus twenty percent.
-</p>
-<div>
-	<h5 class="plotTitle">
-		Effect on model outcome of changing input parameters
-	</h5>
-	<PlotContainer options={{
-		style: plotStyle,
-		color: { legend: true, range: ["#F98159", "#9DD554"], style: { fontSize: "17px" } },
-		marginLeft: 170,
-		marginBottom: 50,
-		x: {
-			label: "Years until net worth from buying exceeds that of renting",
-		},
-		y: { tickFormat: camelToWord, label: "", domain: sensitivityData.map(d => d.parameter) },
-		marks: [
-			Plot.ruleX([sensitivityBase], { stroke: "grey" }),
-			Plot.barX(
-				sensitivityData,
-				{ x1: sensitivityBase, x: "value", y: "parameter", fill: "modification", insetTop: 6, insetBottom: 6, insetLeft: 2, insetRight: 2},
-			),
-			Plot.dot(
-				sensitivityData,
-				{ x: "value", y: "parameter", fill: "modification", r: 5},
-			)
-		],
-		 }}
-	/>
-</div>
-
+{#if netWorth}
+	{@const sensitivityData = sensitivityAnalysis({
+		capitalGainsTax: $capitalGainsTax,
+		heatingCostGain: $heatingGain,
+		houseAmortisationRate: $houseAmortisationRate,
+		houseHeatingCost: $houseHeatingCost * $housePrice / $housePricePerM2,
+		houseInterestRate: $houseInterestRate,
+		houseMaintenanceCost: $houseMaintenanceCost * $housePrice / $housePricePerM2,
+		houseOtherCost: $houseOtherCost * $housePrice / $housePricePerM2,
+		housePrice: $housePrice,
+		housePriceGain: $housePriceGain,
+		housePurchaseCost: $housePurchaseCost,
+		houseTax: $houseTax,
+		maintenanceCostGain: $maintenanceGain,
+		maxYears: $maxYears,
+		otherCostgain: $otherCostGain,
+		rent: $rent,
+		rentGain: $rentGain,
+		rentalHeatingCost: $houseHeatingCost * $rent / $rentPerM2,
+		rentalMaintenanceCost: $houseMaintenanceCost * $rent / $rentPerM2,
+		rentalOtherCost: $houseOtherCost * $rent / $rentPerM2,
+		startingCapital: $startingCapital,
+		stockMarketGain: $stockMarketGain,
+	})}
+	<div>
+		<h5 class="plotTitle">Effect of altering input parameters</h5>
+		<PlotContainer options={{
+			style: plotStyle,
+			color: { legend: true, range: ["#F98159", "#9DD554"], style: { fontSize: "17px" } },
+			marginLeft: 210,
+			marginBottom: 50,
+			x: {
+				label: "Years until net worth from buying exceeds that of renting",
+			},
+			y: { tickFormat: camelToWord, label: "", domain: sensitivityData.map(d => d.parameter) },
+			marks: [
+				Plot.ruleX([sensitivityData.base], { stroke: "grey" }),
+				Plot.barX(
+					sensitivityData,
+					{ x1: sensitivityData.base || 0, x: "value", y: "parameter", fill: "modification", insetTop: 6, insetBottom: 6, insetLeft: 2, insetRight: 2},
+				),
+				Plot.dot(
+					sensitivityData,
+					{ x: "value", y: "parameter", fill: "modification", r: 5},
+				)
+			],
+			 }}
+		/>
+	</div>
+{/if}
 <p>
 	For example: when a green bar (an increase of the parameter) goes to the left, it
 	means that the increase caused buying to be <i>even more attractive</i> than
@@ -395,116 +408,172 @@
 </p>
 
 <p>
-	We can see that the most important parameters are the rate of growth of the property
-	market, the amount of rent, and the rate of interest on Buy's loan.
+	Typically, the most important parameters are the amount of rent, house price,
+	interest rate, and house purchase costs.
 </p>
 
-<h2>Modelling assumptions</h2>
+<h2>Limitations</h2>
 <p>
-	TODO
+	This is a very simple model.
+	All market parameters&#8212;the value of the house,
+	the growth of the stock market and so on&#8212;are modelled with constant,
+	year-on-year growth. That doesn't capture the true stochastic nature of these
+	parameters and the risk exposure to them in each scenario.
 </p>
 
 <hr style="margin-top: 100px" />
 
 <FootnoteTarget i="1">
-	<!-- Rent -->
-	The Genesis-Online system of DeStatis reports the number and total area of real
-	estate for Berlin (table 31231-0003) for the end of 2021, from which we can derive
-	an average living area of 73m². Statista reports an average monthly rent, which we
-	presume is inclusive of heating costs, of 12.78 €/m².
+	<!-- Starting Capital -->
+	A <a href="https://www.interhyp.de/medien/ueber-interhyp/presse/baufinanzierung-in-deutschland-2020-interhyp-studie.pdf">
+	study by InterHyp</a> from 2020 reports an average downpayment of 26% of the house
+	value.
 </FootnoteTarget>
+
+<!--<FootnoteTarget i="2">-->
+<!--	&lt;!&ndash; Rent &ndash;&gt;-->
+<!--	DeStatis reports the number and total area of real-->
+<!--	estate for Berlin (table 31231-0003) for the end of 2021, from which we can derive-->
+<!--	an average living area of 73m².-->
+<!--</FootnoteTarget>-->
 
 <FootnoteTarget i="2">
-	<!-- Down Payment -->
-	A <a href="https://www.interhyp.de/medien/ueber-interhyp/presse/baufinanzierung-in-deutschland-2020-interhyp-studie.pdf">
-	study by InterHyp</a> in 2020 reports an average downpayment of 26% of the house value
-	in 2020.
+	<!-- Rent Gain -->
+	DeStatis reports the consumer price index for rentals (table 61111-0004, variable
+	CC13-0411) as {formatLocale(108.5)} in June 2021 compared to 100 in June 2015, or
+	a {formatLocale(1.4)}% increase per year.
+	<!-- or 61111-0020: Index der Nettokaltmieten: Bundesländer, Jahre? -->
 </FootnoteTarget>
 
+<!--<FootnoteTarget i="4">-->
+<!--	&lt;!&ndash; House price &ndash;&gt;-->
+<!--	<a href="https://www.immowelt.de/immobilienpreise/berlin">ImmoWelt reports an-->
+<!--	average of {formatLocale(5_128)} €/m² in Berlin</a>.-->
+<!--</FootnoteTarget>-->
+
 <FootnoteTarget i="3">
-	<!-- House price -->
-	<a href="https://www.immowelt.de/immobilienpreise/berlin">ImmoWelt reports an
-	average of 5,128 €/m² in Berlin</a>.
+	<!-- House Price Gain -->
+	A <a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
+    survey by Reuters</a> predicted 2% for 2024.
 </FootnoteTarget>
 
 <FootnoteTarget i="4">
-	<!-- One-Off Cost -->
-	The one-off cost consists of 7.14% broker commission (<i>Maklerprovision</i>),
-	6% property transfer tax (<i>Grunderwerbssteuer</i>), 2% notary fees (<i>Notarkosten</i>),
-	and 0.5% for the land registry entry (<i>Grundbucheintrag</i>).
+	<!-- Stock Market Gain -->
+	We take the S&P 500 to be representative of the stock market. This index saw a
+	growth of 40% over the last five years, or 7% per year.
 </FootnoteTarget>
 
 <FootnoteTarget i="5">
 	<!-- Interest -->
 	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
-	article by <i>Stiftung Warentest</i></a> from November 2022 reports a
-	fifteen-year fixed-rate interest of 3.89% for a loan of 80% of the house price.
+	article by <i>Stiftung Warentest</i></a> from November 2022 reports a fifteen-year
+	fixed-rate interest of {formatLocale(3.89)}% for a loan of 80% of the house price.
 </FootnoteTarget>
 
 <FootnoteTarget i="6">
+	<!-- Purchase Cost -->
+	Typical purchase costs consist of {formatLocale(3.57)}% broker commission
+	(<i>Maklerprovision</i>), 6% property transfer tax (<i>Grunderwerbssteuer</i>), 2%
+	notary fees (<i>Notarkosten</i>), and {formatLocale(0.5)}% for the land registry
+	entry (<i>Grundbucheintrag</i>).
+</FootnoteTarget>
+
+<!--<FootnoteTarget i="10">-->
+<!--	&lt;!&ndash; Rent Per M2 &ndash;&gt;-->
+<!--	Statista reports an average monthly rent of {formatLocale(12.78)} €/m².-->
+<!--	&lt;!&ndash; can do better with kaltmieter index / mietspiegel &ndash;&gt;-->
+<!--</FootnoteTarget>-->
+
+<!--<FootnoteTarget i="11">-->
+<!--	&lt;!&ndash; House Price Per M2 &ndash;&gt;-->
+<!--	<a href="https://www.immowelt.de/immobilienpreise/berlin">ImmoWelt reports an-->
+<!--	average of {formatLocale(5_128)} €/m² in Berlin</a>.-->
+<!--</FootnoteTarget>-->
+
+<FootnoteTarget i="7">
 	<!-- Amortisation -->
 	An <a href="https://www.test.de/Immobilienfinanzierung-Schritt-fuer-Schritt-zum-Kredit-5294522-5535292">
 	article by <i>Stiftung Warentest</i></a> from November 2022 reports a typical
 	amortisation rate of 2%.
 </FootnoteTarget>
 
-<FootnoteTarget i="7">
-	<!-- Proportional Cost -->
+<FootnoteTarget i="8">
+	<!-- Property Tax -->
 	The <a href="https://de.wikipedia.org/wiki/Grundsteuer_(Deutschland)#Berechnung_(Wert_%C3%97_Grundsteuermesszahl_%C3%97_Hebesatz)">
 	Wikipedia article on property tax in Germany</a> on contains details about the
 	calculation. We combine this with <a href="https://www.lexoffice.de/wissenswelt/gewerbesteuerhebesatz/berlin/#hebesatz-bb">
-	municipal tax values for Berlin</a> to arrive at a figure of 0.13%.
-</FootnoteTarget>
-
-<FootnoteTarget i="8">
-	<!-- Fixed Costs -->
-	The Berlin Senate Department for Urban Development and Housing published
-	<a href="https://www.stadtentwicklung.berlin.de/wohnen/betriebskosten/de/tabelle.shtml">
-	average utilities figures from 2017</a>, indicating a monthly sum of 2.29 €/m², if
-	we exclude proprety tax. To this number we apply a rough inflation figure
-	(table 61111-0004, variable CC13-04) of 22% from October 2017 to October 2022.
+	municipal tax values for Berlin</a> to arrive at a figure of {formatLocale(0.13)}%.
 </FootnoteTarget>
 
 <FootnoteTarget i="9">
-	<!-- Stock Market Gain -->
-	We take the S&P 500 to be representative of the stock market. This index saw a
-	growth of 40% over the last five years, which is about 7% per year.
+	<!-- House Heating -->
+	A <a href="https://web.archive.org/web/20231010022728/https://www.destatis.de/DE/Presse/Pressemitteilungen/2023/09/PD23_388_61243.html">
+	press release from DeStatis</a> reports the average natural gas (the most common
+	source of heating) price paid by households in the first half of 2023 as
+	{formatLocale(12.26)} ct/kWh. <a href="https://web.archive.org/web/20231007142055/https://www.umweltbundesamt.de/daten/private-haushalte-konsum/wohnen/energieverbrauch-privater-haushalte#mehr-haushalte-grossere-wohnflachen-energieverbrauch-pro-wohnflache-sinkt">
+	According to the German ministry of the environment</a> an average energy
+	consumption for heating is 125 kWh/m² per year.
 </FootnoteTarget>
 
 <FootnoteTarget i="10">
-	<!-- House Price Gain -->
-	The Genesis-Online system of DeStatis reports the
-	house price index (table 61262-0002) for Q2 2022 as 167.3 (Q2 2000 = 83.8). This is
-	a 199% increase in 22 years, or around 3.2% per year. This is a pretty optimistic
-	view from the perspective of 2022: a
-	<a href="https://www.reuters.com/markets/europe/german-house-price-inflation-slow-borrowing-living-costs-bite-2022-05-26/">
-		survey by Reuters</a> predicted 2% for 2024.
+	<!-- House Heating Gain -->
+	A long view of the <a href="https://www.destatis.de/DE/Themen/Wirtschaft/Preise/Publikationen/Energiepreise/energiepreisentwicklung-pdf-5619001.html?nn=214072">
+	price index for imports of natural gas</a> is provided by DeStatis. It reports a
+	price index of {formatLocale(170.1)} in July 2023 compared to {formatLocale(71.1)}
+	in January 2023, or {formatLocale(4.8)}% per year.
 </FootnoteTarget>
 
 <FootnoteTarget i="11">
-	<!-- Rent Gain -->
-	The Genesis-Online system of DeStatis reports the
-	consumer price index (table 61111-0004) for rentals (variable CC13-0411) as 108.5 in
-	June 2021 (June 2015 = 100). This is an 8.5% increase in six years, or around 1.4%
-	per year. Technically this does not include heating costs, but we just ignore this
-	and pretend it does.
+	<!-- House Maintenance Cost -->
+	An <a href="https://web.archive.org/web/20230830023628/https://www.wuestenrot.de/modernisieren/instandhaltungsruecklage">article
+	by Wüstenrot</a> recommends a value of {formatLocale(17.18)} €/m² per year for
+	properties older than thirty-two years, {formatLocale(13.45)} €/m² per year for
+	properties between thirty-two and twenty-two years old, and {formatLocale(10.61)}
+	€/m² per year for properties newer than twenty-two years. We take the middle value.
 </FootnoteTarget>
 
 <FootnoteTarget i="12">
-	<!-- Fixed Cost Gain -->
-	The Genesis-Online system of DeStatis reports the
-	consumer price index (table 61111-0004) for <i>maintenance and repair of the
-	dwelling</i> (variable CC13-043) as 118.1 in July 2021 (July 2015 = 100.1). This is
-	an 18.0% increase in six years, or 2.8% per year.
+	<!-- House Maintenance Gain -->
+	DeStatis reports the consumer price index (table 61111-0004) for <i>maintenance and
+	repair of the dwelling</i> (variable CC13-043) as {formatLocale(118.1)} in July 2021
+	compared to {formatLocale(100.1)}) in July 2015, or {formatLocale(2.8)}% per year.
 </FootnoteTarget>
 
 <FootnoteTarget i="13">
+	<!-- House Other -->
+	The Berlin Senate Department for Urban Development and Housing published
+	<a href="https://www.stadtentwicklung.berlin.de/wohnen/betriebskosten/de/tabelle.shtml">
+	average utilities figures from 2017</a>, indicating a monthly sum of {formatLocale(2.29)} €/m², if
+	we exclude property tax. To this number we apply a rough inflation figure
+	(table 61111-0004, variable CC13-04) of 22% from October 2017 to October 2022.
+</FootnoteTarget>
+
+<!--<FootnoteTarget i="19">-->
+<!--	&lt;!&ndash; House Other Gain &ndash;&gt;-->
+<!--</FootnoteTarget>-->
+
+<FootnoteTarget i="14">
 	<!-- Capital Gains Tax -->
-	Tax on capital gains in Germany is approximately
-	26%. There is a tax-free allowance, but for simplicity we do not include this.
+	Tax on capital gains in Germany is approximately 26%. There is a tax-free allowance,
+	but for simplicity we do not include this.
 </FootnoteTarget>
 
 <style>
+	.collapsed {
+		/* collapse ensures that the hidden elements still contribution to the
+		 * calculation of table column widths (i.e. widths don't flicker when
+		 * (un)collapsing
+		 */
+		visibility: collapse;
+	}
+
+	@media print {
+		.collapsed {
+			/* visibility: collapse shows as a big chunk of whitespace in print mode */
+			display: none
+		}
+	}
+
 	@font-face {
         font-family: 'Gelasio';
         font-style: normal;
