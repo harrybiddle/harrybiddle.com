@@ -10,11 +10,11 @@
 				Formulae for the interest on a loan
 			</h4>
 		</hgroup>
-		<p>
-			Sure, I could have searched for the solutions online, but it was a fun
-			exercise to come up with the equations myself.
-		</p>
 	</a>
+	<p>
+		Sure, I could have searched for the solutions online, but it was a fun
+		exercise to come up with the equations myself.
+	</p>
 	<hr />
 	<a href="/blog/renting-versus-buying">
 		<hgroup>
@@ -23,11 +23,11 @@
 				Renting versus buying
 			</h4>
 		</hgroup>
-		<p>
-			To buy or to rent? On the face of it it seems straightforward. In reality
-			there are also big financial downsides to buying property that might not be
-			immediately obvious.
-		</p>
 	</a>
+	<p>
+		Should I buy, or should I rent? On the face of it it seems like a house
+		would be a sort of savings account. All that money you would have otherwise
+		lost to rent! Yet there are also big financial downsides to buying property
+	</p>
 	<hr />
 </section>
