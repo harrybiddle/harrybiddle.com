@@ -21,7 +21,6 @@
 
 <script>
 	import * as Plot from '@observablehq/plot';
-	import * as d3 from 'd3';
 	import FootnoteSource from "./FootnoteSource.svelte";
 	import FootnoteTarget from "./FootnoteTarget.svelte";
 	import NetWorthChart from './NetWorthChart.svelte';
