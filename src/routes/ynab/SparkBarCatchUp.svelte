@@ -4,11 +4,10 @@
 
     export let activity;
     export let budgeted;
-
     export let lines = [];
     export let current = null;
 
-    let el;
+    let containerElement;
 
     const colours = ({
         blue: "#429EA6",
@@ -18,7 +17,7 @@
         grey: "lightgrey"
     });
 
-    function sparkbarCatchUp(svg) {
+    function sparkbarCatchUp() {
       var makeWidths = () => {
         if (budgeted && current) {
           // budgeted > 0, current > 0
@@ -46,59 +45,65 @@
         }
       };
 
-      return drawBars(svg, makeWidths() || [], lines, current);
+      return drawBars(makeWidths() || [], lines, current);
     }
 
-    function drawBars(svg, widths, lines, current) {
-        const max = d3.sum(widths, (d) => d[0]);
+    function drawBars(widths, lines, current) {
+      const max = d3.sum(widths, (d) => d[0]);
 
-        // draw coloured blocks
-        const drawBlock = (x, width, colour) =>
-            svg
-                .append("rect")
-                .attr("x", `${(100 * x) / max}%`)
-                .attr("y", "10%")
-                .attr("height", "80%")
-                .attr("width", `${(100 * width) / max}%`)
-                .attr("fill", colour);
+      // create our outer SVG element with a size of 500x100 and select it
+      const svg = d3
+        .create("svg")
+        .attr("viewbox", `0 0 100 100`)
+        .attr("width", "100%")
+        .attr("height", "100%");
 
-        var x = 0;
-        for (var [width, colour] of widths) {
-            drawBlock(x, width, colour);
-            x = x + width;
-        }
+      // draw coloured blocks
+      const drawBlock = (x, width, colour) =>
+        svg
+          .append("rect")
+          .attr("x", `${(100 * x) / max}%`)
+          .attr("y", "10%")
+          .attr("height", "80%")
+          .attr("width", `${(100 * width) / max}%`)
+          .attr("fill", colour);
 
-        // draw white lines at saturdays
-        lines.forEach((p) => {
-            const x = (100 * p) / max;
-            svg
-                .append("line")
-                .attr("x1", `${x}%`)
-                .attr("y1", "10%")
-                .attr("x2", `${x}%`)
-                .attr("y2", "90%")
-                .attr("stroke", "white")
-                .attr("stroke-width", "1");
-        });
+      var x = 0;
+      for (var [width, colour] of widths) {
+        drawBlock(x, width, colour);
+        x = x + width;
+      }
 
-        // draw grey lines at today
-        if (current !== null) {
-            const x = (100 * current) / max;
-            svg
-                .append("line")
-                .attr("x1", `${x}%`)
-                .attr("y1", "0")
-                .attr("x2", `${x}%`)
-                .attr("y2", "100%")
-                .attr("stroke", "slategray")
-                .attr("stroke-width", "3");
-        }
+      // draw white lines at saturdays
+      lines.forEach((p) => {
+        const x = (100 * p) / max;
+        svg
+          .append("line")
+          .attr("x1", `${x}%`)
+          .attr("y1", "10%")
+          .attr("x2", `${x}%`)
+          .attr("y2", "90%")
+          .attr("stroke", "white")
+          .attr("stroke-width", "1");
+      });
+
+      // draw grey lines at today
+      if (current !== null) {
+        const x = (100 * current) / max;
+        svg
+          .append("line")
+          .attr("x1", `${x}%`)
+          .attr("y1", "0")
+          .attr("x2", `${x}%`)
+          .attr("y2", "100%")
+          .attr("stroke", "slategray")
+          .attr("stroke-width", "3");
+      }
+
+      return svg.node();
     }
 
-    onMount(() => sparkbarCatchUp(d3.select(el)));
-
+    onMount(() => containerElement.appendChild(sparkbarCatchUp()));
 </script>
 
-<div style="height: 1.2em; width: 200px" >
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 100%; height: 100%" bind:this={el}></svg>
-</div>
+<div bind:this={containerElement} style="height: 1.2em"></div>
