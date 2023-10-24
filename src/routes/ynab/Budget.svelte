@@ -5,7 +5,6 @@
     export let categories;
     export let budget;
 
-
     const colours = ({
         blue: "#429EA6",
         green: "#95E06C",
@@ -113,13 +112,38 @@
 </script>
 
 <style>
-    td {
-        padding-bottom: 3px;
-        padding-top: 3px;
+    table.sparkbars {
+        border-collapse: collapse;
+    }
+    table.sparkbars td {
+        padding: 3px;
+    }
+    table.sparkbars tr td:first-child {
+        /* category name */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 80px;
+        text-transform: none;
+    }
+    table.sparkbars tr td:nth-child(2) {
+        /* budgeted */
+        text-align: right;
+        vertical-align: middle;
+        color: lightgray;
+    }
+    table.sparkbars tr td:nth-child(3) {
+        /* sparkbar */
+        min-width: 200px;
+    }
+    table.sparkbars tr td:nth-child(4) {
+        /* remaining */
+        text-align: right;
+        vertical-align: middle;
     }
 </style>
 
-<table>
+<table class="sparkbars">
     {#each final as c}
         {#if (c.activity || c.budgeted) }
         {@const fontWeight = c.level > 0 ? "bold" : "normal"}
@@ -129,18 +153,8 @@
                 text-transform: {c.level > 1 ? 'uppercase' : 'none'};
                 background: {c.level > 1 ? 'WhiteSmoke' : 'transparent'};
             ">
-                <td style="
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    font-weight: {fontWeight}
-                ">{c.name}</td>
-                <td style="
-                    text-align: right;
-                    vertical-align: middle;
-                    color: lightgray;
-                    font-weight: {fontWeight}"
-                >{formatZero(c.budgeted)}</td>
+                <td style="font-weight: {fontWeight}">{c.name}</td>
+                <td style="font-weight: {fontWeight}">{formatZero(c.budgeted)}</td>
                 <td style="vertical-align: middle">
                     {#if c.bars}
                         <SparkBarCatchup
@@ -151,12 +165,7 @@
                         />
                     {/if}
                 </td>
-                <td style="
-                    font-weight: {fontWeight};
-                    text-align: right;
-                    vertical-align: middle;
-                    color: {y < 0 ? colours.red : colours.green};
-                ">
+                <td style="font-weight: {fontWeight}; color: {y < 0 ? colours.red : colours.green};">
                     {c.bars ? formatZero(y) : ""}
                 </td>
             </tr>

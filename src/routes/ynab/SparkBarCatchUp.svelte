@@ -18,6 +18,7 @@
     });
 
     function sparkbarCatchUp() {
+        // TODO: add a "blue" bar which is for fixed costs
       var makeWidths = () => {
         if (budgeted && current) {
           // budgeted > 0, current > 0
