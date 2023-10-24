@@ -35,7 +35,6 @@
     const current = offset == 0 ? currentDay / numberDaysInMonth : 1
     // --------------------------------------------------------------------------------
 
-
     const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
     const formatZero = x => (x === 0 ? "-" : format(x))
 
@@ -123,7 +122,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        max-width: 80px;
+        max-width: 120px;
         text-transform: none;
     }
     table.sparkbars tr td:nth-child(2) {
