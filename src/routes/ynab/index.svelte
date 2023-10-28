@@ -2,6 +2,7 @@
 
     import { writable } from 'svelte/store'
     import BudgetLoader from "./BudgetLoader.svelte";
+    import SparkBarCatchUp from "./SparkBarCatchUp.svelte";
     const inputtedTokenValue = writable();
 
     const localStorageIsDefined = () => typeof localStorage !== 'undefined';
@@ -19,7 +20,6 @@
         window.location.reload()
     }
 </script>
-
 {#if localStorageIsDefined()}
     {#if !ynabTokenIsInLocalStorage()}
        <article>
@@ -33,5 +33,4 @@
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}
 {:else}
-    <p>Error: local storage is not available</p>
 {/if}
