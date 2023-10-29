@@ -79,7 +79,7 @@
         svg
           .append("rect")
           .attr("x", `${(100 * x) / totalWidth}%`)
-          .attr("y", "10%")
+          .attr("y", "2%")  // unsure why but this puts it in the middle...
           .attr("height", "80%")
           .attr("width", `${(100 * width) / totalWidth}%`)
           .attr("fill", colour);
@@ -96,7 +96,7 @@
         svg
           .append("line")
           .attr("x1", `${x}%`)
-          .attr("y1", "10%")
+          .attr("y1", "2%")  // unsure why but this puts it in the middle...
           .attr("x2", `${x}%`)
           .attr("y2", "90%")
           .attr("stroke", "white")
