@@ -2,7 +2,6 @@
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
 
-    export let categories;
     export let budget;
 
     const colours = ({
@@ -47,13 +46,10 @@
     const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
     const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
 
-    const categoryGroupNames = new Map(
-        categories.category_groups.map((c) => [c.id, c.name])
-    )
     const parsedCategories = budget.month.categories
         // add category group and process millicents
         .map(d => ({
-              group: categoryGroupNames.get(d.category_group_id) || "Unknown Group",
+              group: d.category_group_name,
               category: d.name,
               activity: -d.activity / 1000,
               budgeted: d.budgeted / 1000,
