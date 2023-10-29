@@ -38,3 +38,15 @@ function memoize(fn) {
     return _cache[serializedArgs] = fn.apply(null, args);
   };
 };
+
+
+export function parseMonth(d) {
+    return ({
+        group: d.category_group_name,
+        category: d.name,
+        activity: -d.activity / 1000,
+        budgeted: d.budgeted / 1000,
+        scheduled: 0,
+        obj: d
+    });
+};

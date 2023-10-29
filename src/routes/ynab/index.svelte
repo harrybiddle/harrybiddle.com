@@ -2,6 +2,7 @@
 
     import { writable } from 'svelte/store'
     import BudgetLoader from "./BudgetLoader.svelte";
+    import OneOffLoader from "./OneOffLoader.svelte";
     import SparkBarCatchUp from "./SparkBarCatchUp.svelte";
     const inputtedTokenValue = writable();
 
@@ -29,6 +30,9 @@
         </article>
     {:else}
         <BudgetLoader ynabToken="{ynabToken()}" />
+
+        <h2>One-Off Balance</h2>
+        <OneOffLoader ynabToken="{ynabToken()}" />
 
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}

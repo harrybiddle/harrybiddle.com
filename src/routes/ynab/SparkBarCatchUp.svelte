@@ -64,8 +64,6 @@
     // TODO: what about negative widths?
     widths = widths.filter(d => Math.abs(d[0]) > 0);
 
-    console.log(widths);
-
     function drawBars() {
       const totalWidth = d3.sum(widths, (d) => d[0]);
 
