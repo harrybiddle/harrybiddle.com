@@ -72,7 +72,7 @@
         .create("svg")
         .attr("viewbox", `0 0 100 100`)
         .attr("width", "100%")
-        .attr("height", "100%");
+        .attr("height", "1.2em");
 
       // draw coloured blocks
       const drawBlock = (x, width, colour) =>
@@ -122,4 +122,4 @@
     onMount(() => containerElement.appendChild(drawBars()));
 </script>
 
-<div bind:this={containerElement} style="height: 1.2em"></div>
+<div bind:this={containerElement}></div>
