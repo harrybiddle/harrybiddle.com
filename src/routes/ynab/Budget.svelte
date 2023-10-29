@@ -148,7 +148,7 @@
     }
     table.sparkbars tr td:nth-child(3) {
         /* sparkbar */
-        min-width: 200px;
+        vertical-align: middle;
     }
     table.sparkbars tr td:nth-child(4) {
         /* remaining */
