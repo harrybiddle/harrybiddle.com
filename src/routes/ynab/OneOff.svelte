@@ -1,3 +1,4 @@
+
 <svelte:head>
     <link
         rel="stylesheet"
@@ -6,6 +7,9 @@
 </svelte:head>
 
 <script>
+    /* To-do:
+     *   - Convert to a waterfall chart
+     */
     import * as d3 from 'd3';
 
     import { parseMonth } from "./ynab";
