@@ -76,14 +76,18 @@
     table td:nth-child(n+2), table th:nth-child(n+2)  {
         text-align: right;
     }
+    table td, table th {
+        padding-right: 2px;
+        padding-left: 2px;
+    }
 </style>
 
 <table>
     <tr>
         <th>Month</th>
-        <th>Budgeted</th>
+        <th>Budget</th>
         <th>Unspent</th>
-        <th>Cumulative</th>
+        <th>Balance</th>
     </tr>
     {#each rows as row}
         <tr>

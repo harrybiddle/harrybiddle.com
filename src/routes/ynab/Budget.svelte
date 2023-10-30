@@ -1,4 +1,7 @@
 <script>
+    /* To-do:
+     *   - Add "last updated" (latest transaction)
+     */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
     import { parseMonth } from "./ynab";
