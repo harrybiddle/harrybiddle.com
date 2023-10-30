@@ -4,7 +4,7 @@
      */
     import * as d3 from 'd3';
 
-    import { parseMonth } from "./ynab";
+    import { parseMonth, getMonthFromString, formatZero } from "./ynab";
 
     export let budgets;
     const parsedCategories = budgets.map(budget => {
@@ -49,18 +49,8 @@
       .slice()
       .reverse()
 
-    const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
-    const formatZero = x => x == 0 ? "-" : format(x);
     const colour = x => x < 0 ? "var(--pico-color-green-350)" : "var(--pico-color-orange-400)";
-    const getMonthFromString = monthString => {
-          const months = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-          ];
-          const date = new Date(monthString);
-          const monthIndex = date.getMonth();
-          return months[monthIndex];
-    }
+
 
 </script>
 

@@ -4,7 +4,7 @@
      */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
-    import { parseMonth } from "./ynab";
+    import { processBudget } from "./ynab";
 
     export let budget;
 
@@ -50,82 +50,14 @@
     const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
     const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
 
-    const parsedCategories = budget.month.categories
-        // add category group and process millicents
-        .map(parseMonth)
-        // ignore income
-        .filter(d => d.group !== "Internal Master Category")
-        // ignore the activity of "One-Off": just set to be equal to budgeted
-        .map(e => {
-            if (e.group === "One-Off") {
-                e.scheduled = e.budgeted;
-                e.activity = e.budgeted;
-            } else if (e.group === "Scheduled") {
-                e.scheduled = e.budgeted;
-                e.activity = Math.max(e.activity, e.budgeted);
-            }
-            return e
-        })
+    const final = processBudget(budget).map(c => {
+        const pToEuros = p => mapRange(p, 0, 1, c.scheduled, c.budgeted)
+        const lines = linesZeroToOne.map(pToEuros);
+        const current = pToEuros(currentZeroToOne);
+        const remaining = current - c.activity;
 
-    // sum up regular budgets
-    const sumBudgeted = (items) => d3.sum(items, (e) => e.budgeted);
-    const sumActivity = (items) => d3.sum(items, (e) => e.activity);
-    const sumScheduled = (items) => d3.sum(items, (e) => e.scheduled);
-    const totalBudgeted = sumBudgeted(parsedCategories);
-    const totalActivity = sumActivity(parsedCategories);
-    const totalScheduled = sumScheduled(parsedCategories);
-
-    const final = d3
-        // group items by "group"
-        .flatGroup(parsedCategories, (d) => d.group)
-        // over each group, add rows to the table
-        .reduce(
-          (accumulator, [group, items], index, array) => {
-            const sortedItems = items
-              .sort((a, b) => d3.descending(a.category, b.category))
-              .sort((a, b) => d3.descending(a.budgeted, b.budgeted));
-            const groupTotalActivity = sumActivity(items);
-            const groupTotalBudgeted = sumBudgeted(items);
-            const groupTotalScheduled = sumScheduled(items);
-            return [
-              ...accumulator,
-              // return the total for this group
-              {
-                level: 1,
-                name: group,
-                budgeted: groupTotalBudgeted,
-                activity: groupTotalActivity,
-                scheduled: groupTotalScheduled,
-              },
-              // if the group is "Regular", also include each category
-              ...((group === "Regular") || (group == "Transportation")
-                ? sortedItems.map((d) => ({
-                    level: 0,
-                    name: d.category,
-                    budgeted: d.budgeted,
-                    activity: d.activity,
-                    scheduled: d.scheduled,
-                  }))
-                : [])
-            ];
-          },
-          [
-            {
-              level: 2,
-              name: "Total",
-              budgeted: totalBudgeted,
-              activity: totalActivity,
-              scheduled: totalScheduled,
-            }
-          ]
-        ).map(c => {
-            const pToEuros = p => mapRange(p, 0, 1, c.scheduled, c.budgeted)
-            const lines = linesZeroToOne.map(pToEuros);
-            const current = pToEuros(currentZeroToOne);
-            const remaining = current - c.activity;
-
-            return ({...c, lines, current, remaining})
-        })
+        return ({...c, lines, current, remaining})
+    })
 </script>
 
 <style>
