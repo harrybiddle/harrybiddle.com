@@ -78,15 +78,15 @@
     <tr>
         <th>Month</th>
         <th>Budgeted</th>
-        <th>Excess</th>
+        <th>Unspent</th>
         <th>Cumulative</th>
     </tr>
     {#each rows as row}
         <tr>
             <td>{getMonthFromString(row.month)}</td>
             <td>{formatZero(row.budgeted)}</td>
-            <td style="color: {colour(row.newDebt)}">{formatZero(row.newDebt)}</td>
-            <td style="color: {colour(row.cumulativeDebt)}">{formatZero(row.cumulativeDebt)}</td>
+            <td style="color: {colour(row.newDebt)}">{formatZero(-row.newDebt)}</td>
+            <td style="color: {colour(row.cumulativeDebt)}">{formatZero(-row.cumulativeDebt)}</td>
         </tr>
     {/each}
 </table>
