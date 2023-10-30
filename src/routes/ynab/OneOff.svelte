@@ -1,11 +1,3 @@
-
-<svelte:head>
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.colors.min.css"
-    />
-</svelte:head>
-
 <script>
     /* To-do:
      *   - Convert to a waterfall chart

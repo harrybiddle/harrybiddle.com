@@ -1,9 +1,9 @@
 <script>
-
     import { writable } from 'svelte/store'
     import BudgetLoader from "./BudgetLoader.svelte";
     import OneOffLoader from "./OneOffLoader.svelte";
-    import SparkBarCatchUp from "./SparkBarCatchUp.svelte";
+    import HistoryLoader from "./HistoryLoader.svelte";
+
     const inputtedTokenValue = writable();
 
     const localStorageIsDefined = () => typeof localStorage !== 'undefined';
@@ -33,6 +33,9 @@
 
         <h2>One-Off Balance</h2>
         <OneOffLoader ynabToken="{ynabToken()}" />
+
+        <h2>History</h2>
+        <HistoryLoader ynabToken="{ynabToken()}" />
 
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}
