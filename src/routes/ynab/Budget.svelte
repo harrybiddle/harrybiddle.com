@@ -1,6 +1,11 @@
 <script>
     /* To-do:
-     *   - Add "last updated" (latest transaction)
+     *   - Add text for "last updated" (latest transaction)
+     *   - Collapse/expand category group
+     *   - Clearer styling (background color?) to distinguish category groups
+     *   - Consider striped rows for visual clarity
+     *   - Maybe swap columns 2 and 4
+     *   - Column headers?
      */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
@@ -61,13 +66,13 @@
 </script>
 
 <style>
-    table.sparkbars {
+    table {
         border-collapse: collapse;
     }
-    table.sparkbars td {
+    td, th {
         padding: 3px;
     }
-    table.sparkbars tr td:first-child {
+    tr td:first-child {
         /* category name */
         overflow: hidden;
         text-overflow: ellipsis;
@@ -75,17 +80,17 @@
         max-width: 120px;
         text-transform: none;
     }
-    table.sparkbars tr td:nth-child(2) {
+    tr td:nth-child(2) {
         /* budgeted */
         text-align: right;
         vertical-align: middle;
         color: lightgray;
     }
-    table.sparkbars tr td:nth-child(3) {
+    tr td:nth-child(3) {
         /* sparkbar */
         vertical-align: middle;
     }
-    table.sparkbars tr td:nth-child(4) {
+    tr td:nth-child(4) {
         /* remaining */
         text-align: right;
         vertical-align: middle;

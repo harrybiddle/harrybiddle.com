@@ -3,6 +3,7 @@
      *  - Add average
      *  - Transpose is nooot working at all - another way to do this?
      *  - Average out One-Off category group over whole range
+     *  - Stacked bar chart?
      */
     import * as d3 from "d3"
 
