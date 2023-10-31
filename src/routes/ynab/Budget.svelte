@@ -1,7 +1,7 @@
 <script>
     /* To-do:
      *   - Add text for "last updated" (latest transaction)
-     *   - Collapse/expand category group
+     *   - Collapse/expand category group on click
      *   - Clearer styling (background color?) to distinguish category groups
      *   - Consider striped rows for visual clarity
      *   - Maybe swap columns 2 and 4
@@ -9,7 +9,7 @@
      */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
-    import { processBudget } from "./ynab";
+    import { parseBudget, sumBudgets } from "./ynab";
 
     export let budget;
 
@@ -55,7 +55,31 @@
     const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
     const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
 
-    const final = processBudget(budget).map(c => {
+    const parsed = parseBudget(budget)
+        .map(
+            e => {
+                // ignore the activity of "One-Off": set the activity to be the budget
+                // also consider the entire budget to be scheduled spending
+                if (e.group === "One-Off") {
+                  e.scheduled = e.budgeted;
+                  e.activity = e.budgeted;
+                }
+
+                // we also set the activity of the "Scheduled" category to group be what
+                // was budgeted, except if it exceeds the budget. We consider the entire
+                // budget to be scheduled spending
+                if (e.group === "Scheduled") {
+                  e.scheduled = e.budgeted;
+                  e.activity = Math.max(e.activity, e.budgeted);
+                }
+
+                return e;
+            }
+        )
+
+    const summary = sumBudgets(parsed);
+
+    const final = summary.map(c => {
         const pToEuros = p => mapRange(p, 0, 1, c.scheduled, c.budgeted)
         const lines = linesZeroToOne.map(pToEuros);
         const current = pToEuros(currentZeroToOne);
@@ -63,6 +87,14 @@
 
         return ({...c, lines, current, remaining})
     })
+
+    function shouldDisplayRow(row) {
+        // hide all level 0's except "regular"
+        if ((row.level === 0) && (row.group !== "Regular")) return false
+
+        // only show if the row has an activity, a schedule, or a budget
+        return (row.activity || row.budgeted || row.scheduled);
+    }
 </script>
 
 <style>
@@ -99,7 +131,7 @@
 
 <table class="sparkbars">
     {#each final as c}
-        {#if (c.activity || c.budgeted) }
+        {#if shouldDisplayRow(c) }
             {@const fontWeight = c.level > 0 ? "bold" : "normal"}
             <tr style="
                 border-bottom: 1px solid {c.level > 1 ? 'black' : 'transparent'};

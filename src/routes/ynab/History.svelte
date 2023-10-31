@@ -7,10 +7,10 @@
      */
     import * as d3 from "d3"
 
-    import { processBudget, getMonthFromString, formatZero } from "./ynab";
+    import { sumBudgets, getMonthFromString, formatZero } from "./ynab";
     export let budgets;
 
-    const columns = budgets.map(budget => processBudget(budget).map(row => ({...row, month: budget.month.month})));
+    const columns = budgets.map(budget => sumBudgets(budget));
     const rows = d3.transpose(columns);
 
     console.log(rows[0]);

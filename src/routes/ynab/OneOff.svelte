@@ -1,9 +1,8 @@
 <script>
     /* To-do:
      *   - Convert to a waterfall chart
+     *   - Simplify logic
      */
-    import * as d3 from 'd3';
-
     import { parseMonth, getMonthFromString, formatZero } from "./ynab";
 
     export let budgets;

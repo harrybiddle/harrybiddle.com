@@ -49,94 +49,104 @@ export function parseMonth(d) {
         activity: -d.activity / 1000,
         budgeted: d.budgeted / 1000,
         scheduled: 0,
-        obj: d
+
     });
 };
 
-export function processBudget(budget) {
 
-    const parsedCategories = budget.month.categories
+export function parseBudget(budget) {
+    return budget.month.categories
         // add category group and process millicents
-        .map(parseMonth)
+        .map(e => ({ month: new Date(budget.month.month), ...parseMonth(e) }))
         // ignore income
         .filter(d => d.group !== "Internal Master Category")
-        // ignore the activity of "One-Off": just set to be equal to budgeted
-        .map(e => {
-            if (e.group === "One-Off") {
-                e.scheduled = e.budgeted;
-                e.activity = e.budgeted;
-            } else if (e.group === "Scheduled") {
-                e.scheduled = e.budgeted;
-                e.activity = Math.max(e.activity, e.budgeted);
-            }
-            return e
-        })
 
-    // sum up regular budgets
-    const sumBudgeted = (items) => d3.sum(items, (e) => e.budgeted);
-    const sumActivity = (items) => d3.sum(items, (e) => e.activity);
-    const sumScheduled = (items) => d3.sum(items, (e) => e.scheduled);
-    const totalBudgeted = sumBudgeted(parsedCategories);
-    const totalActivity = sumActivity(parsedCategories);
-    const totalScheduled = sumScheduled(parsedCategories);
-
-    const final = d3
-        // group items by "group"
-        .flatGroup(parsedCategories, (d) => d.group)
-        // over each group, add rows to the table
-        .reduce(
-          (accumulator, [group, items], index, array) => {
-            const sortedItems = items
-              .sort((a, b) => d3.descending(a.category, b.category))
-              .sort((a, b) => d3.descending(a.budgeted, b.budgeted));
-            const groupTotalActivity = sumActivity(items);
-            const groupTotalBudgeted = sumBudgeted(items);
-            const groupTotalScheduled = sumScheduled(items);
-            return [
-              ...accumulator,
-              // return the total for this group
-              {
-                level: 1,
-                name: group,
-                budgeted: groupTotalBudgeted,
-                activity: groupTotalActivity,
-                scheduled: groupTotalScheduled,
-              },
-              // if the group is "Regular", also include each category
-              ...((group === "Regular") || (group == "Transportation")
-                ? sortedItems.map((d) => ({
-                    level: 0,
-                    name: d.category,
-                    budgeted: d.budgeted,
-                    activity: d.activity,
-                    scheduled: d.scheduled,
-                  }))
-                : [])
-            ];
-          },
-          [
-            {
-              level: 2,
-              name: "Total",
-              budgeted: totalBudgeted,
-              activity: totalActivity,
-              scheduled: totalScheduled,
-            }
-          ]
-        )
-
-    return final;
 }
 
-export function getMonthFromString(monthString) {
-      const months = [
+function humanMonth(dateObject) {
+    const months = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
-      ];
-      const date = new Date(monthString);
-      const monthIndex = date.getMonth();
-      return months[monthIndex];
+    ];
+    const monthIndex = dateObject.getMonth();
+    return months[monthIndex];
+}
+
+
+export function getMonthFromString(monthString) {
+    return humanMonth(new Date(monthString));
 }
 
 const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
 export const formatZero = x => x == 0 ? "-" : format(x);
+
+function unroll(rollup, keys, label = "value", p = {}) {
+  return Array.from(rollup, ([key, value]) =>
+    value instanceof Map
+      ? unroll(
+          value,
+          keys.slice(1),
+          label,
+          Object.assign({}, { ...p, [keys[0]]: key })
+        )
+      : Object.assign({}, { ...p, [keys[0]]: key, ...value })
+  ).flat();
+}
+
+function groupedSumBudgetedActivityScheduled(iterable, keyFunction, level) {
+  const rolled = d3.rollup(
+    iterable,
+    (categories) => ({
+      budgeted: d3.sum(categories, (e) => e.budgeted),
+      activity: d3.sum(categories, (e) => e.activity),
+      scheduled: d3.sum(categories, (e) => e.scheduled)
+    }),
+    (e) => e.month,
+    (e) => e.group,
+    keyFunction
+  );
+  return unroll(rolled, ["month", "group", "name"]).map((e) => ({
+    ...e,
+    level
+  }));
+}
+
+export function sumBudgets(categories) {
+  const data = [
+    ...groupedSumBudgetedActivityScheduled(
+      categories.map((e) => ({ ...e, group: "Total" })),
+      (category) => "Total",
+      2
+    ),
+    ...groupedSumBudgetedActivityScheduled(
+      categories,
+      (category) => category.group,
+      1
+    ),
+    ...groupedSumBudgetedActivityScheduled(
+      categories,
+      (category) => category.category,
+      0
+    )
+  ];
+
+  return data.sort((a, b) => {
+    // An object with level = 2 always comes first
+    if (a.level === 2 && b.level !== 2) return -1;
+    if (a.level !== 2 && b.level === 2) return 1;
+
+    // First, compare by the "group" property
+    if (a.group < b.group) return 1;
+    if (a.group > b.group) return -1;
+
+    // If the "group" properties are equal, compare by the "level" property
+    if (a.level < b.level) return 1;
+    if (a.level > b.level) return -1;
+
+    // If the "level" properties are equal, compare by the "category" property
+    if (a.category < b.category) return -1;
+    if (a.category > b.category) return 1;
+
+    return 0; // Objects are considered equal
+  });
+}
