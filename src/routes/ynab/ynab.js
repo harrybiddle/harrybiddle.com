@@ -62,7 +62,7 @@ export function parseBudget(budget) {
 	);
 }
 
-function humanMonth(dateObject) {
+export function humanMonth(dateObject) {
 	const months = [
 		'January',
 		'February',

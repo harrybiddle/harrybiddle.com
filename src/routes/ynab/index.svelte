@@ -29,13 +29,13 @@
             <button type="button" on:click={setYnabToken}>Submit</button>
         </article>
     {:else}
-        <BudgetLoader ynabToken="{ynabToken()}" />
+<!--        <BudgetLoader ynabToken="{ynabToken()}" />-->
 
-        <h2>One-Off Balance</h2>
-        <OneOffLoader ynabToken="{ynabToken()}" />
+<!--        <h2>One-Off Balance</h2>-->
+<!--        <OneOffLoader ynabToken="{ynabToken()}" />-->
 
-<!--        <h2>History</h2>-->
-<!--        <HistoryLoader ynabToken="{ynabToken()}" />-->
+        <h2>History</h2>
+        <HistoryLoader ynabToken="{ynabToken()}" />
 
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}

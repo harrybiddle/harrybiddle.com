@@ -6,69 +6,69 @@
      *  - Stacked bar chart?
      */
     import * as d3 from "d3"
+    import { onMount } from 'svelte';
 
-    import { sumBudgets, getMonthFromString, formatZero } from "./ynab";
+    import { parseBudget, sumBudgets, humanMonth } from "./ynab";
     export let budgets;
 
-    const columns = budgets.map(budget => sumBudgets(budget));
-    const rows = d3.transpose(columns);
+    const categories = budgets.reduce(
+        (accumulator, budget) => [...accumulator, ...parseBudget(budget)],
+        []
+    )
+    // TODO: only run sum for groups?
+    const summary = sumBudgets(categories).filter(d => d.level === 1);
+    console.log(summary);
 
-    console.log(rows[0]);
 
+
+  const data = summary.map(
+      d => ({
+          category: humanMonth(d.month),
+          values: [10, 20, 30]
+      })
+  )
+
+  onMount(() => {
+    // Your D3 code for creating the stacked bar chart
+    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const width = 400 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+
+    const svg = d3.select('#chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const xScale = d3.scaleBand()
+      .domain(data.map(d => d.category))
+      .range([0, width])
+      .padding(0.1);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d3.max(d.values))])
+      .nice()
+      .range([height, 0]);
+
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    svg.selectAll('g')
+      .data(data)
+      .enter().append('g')
+      .attr('fill', d => color(d.category))
+      .selectAll('rect')
+      .data(d => d.values)
+      .enter().append('rect')
+      .attr('x', (d, i) => xScale(data[i].category))
+      .attr('y', d => yScale(d))
+      .attr('height', d => yScale(0) - yScale(d))
+      .attr('width', xScale.bandwidth());
+  });
 </script>
 
+<div id="chart"></div>
+
 <style>
-    table td:nth-child(n+2), table th:nth-child(n+2)  {
-        text-align: right;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      left: 0;
-      z-index: 1;
-    }
-
-    th:first-child, td:first-child {
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      background: white;
-    }
-
-    table tr td:first-child {
-        /* category name */
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 120px;
-        text-transform: none;
-    }
+  /* Add CSS styles for your chart here */
 </style>
-
-<div style="overflow-x: auto;">
-    <table>
-        <tr>
-            <th></th>
-            {#each rows[0] as cell}
-                <th>{getMonthFromString(cell.month)}</th>
-            {/each}
-        </tr>
-        {#each rows as columns}
-        {@const fontWeight = columns[0].level > 0 ? "bold" : "normal"}
-            <tr style="
-                border-bottom: 1px solid {columns[0].level > 1 ? 'black' : 'transparent'};
-                text-transform: {columns[0].level > 1 ? 'uppercase' : 'none'};
-                background: {columns[0].level > 1 ? 'WhiteSmoke' : 'transparent'}!important;
-            ">
-                <td style="font-weight: {fontWeight}">{columns[0].name}</td>
-                {#each columns as cell}
-                    <td style="font-weight: {fontWeight}">{formatZero(cell.activity)}</td>
-                {/each}
-            </tr>
-        {/each}
-    </table>
-</div>
