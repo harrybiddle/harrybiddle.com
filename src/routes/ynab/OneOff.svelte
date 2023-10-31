@@ -1,7 +1,7 @@
 <script>
     /* To-do:
      *   - Convert to a waterfall chart
-     *   - Simplify logic
+     *   - Simplify logic using functions in ynab.js
      */
     import { parseMonth, getMonthFromString, formatZero } from "./ynab";
 
