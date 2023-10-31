@@ -96,8 +96,10 @@ function unroll(rollup, keys, label = 'value', p = {}) {
 	).flat();
 }
 
-function groupedSumBudgetedActivityScheduled(iterable, keyFunction, level) {
-	const rolled = d3.rollup(
+function groupedSumBudgetedActivityScheduled(iterable, groupGetter, nameGetter, level) {
+	/* TODO: take groupGetter, nameGetter */
+
+	const asMap = d3.rollup(
 		iterable,
 		categories => ({
 			budgeted: d3.sum(categories, e => e.budgeted),
@@ -105,24 +107,34 @@ function groupedSumBudgetedActivityScheduled(iterable, keyFunction, level) {
 			scheduled: d3.sum(categories, e => e.scheduled)
 		}),
 		e => e.month,
-		e => e.group,
-		keyFunction
+		groupGetter,
+		nameGetter
 	);
-	return unroll(rolled, ['month', 'group', 'name']).map(e => ({
-		...e,
-		level
-	}));
+	const asArray = unroll(asMap, ['month', 'group', 'name']);
+	const withLevel = asArray.map(e => ({ ...e, level }));
+	return withLevel;
 }
 
 export function sumBudgets(categories) {
 	const data = [
 		...groupedSumBudgetedActivityScheduled(
-			categories.map(e => ({ ...e, group: 'Total' })),  // TODO: tidy up this mess
-			category => 'Total',
+			categories,
+			c => 'Total',
+			c => 'Total',
 			2
 		),
-		...groupedSumBudgetedActivityScheduled(categories, category => category.group, 1),
-		...groupedSumBudgetedActivityScheduled(categories, category => category.category, 0)
+		...groupedSumBudgetedActivityScheduled(
+			categories,
+			c => c.group,
+			c => c.group,
+			1
+		),
+		...groupedSumBudgetedActivityScheduled(
+			categories,
+			c => c.group,
+			c => c.category,
+			0
+		)
 	];
 
 	return data.sort((a, b) => {
