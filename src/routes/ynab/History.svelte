@@ -1,13 +1,15 @@
 <script>
     /* TODO:
-     *  - Label / legend for average
-     *  - Tooltips on rollover
+     *  - Filters to show/remove some groups
+     *  - Optionally show categories, not just groups
+     *  - Toggle to facet mode (with same colours and average per line)
+     *  - Gridlines
      */
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
     import PlotContainer from "../../lib/PlotContainer.svelte";
 
-    import { parseBudget, groupedSumBudgetedActivityScheduled, humanMonth } from "./ynab";
+    import { parseBudget, groupedSumBudgetedActivityScheduled, format } from "./ynab";
     export let budgets;
 
     const categories = budgets.reduce(
@@ -48,18 +50,15 @@
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
+  y: { grid: true, ticks: 5 },
   color: { legend: true },
   marks: [
       Plot.barY(data, {
           x: "month",
           y: "activity",
-          fy: "group",
-          tip: true
+          fill: "group",
+          tip: { format: { y: format, x: false } }
       }),
-      // Plot.ruleY([overallAverage]),
+      Plot.ruleY([overallAverage], { tip: { format: { y: format } } }),
   ],
 }} />
-
-<style>
-  /* Add CSS styles for your chart here */
-</style>

@@ -85,7 +85,7 @@ export function getMonthFromString(monthString) {
 	return humanMonth(new Date(monthString));
 }
 
-const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
+export const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 export const formatZero = x => (x == 0 ? '-' : format(x));
 
 function unroll(rollup, keys, label = 'value', p = {}) {
