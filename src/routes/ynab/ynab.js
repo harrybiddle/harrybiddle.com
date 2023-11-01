@@ -96,7 +96,7 @@ function unroll(rollup, keys, label = 'value', p = {}) {
 	).flat();
 }
 
-function groupedSumBudgetedActivityScheduled(iterable, groupGetter, nameGetter, level) {
+export function groupedSumBudgetedActivityScheduled(iterable, groupGetter, nameGetter, level) {
 	/* TODO: take groupGetter, nameGetter */
 
 	const asMap = d3.rollup(

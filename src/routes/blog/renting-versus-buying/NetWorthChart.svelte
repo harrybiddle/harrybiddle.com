@@ -1,7 +1,7 @@
 <script>
 	import * as d3 from 'd3';
 	import * as Plot from '@observablehq/plot';
-	import PlotContainer from './PlotContainer.svelte';
+	import PlotContainer from '../../../lib/PlotContainer.svelte';
 
 	export let reversed = false;
 	export let data = [];

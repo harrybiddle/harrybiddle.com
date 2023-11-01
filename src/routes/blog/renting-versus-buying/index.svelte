@@ -24,7 +24,7 @@
 	import FootnoteSource from "./FootnoteSource.svelte";
 	import FootnoteTarget from "./FootnoteTarget.svelte";
 	import NetWorthChart from './NetWorthChart.svelte';
-	import PlotContainer from './PlotContainer.svelte';
+	import PlotContainer from '../../../lib/PlotContainer.svelte';
 	import { resetParametersToDefaults, localStorageStore } from './parameters.js';
 	import { simulate, netWorthChartData, camelToWord, calculateNetWorth, prepareDataForCsvDownload } from './simulation';
 	import { sensitivityAnalysis } from './sensitivityAnalysis';

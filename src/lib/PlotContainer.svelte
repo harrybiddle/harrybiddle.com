@@ -9,5 +9,5 @@
 </script>
 
 {#key options}
-<div id="hi" use:appendPlot {...$$restProps}></div>
+<div use:appendPlot {...$$restProps}></div>
 {/key}
