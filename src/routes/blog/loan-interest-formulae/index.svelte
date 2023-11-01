@@ -1,7 +1,7 @@
 <!-- Equations converted to SVG using https://viereck.ch/latex-to-svg/ -->
 
 <script>
-	import * as d3 from 'd3-format';
+	import * as d3 from 'd3';
 
 	const formatCurrency = d3.format(',.0f');
 	const formatZeroDP = d3.format('.0f');

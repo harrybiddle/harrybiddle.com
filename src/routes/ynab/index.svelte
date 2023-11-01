@@ -1,4 +1,7 @@
 <script>
+    /* TODO:
+     *   - Add 'offset'
+     */
     import { writable } from 'svelte/store'
     import BudgetLoader from "./BudgetLoader.svelte";
     import OneOffLoader from "./OneOffLoader.svelte";

@@ -53,11 +53,10 @@
       Plot.barY(data, {
           x: "month",
           y: "activity",
-          fill: "label",
+          fy: "group",
           tip: true
       }),
-      Plot.ruleY([overallAverage]),
-
+      // Plot.ruleY([overallAverage]),
   ],
 }} />
 
