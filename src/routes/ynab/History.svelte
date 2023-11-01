@@ -1,9 +1,6 @@
 <script>
     /* TODO:
-     *  - Add average
-     *  - Transpose is nooot working at all - another way to do this?
-     *  - Average out One-Off category group over whole range
-     *  - Consistent sorting
+     *  - Label / legend for average
      *  - Tooltips on rollover
      */
     import * as d3 from 'd3'
@@ -17,7 +14,7 @@
         (accumulator, budget) => [...accumulator, ...parseBudget(budget)],
         []
     )
-    const data = groupedSumBudgetedActivityScheduled(
+    let data = groupedSumBudgetedActivityScheduled(
 			categories,
 			c => c.group,
 			c => c.group,
@@ -30,14 +27,37 @@
 		return 0; // Objects are considered equal
 	});
 
-    console.log(data)
+    // replace "One-Off" with average
+    const averages = d3.rollup(
+        data,
+        data => d3.mean(data, d => d.activity),
+        d => d.group
+    )
+    const oneOffAverage = averages.get("One-Off")
+    const overallAverage = d3.sum(averages.values())
+    data = data.map(d => d.group === "One-Off" ? ({...d, activity: oneOffAverage}) : d);
+
+    // sort data by the average value for nicely stacked chart
+    data = data.sort((a, b) => averages.get(b.group) - averages.get(a.group));
+
+    // use labels (TODO: can we do this in plot options?)
+    const labelOverride = new Map([["One-Off", "One-Off (avg.)"]])
+    data = data.map(d => ({...d, label: labelOverride.get(d.group) || d.group}));
+
 </script>
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
   color: { legend: true },
   marks: [
-      Plot.barY(data, {x: "month", y: "activity", fill: "group", tip: true}),
+      Plot.barY(data, {
+          x: "month",
+          y: "activity",
+          fill: "label",
+          tip: true
+      }),
+      Plot.ruleY([overallAverage]),
+
   ],
 }} />
 
