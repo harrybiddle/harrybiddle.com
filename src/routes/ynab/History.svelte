@@ -2,8 +2,11 @@
     /* TODO:
      *  - Filters to show/remove some groups
      *  - Optionally show categories, not just groups
-     *  - Remove double labels on facets
      *  - Bigger font size
+     *  - Split into two sub-components for faceted / non-faceted
+     *  - Add +- 2 std deviations to averages
+     *  - Add text mark for averages, not just popover? And labels for bars?
+     *  - Consistent legend colours between faceted / non-faceted
      */
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
@@ -70,9 +73,10 @@
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
-  y: { grid: true, ticks: 5 },
+  y: { grid: true, ticks:5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
   color: { legend: !faceted },
-  facet: faceted ? {label: null} : {},
+  fy: { axis: null },  // disable facet labels (we do this with a text mark instead)
+  facet: faceted ? { label: null } : {},
   marks: [
       Plot.barY(faceted ? facetedData : data, {
           x: "month",
@@ -84,7 +88,14 @@
       ...(faceted ? [
           Plot.text(
             [...new Set(facetedData.map(d => d.group))],
-            {text: d => d, fy: d => d, frameAnchor: "top-left", dx: 6, dy: 6},
+            {
+              text: d => d,
+              fy: d => d,
+              fill: d => d,
+              frameAnchor: "top-left",
+              dx: 6,
+              dy: 6,
+            },
           ),
           Plot.ruleY(
               facetedAverages,
@@ -94,7 +105,8 @@
                 stroke: "group",
                 tip: { format: { y: format, group: false, fy: false, stroke: false } }
               }
-          )
+          ),
+          Plot.frame({stroke: "lightgrey"})
       ] : [
           Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
       ]),
