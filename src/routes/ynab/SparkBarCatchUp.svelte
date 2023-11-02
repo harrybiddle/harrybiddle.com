@@ -7,7 +7,9 @@
      *    ^      ^              ^                      ^
      * e= 0   scheduled      activity               budgeted
      *
-     *
+     * TODO:
+     *   - handle budgeted = 0 (consider shceuled 0/+ve)
+     *   - display error for negative numbers
      */
     import { onMount } from "svelte";
     import * as d3 from 'd3';

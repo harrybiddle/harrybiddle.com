@@ -46,19 +46,24 @@
     const labelOverride = new Map([["One-Off", "One-Off (avg.)"]])
     data = data.map(d => ({...d, label: labelOverride.get(d.group) || d.group}));
 
+    const faceted = true;
+
 </script>
+
+<input
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
   y: { grid: true, ticks: 5 },
-  color: { legend: true },
+  color: { legend: !faceted },
   marks: [
       Plot.barY(data, {
           x: "month",
           y: "activity",
           fill: "group",
-          tip: { format: { y: format, x: false } }
+          tip: { format: { y: format, x: false } },
+          ...(faceted ? ({fy: "group"}) : ({})),
       }),
-      Plot.ruleY([overallAverage], { tip: { format: { y: format } } }),
+      ...(faceted ? [] : [Plot.ruleY([overallAverage], { tip: { format: { y: format } } })]),
   ],
 }} />
