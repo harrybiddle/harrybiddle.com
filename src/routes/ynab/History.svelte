@@ -2,8 +2,8 @@
     /* TODO:
      *  - Filters to show/remove some groups
      *  - Optionally show categories, not just groups
-     *  - Toggle to facet mode (with same colours and average per line)
-     *  - Gridlines
+     *  - Remove double labels on facets
+     *  - Bigger font size
      */
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
@@ -46,24 +46,57 @@
     const labelOverride = new Map([["One-Off", "One-Off (avg.)"]])
     data = data.map(d => ({...d, label: labelOverride.get(d.group) || d.group}));
 
-    const faceted = true;
+    let faceted = false;
+
+    let selectedValue = true; // Initialize the selected value to true
+
+    // do not display
+    let facetedData = data.filter(d => d.group !== "One-Off");
+    let facetedAverages = [...averages.entries()].filter(([group, average]) => group !== "One-Off").map(([group, average]) => ({group, average}))
+
+  function handleSelection(value) {
+    selectedValue = value;
+  }
 
 </script>
 
-<input
+<fieldset>
+  <label for="switch">
+    Stack Bars
+    <input type="checkbox" id="switch" name="switch" role="switch" bind:checked={faceted}>
+    Stack Charts
+  </label>
+</fieldset>
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
   y: { grid: true, ticks: 5 },
   color: { legend: !faceted },
+  facet: faceted ? {label: null} : {},
   marks: [
-      Plot.barY(data, {
+      Plot.barY(faceted ? facetedData : data, {
           x: "month",
           y: "activity",
           fill: "group",
-          tip: { format: { y: format, x: false } },
-          ...(faceted ? ({fy: "group"}) : ({})),
+          tip: { format: { y: format, x: false, fy: false, fill: !faceted } },
+          ...(faceted ? {fy: "group"} : {})
       }),
-      ...(faceted ? [] : [Plot.ruleY([overallAverage], { tip: { format: { y: format } } })]),
+      ...(faceted ? [
+          Plot.text(
+            [...new Set(facetedData.map(d => d.group))],
+            {text: d => d, fy: d => d, frameAnchor: "top-left", dx: 6, dy: 6},
+          ),
+          Plot.ruleY(
+              facetedAverages,
+              {
+                y: "average",
+                fy: "group",
+                stroke: "group",
+                tip: { format: { y: format, group: false, fy: false, stroke: false } }
+              }
+          )
+      ] : [
+          Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
+      ]),
   ],
 }} />

@@ -14,16 +14,6 @@
     // date operations
     const offset = 0;
     const target = dayjs.utc().subtract(-offset, "month")
-    const currentDay = target.date();
-    let datesInMonth;
-    {
-        const start = target.startOf("month");
-        datesInMonth = Array.from(Array(start.daysInMonth()).keys()).map((x) =>
-            start.add(x, "days")
-        );
-    }
-    const saturdays = datesInMonth.filter((d) => d.day() == 6);
-    const numberDaysInMonth = datesInMonth.length;
     const months = [
       target.subtract(1, "month"),
       target.subtract(2, "month"),
@@ -41,7 +31,6 @@
     // --------------------------------------------------------------------------------
 
     const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
-    const month = "2023-10-01";
 
     let budgets;
     onMount(async () => {
