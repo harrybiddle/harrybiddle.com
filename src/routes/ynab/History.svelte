@@ -73,9 +73,9 @@
 
 <PlotContainer options={{
   x: { type: "band", tickFormat: d3.utcFormat("%b") },
-  y: { grid: true, ticks:5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
+  y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
   color: { legend: !faceted },
-  fy: { axis: null },  // disable facet labels (we do this with a text mark instead)
+  ...(faceted ? {axis: null} : {}),
   facet: faceted ? { label: null } : {},
   marks: [
       Plot.barY(faceted ? facetedData : data, {
