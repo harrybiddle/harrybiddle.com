@@ -78,11 +78,12 @@
   ...(faceted ? {axis: null} : {}),
   facet: faceted ? { label: null } : {},
   marks: [
+      Plot.axisX(),
       Plot.barY(faceted ? facetedData : data, {
           x: "month",
           y: "activity",
           fill: "group",
-          tip: { format: { y: format, x: false, fy: false, fill: !faceted } },
+          tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: !faceted } },
           ...(faceted ? {fy: "group"} : {})
       }),
       ...(faceted ? [
