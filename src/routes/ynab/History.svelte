@@ -21,8 +21,7 @@
     )
     let data = groupedSumBudgetedActivityScheduled(
 			categories,
-			c => c.group,
-			c => c.group,
+			({month: d => d.month, group: c => c.group, name: c => c.group}),
 			1
 		).sort((a, b) => {
 

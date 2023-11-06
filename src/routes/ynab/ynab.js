@@ -96,7 +96,7 @@ function unroll(rollup, keys, label = 'value', p = {}) {
 	).flat();
 }
 
-export function groupedSumBudgetedActivityScheduled(iterable, groupGetter, nameGetter, level) {
+export function groupedSumBudgetedActivityScheduled(iterable, getters, level) {
 	/* TODO: take groupGetter, nameGetter */
 
 	const asMap = d3.rollup(
@@ -106,11 +106,9 @@ export function groupedSumBudgetedActivityScheduled(iterable, groupGetter, nameG
 			activity: d3.sum(categories, e => e.activity),
 			scheduled: d3.sum(categories, e => e.scheduled)
 		}),
-		e => e.month,
-		groupGetter,
-		nameGetter
+		...Object.values(getters),
 	);
-	const asArray = unroll(asMap, ['month', 'group', 'name']);
+	const asArray = unroll(asMap, Object.keys(getters));
 	const withLevel = asArray.map(e => ({ ...e, level }));
 	return withLevel;
 }
@@ -119,20 +117,17 @@ export function sumBudgets(categories) {
 	const data = [
 		...groupedSumBudgetedActivityScheduled(
 			categories,
-			c => 'Total',
-			c => 'Total',
+			({month: d => d.month, group: c => 'Total', name: c => 'Total'}),
 			2
 		),
 		...groupedSumBudgetedActivityScheduled(
 			categories,
-			c => c.group,
-			c => c.group,
+			({month: d => d.month, group: c => c.group, name: c => c.group}),
 			1
 		),
 		...groupedSumBudgetedActivityScheduled(
 			categories,
-			c => c.group,
-			c => c.category,
+			({month: d => d.month, group: c => c.group, name: c => c.category}),
 			0
 		)
 	];
