@@ -11,6 +11,9 @@
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
     import PlotContainer from "../../lib/PlotContainer.svelte";
+    import { Sankey } from "./d3_sankey"
+
+    console.log(Sankey)
 
     import { parseBudget, groupedSumBudgetedActivityScheduled, format } from "./ynab";
     export let budgets;
@@ -55,10 +58,32 @@
     // do not display
     let facetedData = data.filter(d => d.group !== "One-Off");
     let facetedAverages = [...averages.entries()].filter(([group, average]) => group !== "One-Off").map(([group, average]) => ({group, average}))
+    //
+    // console.log(
+    //   [
+	// 	...groupedSumBudgetedActivityScheduled(
+	// 		categories,
+	// 		({group: c => 'Total', name: c => 'Total'}),
+	// 		2
+	// 	),
+	// 	...groupedSumBudgetedActivityScheduled(
+	// 		categories,
+	// 		({group: c => c.group, name: c => c.group}),
+	// 		1
+	// 	),
+	// 	...groupedSumBudgetedActivityScheduled(
+	// 		categories,
+	// 		({group: c => c.group, name: c => c.category}),
+	// 		0
+	// 	)
+	// ]
+    // )
 
   function handleSelection(value) {
     selectedValue = value;
   }
+
+  console.log(d3.sankey)
 
 </script>
 
