@@ -6,6 +6,7 @@
     import BudgetLoader from "./BudgetLoader.svelte";
     import OneOffLoader from "./OneOffLoader.svelte";
     import HistoryLoader from "./HistoryLoader.svelte";
+    import Picker from "./Picker.svelte";
 
     const inputtedTokenValue = writable();
 

@@ -11,9 +11,8 @@
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
     import PlotContainer from "../../lib/PlotContainer.svelte";
+    import Picker from "./Picker.svelte";
     import { Sankey } from "./d3_sankey"
-
-    console.log(Sankey)
 
     import { parseBudget, groupedSumBudgetedActivityScheduled, format } from "./ynab";
     export let budgets;
@@ -21,7 +20,14 @@
     const categories = budgets.reduce(
         (accumulator, budget) => [...accumulator, ...parseBudget(budget)],
         []
-    )
+    ).filter(d => d.activity != 0);
+
+    // get list of groups & categories for picker
+    const foo = d3.rollup(
+        categories,
+        ds => [...new Set(ds.map(d => d.category))],  // TODO: sort
+        d => d.group,
+    );
     let data = groupedSumBudgetedActivityScheduled(
 			categories,
 			({month: d => d.month, group: c => c.group, name: c => c.group}),
@@ -83,8 +89,6 @@
     selectedValue = value;
   }
 
-  console.log(d3.sankey)
-
 </script>
 
 <fieldset>
@@ -137,3 +141,5 @@
       ]),
   ],
 }} />
+
+<!--<Picker choices={foo} />-->
