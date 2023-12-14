@@ -11,7 +11,7 @@
     import * as d3 from 'd3'
     import Picker from "./Picker.svelte";
 
-    import { parseBudget, groupedSumBudgetedActivityScheduled, format } from "./ynab";
+    import { parseBudget, groupedSumBudgetedActivityScheduled } from "./ynab";
     import History from "./History.svelte";
     export let budgets;
 
@@ -55,8 +55,6 @@
     const labelOverride = new Map([["One-Off", "One-Off (avg.)"]])
     data = data.map(d => ({...d, label: labelOverride.get(d.group) || d.group}));
 
-    let faceted = false;
-
     let selectedValue = true; // Initialize the selected value to true
 
     // do not display
@@ -65,6 +63,6 @@
 
 </script>
 
-<History {budgets} />
+<History {facetedData} {facetedAverages} {overallAverage} {data} />
 
 <Picker choices={foo} />
