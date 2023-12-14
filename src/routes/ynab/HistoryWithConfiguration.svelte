@@ -9,10 +9,10 @@
      *  - Consistent legend colours between faceted / non-faceted
      */
     import * as d3 from 'd3'
-    import * as Plot from '@observablehq/plot';
-    import PlotContainer from "../../lib/PlotContainer.svelte";
+    import Picker from "./Picker.svelte";
 
     import { parseBudget, groupedSumBudgetedActivityScheduled, format } from "./ynab";
+    import History from "./History.svelte";
     export let budgets;
 
     const categories = budgets.reduce(
@@ -62,80 +62,9 @@
     // do not display
     let facetedData = data.filter(d => d.group !== "One-Off");
     let facetedAverages = [...averages.entries()].filter(([group, average]) => group !== "One-Off").map(([group, average]) => ({group, average}))
-    //
-    // console.log(
-    //   [
-	// 	...groupedSumBudgetedActivityScheduled(
-	// 		categories,
-	// 		({group: c => 'Total', name: c => 'Total'}),
-	// 		2
-	// 	),
-	// 	...groupedSumBudgetedActivityScheduled(
-	// 		categories,
-	// 		({group: c => c.group, name: c => c.group}),
-	// 		1
-	// 	),
-	// 	...groupedSumBudgetedActivityScheduled(
-	// 		categories,
-	// 		({group: c => c.group, name: c => c.category}),
-	// 		0
-	// 	)
-	// ]
-    // )
-
-  function handleSelection(value) {
-    selectedValue = value;
-  }
 
 </script>
 
-<fieldset>
-  <label for="switch">
-    Stack Bars
-    <input type="checkbox" id="switch" name="switch" role="switch" bind:checked={faceted}>
-    Stack Charts
-  </label>
-</fieldset>
+<History {budgets} />
 
-<PlotContainer options={{
-  x: { type: "band", tickFormat: d3.utcFormat("%b") },
-  y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-  color: { legend: !faceted },
-  ...(faceted ? {axis: null} : {}),
-  facet: faceted ? { label: null } : {},
-  marks: [
-      Plot.axisX(),
-      Plot.barY(faceted ? facetedData : data, {
-          x: "month",
-          y: "activity",
-          fill: "group",
-          tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: !faceted } },
-          ...(faceted ? {fy: "group"} : {})
-      }),
-      ...(faceted ? [
-          Plot.text(
-            [...new Set(facetedData.map(d => d.group))],
-            {
-              text: d => d,
-              fy: d => d,
-              fill: d => d,
-              frameAnchor: "top-left",
-              dx: 6,
-              dy: 6,
-            },
-          ),
-          Plot.ruleY(
-              facetedAverages,
-              {
-                y: "average",
-                fy: "group",
-                stroke: "group",
-                tip: { format: { y: format, group: false, fy: false, stroke: false } }
-              }
-          ),
-          Plot.frame({stroke: "lightgrey"})
-      ] : [
-          Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
-      ]),
-  ],
-}} />
+<Picker choices={foo} />

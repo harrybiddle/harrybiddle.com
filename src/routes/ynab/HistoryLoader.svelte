@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { ynab } from "./ynab"
     import { live } from "./constants"
-    import History from "./History.svelte";
+    import HistoryWithConfiguration from "./HistoryWithConfiguration.svelte";
 
     export let ynabToken;
     export let month;
@@ -44,7 +44,7 @@
 </script>
 
 {#if budgets}
-    <History {budgets} />
+    <HistoryWithConfiguration {budgets} />
 {:else}
     <p aria-busy="true">Loading data</p>
 {/if}
