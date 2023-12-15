@@ -11,15 +11,39 @@
     import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
     import PlotContainer from "../../lib/PlotContainer.svelte";
+    import { beforeUpdate } from 'svelte';
 
     import { format } from "./ynab";
 
     export let facetedData;
     export let facetedAverages;
-    export let overallAverage;
     export let data;
+    export let averages;
+    export let groupStates;
 
     let faceted = false;
+
+    let _facetedAverages;
+    let _data;
+    let _facetedData;
+    let _overallAverage;
+
+    function updateData() {
+        const checkedGroups = new Set(
+            groupStates.filter(d => d.checked).map(d => d.group)
+        );
+        const filter = d => checkedGroups.has(d.group)
+        _facetedData = facetedData.filter(filter);
+        _facetedAverages = facetedAverages.filter(filter);
+        _data = data.filter(filter);
+        _overallAverage = d3.sum(
+            [...averages.entries()]
+                .filter(([group, value]) => checkedGroups.has(group))
+                .map(([group, value]) => value)
+        )
+    }
+
+	beforeUpdate(updateData);
 
 </script>
 
@@ -39,7 +63,7 @@
   facet: faceted ? { label: null } : {},
   marks: [
       Plot.axisX(),
-      Plot.barY(faceted ? facetedData : data, {
+      Plot.barY(faceted ? _facetedData : _data, {
           x: "month",
           y: "activity",
           fill: "group",
@@ -48,7 +72,7 @@
       }),
       ...(faceted ? [
           Plot.text(
-            [...new Set(facetedData.map(d => d.group))],
+            [...new Set(_facetedData.map(d => d.group))],
             {
               text: d => d,
               fy: d => d,
@@ -59,7 +83,7 @@
             },
           ),
           Plot.ruleY(
-              facetedAverages,
+              _facetedAverages,
               {
                 y: "average",
                 fy: "group",
@@ -69,7 +93,7 @@
           ),
           Plot.frame({stroke: "lightgrey"})
       ] : [
-          Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
+          Plot.ruleY([_overallAverage], { tip: { format: { y: format, fy: false } } })
       ]),
   ],
 }} />

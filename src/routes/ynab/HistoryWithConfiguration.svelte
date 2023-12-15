@@ -12,7 +12,6 @@
     import Picker from "./Picker.svelte";
 
     import { parseBudget, groupedSumBudgetedActivityScheduled } from "./ynab";
-    import History from "./History.svelte";
     export let budgets;
 
     const categories = budgets.reduce(
@@ -45,7 +44,6 @@
         d => d.group
     )
     const oneOffAverage = averages.get("One-Off")
-    const overallAverage = d3.sum(averages.values())
     data = data.map(d => d.group === "One-Off" ? ({...d, activity: oneOffAverage}) : d);
 
     // sort data by the average value for nicely stacked chart
@@ -63,6 +61,10 @@
 
 </script>
 
-<History {facetedData} {facetedAverages} {overallAverage} {data} />
-
-<Picker choices={foo} />
+<Picker
+    choices={foo}
+    {facetedData}
+    {facetedAverages}
+    {averages}
+    {data}
+/>
