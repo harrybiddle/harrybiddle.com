@@ -1,10 +1,14 @@
 <script>
+    import * as d3 from 'd3'
+
     import History from "./History.svelte";
 
     export let choices;
     export let facetedAverages;
     export let averages;
     export let data;
+
+    import { beforeUpdate } from 'svelte';
 
     let groupStates = [...choices.keys()].map(
         group => ({group, checked: true, expanded: false})
@@ -24,13 +28,32 @@
     function setAllGroupCheckedTo(checked) {
         groupStates = groupStates.map(d => ({...d, checked}))
     }
+
+    let _facetedAverages;
+    let _data;
+    let _overallAverage;
+
+    function updateData() {
+        const checkedGroups = new Set(
+            groupStates.filter(d => d.checked).map(d => d.group)
+        );
+        const filter = d => checkedGroups.has(d.group)
+        _facetedAverages = facetedAverages.filter(filter);
+        _data = data.filter(filter);
+        _overallAverage = d3.sum(
+            [...averages.entries()]
+                .filter(([group, value]) => checkedGroups.has(group))
+                .map(([group, value]) => value)
+        )
+    }
+
+	beforeUpdate(updateData);
 </script>
 
 <History
-    {facetedAverages}
-    {averages}
-    {data}
-    {groupStates}
+    facetedAverages={_facetedAverages}
+    overallAverage={_overallAverage}
+    data={_data}
 />
 
 <article>
