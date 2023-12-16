@@ -52,22 +52,22 @@
   </label>
 </fieldset>
 
-<PlotContainer options={{
-  x: { type: "band", tickFormat: d3.utcFormat("%b") },
-  y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-  color: { legend: !faceted },
-  ...(faceted ? {axis: null} : {}),
-  facet: faceted ? { label: null } : {},
-  marks: [
-      Plot.axisX(),
-      Plot.barY(_data, {
-          x: "month",
-          y: "activity",
-          fill: "group",
-          tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: !faceted } },
-          ...(faceted ? {fy: "group"} : {})
-      }),
-      ...(faceted ? [
+{#if faceted}
+    <PlotContainer options={{
+      x: { type: "band", tickFormat: d3.utcFormat("%b") },
+      y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
+      color: { legend: false },
+      axis: null,
+      facet: { label: null },
+      marks: [
+          Plot.axisX(),
+          Plot.barY(_data, {
+              x: "month",
+              y: "activity",
+              fill: "group",
+              tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: false } },
+              fy: "group",
+          }),
           Plot.text(
             [...new Set(_data.map(d => d.group))],
             {
@@ -88,9 +88,23 @@
                 tip: { format: { y: format, group: false, fy: false, stroke: false } }
               }
           ),
-          Plot.frame({stroke: "lightgrey"})
-      ] : [
+          Plot.frame({stroke: "lightgrey"}),
+      ],
+    }} />
+{:else}
+    <PlotContainer options={{
+      x: { type: "band", tickFormat: d3.utcFormat("%b") },
+      y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
+      color: { legend: true },
+      marks: [
+          Plot.axisX(),
+          Plot.barY(_data, {
+              x: "month",
+              y: "activity",
+              fill: "group",
+              tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: true } },
+          }),
           Plot.ruleY([_overallAverage], { tip: { format: { y: format, fy: false } } })
-      ]),
-  ],
-}} />
+      ],
+    }} />
+{/if}
