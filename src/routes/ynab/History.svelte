@@ -15,7 +15,6 @@
 
     import { format } from "./ynab";
 
-    export let facetedData;
     export let facetedAverages;
     export let data;
     export let averages;
@@ -25,7 +24,6 @@
 
     let _facetedAverages;
     let _data;
-    let _facetedData;
     let _overallAverage;
 
     function updateData() {
@@ -33,7 +31,6 @@
             groupStates.filter(d => d.checked).map(d => d.group)
         );
         const filter = d => checkedGroups.has(d.group)
-        _facetedData = facetedData.filter(filter);
         _facetedAverages = facetedAverages.filter(filter);
         _data = data.filter(filter);
         _overallAverage = d3.sum(
@@ -63,7 +60,7 @@
   facet: faceted ? { label: null } : {},
   marks: [
       Plot.axisX(),
-      Plot.barY(faceted ? _facetedData : _data, {
+      Plot.barY(_data, {
           x: "month",
           y: "activity",
           fill: "group",
@@ -72,7 +69,7 @@
       }),
       ...(faceted ? [
           Plot.text(
-            [...new Set(_facetedData.map(d => d.group))],
+            [...new Set(_data.map(d => d.group))],
             {
               text: d => d,
               fy: d => d,

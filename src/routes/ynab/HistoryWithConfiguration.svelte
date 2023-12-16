@@ -56,14 +56,12 @@
     let selectedValue = true; // Initialize the selected value to true
 
     // do not display
-    let facetedData = data.filter(d => d.group !== "One-Off");
     let facetedAverages = [...averages.entries()].filter(([group, average]) => group !== "One-Off").map(([group, average]) => ({group, average}))
 
 </script>
 
 <Picker
     choices={foo}
-    {facetedData}
     {facetedAverages}
     {averages}
     {data}

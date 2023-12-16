@@ -2,7 +2,6 @@
     import History from "./History.svelte";
 
     export let choices;
-    export let facetedData;
     export let facetedAverages;
     export let averages;
     export let data;
@@ -28,7 +27,6 @@
 </script>
 
 <History
-    {facetedData}
     {facetedAverages}
     {averages}
     {data}
