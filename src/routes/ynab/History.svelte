@@ -17,18 +17,9 @@
     export let facetedAverages;
     export let data;
     export let overallAverage;
-
-    let faceted = false;
+    export let faceted;
 
 </script>
-
-<fieldset>
-  <label for="switch">
-    Stack Bars
-    <input type="checkbox" id="switch" name="switch" role="switch" bind:checked={faceted}>
-    Stack Charts
-  </label>
-</fieldset>
 
 {#if faceted}
     <PlotContainer options={{

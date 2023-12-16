@@ -20,13 +20,9 @@
           ],
           [],
     )
-    function setCategoriesInGroupCheckedTo(group, checked) {
-        categoryStates = categoryStates.map(
-            d => ({...d, checked: d.group === group ? checked : d.checked})
-        )
-    }
-    function setAllGroupCheckedTo(checked) {
+    function setAllCheckedTo(checked) {
         groupStates = groupStates.map(d => ({...d, checked}))
+        categoryStates = categoryStates.map(d => ({...d, checked}))
     }
 
     let _facetedAverages;
@@ -37,30 +33,54 @@
         const checkedGroups = new Set(
             groupStates.filter(d => d.checked).map(d => d.group)
         );
-        const filter = d => checkedGroups.has(d.group)
-        _facetedAverages = facetedAverages.filter(filter);
-        _data = data.filter(filter);
+        const groupIsChecked = group => checkedGroups.has(group);
+        _facetedAverages = facetedAverages.filter(d => groupIsChecked(d.group));
+        _data = data.filter(d => groupIsChecked(d.group));
         _overallAverage = d3.sum(
             [...averages.entries()]
-                .filter(([group, value]) => checkedGroups.has(group))
-                .map(([group, value]) => value)
+                .filter(([group, _]) => groupIsChecked(group))
+                .map(([_, value]) => value)
         )
     }
+
+    let stacking = "stack-bars";
 
 	beforeUpdate(updateData);
 </script>
 
+<style>
+    .stackLabel {
+        display: inline;
+        margin-right: 1em;
+    }
+</style>
+
 <History
+    faceted={stacking === "stack-charts"}
     facetedAverages={_facetedAverages}
     overallAverage={_overallAverage}
     data={_data}
 />
 
 <article>
+    <!-- Stacking options -->
+    <fieldset>
+      <legend>Stacking</legend>
+      <label for="stack-bars" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="stack-bars" name="stacking" value="stack-bars">
+        Bars
+      </label>
+      <label for="stack-charts" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="stack-charts" name="stacking" value="stack-charts">
+        Charts
+      </label>
+    </fieldset>
+
+    <!-- Select/deselection of groups and categories -->
     <small>
-        <a on:click={() => setAllGroupCheckedTo(true)}>select all</a>
+        <a on:click={() => setAllCheckedTo(true)}>select all</a>
         |
-        <a on:click={() => setAllGroupCheckedTo(false)}>select none</a>
+        <a on:click={() => setAllCheckedTo(false)}>select none</a>
     </small>
     <br />
     <br />
@@ -75,11 +95,6 @@
                 </summary>
                 {#if false}
                     <fieldset>
-                        <small>
-                            <a on:click={() => setCategoriesInGroupCheckedTo(group, true)}>select all</a>
-                            |
-                            <a on:click={() => setCategoriesInGroupCheckedTo(group, false)}>select none</a>
-                        </small>
                     {#each _categoryStates as categoryState}
                         {@const id=`checkbox-${group}-${categoryState.category}`}
                         <label for={id}>
