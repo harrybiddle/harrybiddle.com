@@ -29,13 +29,7 @@
 			categories,
 			({month: d => d.month, group: c => c.group, name: c => c.group}),
 			1
-		).sort((a, b) => {
-
-		if (a.activity < b.activity) return 1;
-		if (a.activity > b.activity) return -1;
-
-		return 0; // Objects are considered equal
-	});
+		).sort((a, b) => b.activity - a.activity);
 
     // replace "One-Off" with average
     const averages = d3.rollup(
