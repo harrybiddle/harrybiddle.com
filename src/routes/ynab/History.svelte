@@ -14,10 +14,15 @@
 
     import { format } from "./ynab";
 
+    export let groups;
     export let facetedAverages;
     export let data;
     export let overallAverage;
     export let faceted;
+
+    const groupColorGetter = d3.scaleOrdinal().domain(groups).range(d3.schemeTableau10);
+    const selectedGroups = [...new Set(data.map(d => d.group))];
+    const selectedColors = selectedGroups.map(groupColorGetter);
 
 </script>
 
@@ -25,7 +30,7 @@
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
       y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-      color: { legend: false },
+      color: { legend: false, domain: selectedGroups, range: selectedColors },
       axis: null,
       facet: { label: null },
       marks: [
@@ -64,7 +69,7 @@
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
       y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-      color: { legend: true },
+      color: { legend: true, domain: selectedGroups, range: selectedColors },
       marks: [
           Plot.axisX(),
           Plot.barY(data, {

@@ -59,6 +59,7 @@
 </style>
 
 <History
+    groups={[...new Set(data.map(d => d.group))]}
     faceted={stacking === "stack-charts"}
     facetedAverages={_facetedAverages}
     overallAverage={_overallAverage}
