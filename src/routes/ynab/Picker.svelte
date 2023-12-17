@@ -24,6 +24,8 @@
         groupStates = groupStates.map(d => ({...d, checked}))
         categoryStates = categoryStates.map(d => ({...d, checked}))
     }
+    const checkAll = () => setAllCheckedTo(true);
+    const uncheckAll = () => setAllCheckedTo(false);
 
     let _facetedAverages;
     let _data;
@@ -45,6 +47,7 @@
 
     let stacking = "stack-bars";
 
+    updateData();  // TODO - is this necessary?
 	beforeUpdate(updateData);
 </script>
 
@@ -65,22 +68,19 @@
 <article>
     <!-- Stacking options -->
     <fieldset>
-      <legend>Stacking</legend>
       <label for="stack-bars" class="stackLabel">
         <input bind:group={stacking} type="radio" id="stack-bars" name="stacking" value="stack-bars">
-        Bars
+        Stacked Bars
       </label>
       <label for="stack-charts" class="stackLabel">
         <input bind:group={stacking} type="radio" id="stack-charts" name="stacking" value="stack-charts">
-        Charts
+        Stacked Charts
       </label>
     </fieldset>
 
     <!-- Select/deselection of groups and categories -->
     <small>
-        <a on:click={() => setAllCheckedTo(true)}>select all</a>
-        |
-        <a on:click={() => setAllCheckedTo(false)}>select none</a>
+        <a on:click={checkAll}>select all</a> | <a on:click={uncheckAll}>select none</a>
     </small>
     <br />
     <br />
