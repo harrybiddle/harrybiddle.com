@@ -14,15 +14,15 @@
 
     import { format } from "./ynab";
 
-    export let groups;
+    export let names;
     export let facetedAverages;
     export let data;
     export let overallAverage;
     export let faceted;
 
-    const groupColorGetter = d3.scaleOrdinal().domain(groups).range(d3.schemeTableau10);
-    const selectedGroups = [...new Set(data.map(d => d.group))];
-    const selectedColors = selectedGroups.map(groupColorGetter);
+    const colorGetter = d3.scaleOrdinal().domain(names).range(d3.schemeTableau10);
+    const selectedNames = [...new Set(data.map(d => d.name))];
+    const selectedColors = selectedNames.map(colorGetter);
 
 </script>
 
@@ -30,7 +30,7 @@
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
       y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-      color: { legend: false, domain: selectedGroups, range: selectedColors },
+      color: { legend: false, domain: selectedNames, range: selectedColors },
       axis: null,
       facet: { label: null },
       marks: [
@@ -38,12 +38,12 @@
           Plot.barY(data, {
               x: "month",
               y: "activity",
-              fill: "group",
+              fill: "name",
               tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: false } },
-              fy: "group",
+              fy: "name",
           }),
           Plot.text(
-            [...new Set(data.map(d => d.group))],
+            selectedNames,
             {
               text: d => d,
               fy: d => d,
@@ -57,9 +57,9 @@
               facetedAverages,
               {
                 y: "average",
-                fy: "group",
-                stroke: "group",
-                tip: { format: { y: format, group: false, fy: false, stroke: false } }
+                fy: "name",
+                stroke: "name",
+                tip: { format: { y: format, name: false, fy: false, stroke: false } }
               }
           ),
           Plot.frame({stroke: "lightgrey"}),
@@ -69,13 +69,13 @@
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
       y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-      color: { legend: true, domain: selectedGroups, range: selectedColors },
+      color: { legend: true, domain: selectedNames, range: selectedColors },
       marks: [
           Plot.axisX(),
           Plot.barY(data, {
               x: "month",
               y: "activity",
-              fill: "group",
+              fill: "name",
               tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: true } },
           }),
           Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
