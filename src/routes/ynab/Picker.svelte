@@ -1,11 +1,7 @@
 <script>
-    import * as d3 from 'd3'
-
     import History from "./History.svelte";
 
     export let choices;
-    export let facetedAverages;
-    export let averages;
     export let data;
 
     import { beforeUpdate } from 'svelte';
@@ -27,22 +23,29 @@
     const checkAll = () => setAllCheckedTo(true);
     const uncheckAll = () => setAllCheckedTo(false);
 
-    let _facetedAverages;
     let _data;
-    let _overallAverage;
 
     function updateData() {
         const checkedGroups = new Set(
-            groupStates.filter(d => d.checked).map(d => d.group)
+            groupStates
+                .filter(groupState => groupState.checked)
+                .map(groupState => groupState.group),
         );
-        const groupIsChecked = group => checkedGroups.has(group);
-        _facetedAverages = facetedAverages.filter(d => groupIsChecked(d.group));
-        _data = data.filter(d => groupIsChecked(d.group));
-        _overallAverage = d3.sum(
-            [...averages.entries()]
-                .filter(([group, _]) => groupIsChecked(group))
-                .map(([_, value]) => value)
-        )
+        const expandedGroups = new Set(
+            groupStates
+                .filter(groupState => groupState.expanded)
+                .map(groupState => groupState.group),
+        );
+        const checkedCategories = new Set(
+            categoryStates
+                .filter(categoryState => categoryState.checked)
+                .map(categoryState => `${categoryState.group}-${categoryState.category}`),
+        );
+        const shouldInclude = dataItem =>
+            (dataItem.level === 1 && checkedGroups.has(dataItem.group) && !expandedGroups.has(dataItem.group)) ||
+            (dataItem.level === 2 && expandedGroups.has(dataItem.group) && checkedCategories.has(`${dataItem.group}-${dataItem.name}`));
+
+        _data = data.filter(shouldInclude);
     }
 
     let stacking = "stack-bars";
@@ -61,8 +64,6 @@
 <History
     names={[...new Set(data.map(d => d.name))]}
     faceted={stacking === "stack-charts"}
-    facetedAverages={_facetedAverages}
-    overallAverage={_overallAverage}
     data={_data}
 />
 
@@ -94,17 +95,15 @@
                         <input type="checkbox" id="{group}-checkbox" bind:checked={groupState.checked} name="{group}-checkbox" disabled={groupState.expanded}>
                         {group}
                 </summary>
-                {#if false}
-                    <fieldset>
-                    {#each _categoryStates as categoryState}
-                        {@const id=`checkbox-${group}-${categoryState.category}`}
-                        <label for={id}>
-                            <input type="checkbox" id="{id}" name="{id}" bind:checked={categoryState.checked}>
-                            {categoryState.category}
-                        </label>
-                    {/each}
-                    </fieldset>
-                {/if}
+                <fieldset>
+                {#each _categoryStates as categoryState}
+                    {@const id=`checkbox-${group}-${categoryState.category}`}
+                    <label for={id}>
+                        <input type="checkbox" id="{id}" name="{id}" bind:checked={categoryState.checked}>
+                        {categoryState.category}
+                    </label>
+                {/each}
+                </fieldset>
             </details>
         {/each}
     </form>

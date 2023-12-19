@@ -9,23 +9,52 @@
      *  - Consistent legend colours between faceted / non-faceted
      */
     import * as d3 from 'd3'
+    import { beforeUpdate } from 'svelte';
     import * as Plot from '@observablehq/plot';
     import PlotContainer from "../../lib/PlotContainer.svelte";
-
     import { format } from "./ynab";
 
     export let names;
-    export let facetedAverages;
     export let data;
-    export let overallAverage;
     export let faceted;
 
-    const colorGetter = d3.scaleOrdinal().domain(names).range(d3.schemeTableau10);
-    const selectedNames = [...new Set(data.map(d => d.name))];
-    const selectedColors = selectedNames.map(colorGetter);
+    let selectedNames;
+    let selectedColors;
+    let averages;
+    let overallAverage;
+    let _data;
+
+    function updateData() {
+        // make a color palette
+        const colorGetter = d3.scaleOrdinal().domain(names).range(d3.schemeTableau10);
+        selectedNames = [...new Set(data.map(d => d.name))];
+        selectedColors = selectedNames.map(colorGetter);
+
+        // calculate averages
+        const nameToAverage = d3.rollup(
+            data,
+            data => d3.mean(data, d => d.activity),
+            d => d.name
+        )
+        averages = [...nameToAverage.entries()].map(([name, average]) => ({name, average}));
+        overallAverage = d3.sum(nameToAverage.values())
+
+        // sort data by the average value for nicely stacked chart
+        // TODO: can this be done in Plot options instead?
+        _data = data.sort((a, b) => nameToAverage.get(b.name) - nameToAverage.get(a.name));
+
+        // replace "One-Off" with average
+        const oneOffAverage = nameToAverage.get("One-Off")
+        if (oneOffAverage !== undefined) {
+            _data = data.map(d => d.group === "One-Off" ? ({...d, activity: oneOffAverage}) : d);
+        }
+    }
+
+    beforeUpdate(updateData);
 
 </script>
 
+{#if data.length > 0}
 {#if faceted}
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
@@ -35,7 +64,7 @@
       facet: { label: null },
       marks: [
           Plot.axisX(),
-          Plot.barY(data, {
+          Plot.barY(_data, {
               x: "month",
               y: "activity",
               fill: "name",
@@ -54,7 +83,7 @@
             },
           ),
           Plot.ruleY(
-              facetedAverages,
+              averages,
               {
                 y: "average",
                 fy: "name",
@@ -72,7 +101,7 @@
       color: { legend: true, domain: selectedNames, range: selectedColors },
       marks: [
           Plot.axisX(),
-          Plot.barY(data, {
+          Plot.barY(_data, {
               x: "month",
               y: "activity",
               fill: "name",
@@ -81,4 +110,7 @@
           Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
       ],
     }} />
+{/if}
+{:else}
+(No data to show)
 {/if}
