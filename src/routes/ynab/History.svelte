@@ -1,13 +1,4 @@
 <script>
-    /* TODO:
-     *  - Filters to show/remove some groups
-     *  - Optionally show categories, not just groups
-     *  - Bigger font size
-     *  - Split into two sub-components for faceted / non-faceted
-     *  - Add +- 2 std deviations to averages
-     *  - Add text mark for averages, not just popover? And labels for bars?
-     *  - Consistent legend colours between faceted / non-faceted
-     */
     import * as d3 from 'd3'
     import { beforeUpdate } from 'svelte';
     import * as Plot from '@observablehq/plot';

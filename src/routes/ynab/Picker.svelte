@@ -20,8 +20,9 @@
         groupStates = groupStates.map(d => ({...d, checked}))
         categoryStates = categoryStates.map(d => ({...d, checked}))
     }
-    const checkAll = () => setAllCheckedTo(true);
-    const uncheckAll = () => setAllCheckedTo(false);
+    function setAllCategoriesInGroupCheckedTo(group, checked) {
+        categoryStates = categoryStates.map(d => ({...d, checked: d.group === group ? checked : d.checked}))
+    }
 
     let _data;
 
@@ -80,12 +81,16 @@
       </label>
     </fieldset>
 
-    <!-- Select/deselection of groups and categories -->
+    <!-- Select/deselection of all groups -->
     <small>
-        <a on:click={checkAll}>select all</a> | <a on:click={uncheckAll}>select none</a>
+        <a on:click={() => setAllCheckedTo(true)}>select all</a>
+        |
+        <a on:click={() => setAllCheckedTo(false)}>select none</a>
     </small>
     <br />
     <br />
+
+    <!-- Selection/expansion of individual groups -->
     <form>
         {#each groupStates as groupState}
             {@const group = groupState.group}
@@ -95,15 +100,22 @@
                         <input type="checkbox" id="{group}-checkbox" bind:checked={groupState.checked} name="{group}-checkbox" disabled={groupState.expanded}>
                         {group}
                 </summary>
-                <fieldset>
-                {#each _categoryStates as categoryState}
-                    {@const id=`checkbox-${group}-${categoryState.category}`}
-                    <label for={id}>
-                        <input type="checkbox" id="{id}" name="{id}" bind:checked={categoryState.checked}>
-                        {categoryState.category}
-                    </label>
-                {/each}
-                </fieldset>
+                <div style="margin-left: 50px">
+                    <small>
+                        <a on:click={() => setAllCategoriesInGroupCheckedTo(group, true)}>select all</a>
+                        |
+                        <a on:click={() => setAllCategoriesInGroupCheckedTo(group, false)}>select none</a>
+                    </small>
+                    <fieldset>
+                    {#each _categoryStates as categoryState}
+                        {@const id=`checkbox-${group}-${categoryState.category}`}
+                        <label for={id}>
+                            <input type="checkbox" id="{id}" name="{id}" bind:checked={categoryState.checked}>
+                            {categoryState.category}
+                        </label>
+                    {/each}
+                    </fieldset>
+                </div>
             </details>
         {/each}
     </form>
