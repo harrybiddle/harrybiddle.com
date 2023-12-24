@@ -75,6 +75,18 @@
             }
         )
 
+    const projectedSpend = d3.sum(
+        parsed,
+        item => {
+            if (item.scheduled !== 0) {
+                return Math.max(item.scheduled, item.activity);
+            }
+            else {
+                return item.activity / currentZeroToOne;
+            }
+        }
+    )
+
     const summary = sumBudgets(parsed);
 
     const final = summary.map(c => {
@@ -126,6 +138,10 @@
         vertical-align: middle;
     }
 </style>
+
+<p>
+    Estimated spend at end of month: {format(projectedSpend)}
+</p>
 
 <table class="sparkbars">
     {#each final as c}
