@@ -65,10 +65,10 @@
     {:else}
         {@const dateInfo = getDateInformation() }
 
-        <!--<BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />-->
+        <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
 
-        <!--<h2>One-Off Balance</h2>-->
-        <!--<OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />-->
+        <h2>One-Off Balance</h2>
+        <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
 
         <h2>History</h2>
         <fieldset>

@@ -10,7 +10,6 @@
 
 ## History chart
 
-- Choice of period 
 - General refactor of code 
 - Bigger font size
 - Add +- 2 std deviations to averages
