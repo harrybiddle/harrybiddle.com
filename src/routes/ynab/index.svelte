@@ -41,7 +41,20 @@
         // --------------------------------------------------------------------------------
     }
 
+    let historyPeriod = "yearSoFar";
+    function onHistoryPeriodChange(event) {
+		historyPeriod = event.currentTarget.value;
+	}
 </script>
+
+<style>
+    label {
+        display: inline;
+        margin-right: 20px;
+    }
+</style>
+
+
 {#if localStorageIsDefined()}
     {#if !ynabTokenIsInLocalStorage()}
        <article>
@@ -52,13 +65,27 @@
     {:else}
         {@const dateInfo = getDateInformation() }
 
-        <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
+        <!--<BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />-->
 
-        <h2>One-Off Balance</h2>
-        <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
+        <!--<h2>One-Off Balance</h2>-->
+        <!--<OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />-->
 
         <h2>History</h2>
-        <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
+        <fieldset>
+            <label for="yearSoFar">
+                <input type="radio" checked={historyPeriod==="yearSoFar"} id="yearSoFar" name="historyPeriod" value="yearSoFar" on:change={onHistoryPeriodChange}>
+                Year so far
+            </label>
+            <label for="lastSixMonths">
+                <input type="radio" checked={historyPeriod==="lastSixMonths"} id="lastSixMonths" name="historyPeriod" value="lastSixMonths" on:change={onHistoryPeriodChange}>
+                Last six months
+            </label>
+            <label for="lastYear">
+                <input type="radio" checked={historyPeriod==="lastYear"} id="lastYear" name="historyPeriod" value="lastYear" on:change={onHistoryPeriodChange}>
+                Last year
+            </label>
+        </fieldset>
+        <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
 
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}
