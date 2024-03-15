@@ -58,7 +58,11 @@ export function parseBudget(budget) {
 			// add category group and process millicents
 			.map(e => ({ month: new Date(budget.month.month), ...parseMonth(e) }))
 			// ignore income
-			.filter(d => d.group !== 'Internal Master Category')
+			.filter(d => ![
+					'Inflow: Ready to Assign',
+					'Deferred Income SubCategory'
+				].includes(d.category)
+			)
 	);
 }
 

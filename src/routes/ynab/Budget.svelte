@@ -71,6 +71,11 @@
                   e.activity = Math.max(e.activity, e.budgeted);
                 }
 
+                // Modify the group of 'Uncategorized'
+                if (e.category === 'Uncategorized') {
+                    e.group = 'Uncategorised'
+                }
+
                 return e;
             }
         )
