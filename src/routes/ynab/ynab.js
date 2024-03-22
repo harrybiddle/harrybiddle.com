@@ -60,7 +60,7 @@ export function parseBudget(budget) {
 			// ignore income
 			.filter(d => ![
 					'Inflow: Ready to Assign',
-					'Deferred Income SubCategory'
+					'Deferred Income SubCategory',
 				].includes(d.category)
 			)
 	);

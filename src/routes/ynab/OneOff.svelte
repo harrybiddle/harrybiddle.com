@@ -8,10 +8,10 @@
     export let budgets;
     const parsedCategories = budgets.map(budget => {
         const monthString = budget.month.month;  // e.g. "2023-10-01"
-        return budget.month.categories.map(d => ({
-            ...parseMonth(d),
-            month: monthString
-        }))
+        return budget.month.categories
+            .map(d => ({...parseMonth(d), month: monthString}))
+            // ignore house purchase
+            .filter(d => !['House Purchase',].includes(d.category))
     })
 
     const rows = parsedCategories
