@@ -49,7 +49,7 @@
         _data = data.filter(shouldInclude);
     }
 
-    let stacking = "stack-bars";
+    let stacking = "monthly";
 
     updateData();  // TODO - is this necessary?
 	beforeUpdate(updateData);
@@ -64,20 +64,20 @@
 
 <History
     names={[...new Set(data.map(d => d.name))]}
-    faceted={stacking === "stack-charts"}
+    averaged={stacking === "averaged"}
     data={_data}
 />
 
 <article>
     <!-- Stacking options -->
     <fieldset>
-      <label for="stack-bars" class="stackLabel">
-        <input bind:group={stacking} type="radio" id="stack-bars" name="stacking" value="stack-bars">
-        Stacked Bars
+      <label for="monthly" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="monthly" name="stacking" value="monthly">
+        Monthly
       </label>
-      <label for="stack-charts" class="stackLabel">
-        <input bind:group={stacking} type="radio" id="stack-charts" name="stacking" value="stack-charts">
-        Stacked Charts
+      <label for="averaged" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="averaged" name="stacking" value="averaged">
+        Averaged
       </label>
     </fieldset>
 

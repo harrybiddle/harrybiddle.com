@@ -7,7 +7,7 @@
 
     export let names;
     export let data;
-    export let faceted;
+    export let averaged;
 
     let selectedNames;
     let selectedColors;
@@ -41,48 +41,62 @@
         }
     }
 
+    function computeMeanGroupedByName(_data) {
+        // _data looks like this:
+        // [{month: "2023-09-01T00:00:00.000Z", group: "Regular", name: "Regular", budgeted: 1341, activity: 2126.93, scheduled: 0, level: 1}, ...]
+
+        const numberOfMonths = new Set(_data.map(d => d.month.getUTCFullYear() + d.month.getUTCMonth() / 12 )).size
+
+        // group the data by name and take the mean
+        // object looks like [["Regular", 15036], ... ]
+        const arrayOfTuples = d3.flatRollup(
+            _data,
+            keys => d3.sum(keys, d => d.activity) / numberOfMonths,
+            d => d.name
+        );
+
+        // convert to array of objects, to produce
+        // [{name: "Regular", activity: 15036}, ... ]
+        return arrayOfTuples.map(
+            ([name, averageActivity]) => ({name, averageActivity})
+        )
+    }
+
     beforeUpdate(updateData);
 
 </script>
 
 {#if data.length > 0}
-{#if faceted}
+{#if averaged}
+    {@const averagedData = computeMeanGroupedByName(_data)}
     <PlotContainer options={{
-      x: { type: "band", tickFormat: d3.utcFormat("%b") },
-      y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
+      marginLeft: 100,
+      marginRight: 50, // to leave enough space for text mark
+      y: { label: null },  // hide y-axis label
+      x: { label: "average monthly spend" },
       color: { legend: false, domain: selectedNames, range: selectedColors },
-      axis: null,
-      facet: { label: null },
       marks: [
-          Plot.axisX(),
-          Plot.barY(_data, {
-              x: "month",
-              y: "activity",
-              fill: "name",
-              tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: false } },
-              fy: "name",
-          }),
-          Plot.text(
-            selectedNames,
-            {
-              text: d => d,
-              fy: d => d,
-              fill: d => d,
-              frameAnchor: "top-left",
-              dx: 6,
-              dy: 6,
-            },
-          ),
-          Plot.ruleY(
-              averages,
+          Plot.barX(
+              averagedData,
               {
-                y: "average",
-                fy: "name",
-                stroke: "name",
-                tip: { format: { y: format, name: false, fy: false, stroke: false } }
-              }
-          ),
-          Plot.frame({stroke: "lightgrey"}),
+                  x: "averageActivity",
+                  y: "name",
+                  fill: "name",
+                  tip: { format: { x: format, fill: false } },
+                  sort: { y : "x" },
+              },
+         ),
+         Plot.text(
+             averagedData,
+             {
+                 x: "averageActivity",
+                 y: "name",
+                 text: d => format(d.averageActivity),
+                 lineAnchor: "middle",
+                 textAnchor: "start",
+                 dx: 5
+             },
+         ),
       ],
     }} />
 {:else}
