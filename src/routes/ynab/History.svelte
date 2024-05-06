@@ -99,6 +99,10 @@
          ),
       ],
     }} />
+    <!-- the style here is chosen to match the Observable plot widget above -->
+    <p style="text-align: center; font-size: 0.6rem; font-family: 'PT Sans'">
+        Total average spend: €{format(d3.sum(averagedData, d => d.averageActivity))}
+    </p>
 {:else}
     <PlotContainer options={{
       x: { type: "band", tickFormat: d3.utcFormat("%b") },
