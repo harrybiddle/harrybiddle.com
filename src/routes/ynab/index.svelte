@@ -82,7 +82,7 @@
             </label>
             <label for="lastYear">
                 <input type="radio" checked={historyPeriod==="lastYear"} id="lastYear" name="historyPeriod" value="lastYear" on:change={onHistoryPeriodChange}>
-                Last year
+                Previous year
             </label>
         </fieldset>
         <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
