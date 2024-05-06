@@ -65,12 +65,15 @@
     {:else}
         {@const dateInfo = getDateInformation() }
 
+        <p>This excludes the "house" and "house purchase" categories.</p>
         <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
 
         <h2>One-Off Balance</h2>
+        <p>This includes the "house" category, but excludes "house purchase".</p>
         <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
 
         <h2>History</h2>
+        <p>This includes the "house" category, but excludes "house purchase".</p>
         <fieldset>
             <label for="yearSoFar">
                 <input type="radio" checked={historyPeriod==="yearSoFar"} id="yearSoFar" name="historyPeriod" value="yearSoFar" on:change={onHistoryPeriodChange}>
