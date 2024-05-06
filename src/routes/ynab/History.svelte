@@ -41,6 +41,21 @@
         }
     }
 
+    function sumActivityPerMonth(_data) {
+        /* this function takes input like this, with multiple entries for each month:
+         *
+         *    [{"month": "2023-09-01T00:00:00.000Z", "activity": 2126.93, ...}, ...
+         *
+         * then groups by month and sums activity, returning the same array but with
+         * one entry per month
+         */
+        return d3.flatRollup(
+            _data,
+            ds => d3.sum(ds, d => d.activity),
+            d => d.month,
+        ).map(([month, activity]) => ({month, activity}))
+    }
+
     function computeMeanGroupedByName(_data) {
         // _data looks like this:
         // [{month: "2023-09-01T00:00:00.000Z", group: "Regular", name: "Regular", budgeted: 1341, activity: 2126.93, scheduled: 0, level: 1}, ...]
@@ -116,7 +131,13 @@
               fill: "name",
               tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: true } },
           }),
-          Plot.ruleY([overallAverage], { tip: { format: { y: format, fy: false } } })
+          Plot.text(
+              sumActivityPerMonth(_data), {
+                  x: "month",
+                  y: "activity",
+                  text: d => format(d.activity),
+                  dy: -10,
+          }),
       ],
     }} />
 {/if}
