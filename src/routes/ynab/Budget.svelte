@@ -54,6 +54,9 @@
     const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
 
     const parsed = parseBudget(budget)
+        // filter out the "house" category for now, since this is large while we
+        // renovate the new house
+        .filter(e => e.category !== "House")
         .map(
             e => {
                 // ignore the activity of "One-Off": set the activity to be the budget
@@ -72,8 +75,8 @@
                 }
 
                 // Modify the group of 'Uncategorized'
-                if (e.category === 'Uncategorized') {
-                    e.group = 'Uncategorised'
+                if (e.category === "Uncategorized") {
+                    e.group = "Uncategorised"
                 }
 
                 return e;
@@ -116,7 +119,7 @@
     table {
         border-collapse: collapse;
     }
-    td, th {
+    td {
         padding: 3px;
     }
     tr td:first-child {
