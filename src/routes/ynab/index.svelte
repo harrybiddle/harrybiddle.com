@@ -65,15 +65,19 @@
     {:else}
         {@const dateInfo = getDateInformation() }
 
-        <p>This excludes the "house" and "house purchase" categories.</p>
         <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
+        <div style="font-size: small; font-style: italic">
+            * The one-off category excludes &#10060; <b>house</b> and excludes &#10060;
+            <b>house purchase</b>.
+        </div>
 
         <h2>One-Off Balance</h2>
-        <p>This includes the "house" category, but excludes "house purchase".</p>
+        <div style="font-size: medium; margin-bottom: 15px">
+            Includes &#9989; <b>house</b> but excludes &#10060; <b>house purchase</b>.
+        </div>
         <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
 
         <h2>History</h2>
-        <p>This includes the "house" category, but excludes "house purchase".</p>
         <fieldset>
             <label for="yearSoFar">
                 <input type="radio" checked={historyPeriod==="yearSoFar"} id="yearSoFar" name="historyPeriod" value="yearSoFar" on:change={onHistoryPeriodChange}>
@@ -83,8 +87,12 @@
                 <input type="radio" checked={historyPeriod==="lastSixMonths"} id="lastSixMonths" name="historyPeriod" value="lastSixMonths" on:change={onHistoryPeriodChange}>
                 Last six months
             </label>
-            <label for="lastYear">
-                <input type="radio" checked={historyPeriod==="lastYear"} id="lastYear" name="historyPeriod" value="lastYear" on:change={onHistoryPeriodChange}>
+            <label for="lastTwelveMonths">
+                <input type="radio" checked={historyPeriod==="lastTwelveMonths"} id="lastTwelveMonths" name="historyPeriod" value="lastTwelveMonths" on:change={onHistoryPeriodChange}>
+                Last twelve months
+            </label>
+            <label for="previousYear">
+                <input type="radio" checked={historyPeriod==="previousYear"} id="previousYear" name="historyPeriod" value="previousYear" on:change={onHistoryPeriodChange}>
                 Previous year
             </label>
         </fieldset>

@@ -141,6 +141,13 @@
       ],
     }} />
 {/if}
+    {#if selectedNames && selectedNames.includes("One-Off")}
+        <!-- footnote about one-off category -->
+        <div style="font-size: small; margin-bottom: 15px; font-style: italic">
+            Note: the one-off category includes &#9989; <b>house</b> but excludes
+            &#10060; <b>house purchase</b>.
+        </div>
+    {/if}
 {:else}
 (No data to show)
 {/if}

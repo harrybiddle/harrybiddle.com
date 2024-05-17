@@ -21,9 +21,11 @@
         let months = [];
         if (period === "lastSixMonths") {
             months = Array.from({length: 6}, (_, index) => month.subtract(index + 1, "month"));
-        } else if (period === "lastYear") {
-            const lastYear = thisYear - 1;
-            months = allMonths.filter(m => m.year() === lastYear)
+        } else if (period === "lastTwelveMonths") {
+            months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
+        } else if (period === "previousYear") {
+            const previousYear = thisYear - 1;
+            months = allMonths.filter(m => m.year() === previousYear)
         } else {  // assume period === "yearSoFar"
             months = allMonths.filter(m => m.year() === thisYear)
         }

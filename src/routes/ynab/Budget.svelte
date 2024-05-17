@@ -160,7 +160,7 @@
                 text-transform: {c.level > 1 ? 'uppercase' : 'none'};
                 background: {c.level > 1 ? 'WhiteSmoke' : 'transparent'};
             ">
-                <td style="font-weight: {fontWeight}">{c.name}</td>
+                <td style="font-weight: {fontWeight}">{c.name}{c.name === "One-Off" ? "*" : ""}</td>
                 <td style="font-weight: {fontWeight}">{formatZero(c.budgeted)}</td>
                 <td style="vertical-align: middle">
                     <SparkBarCatchup
