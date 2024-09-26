@@ -1,4 +1,5 @@
 .DS_Store
+.vscode
 node_modules
 /build
 /.svelte-kit
@@ -8,3 +9,30 @@ node_modules
 !.env.example
 .idea
 .netlify
+# Dependency directories
+node_modules/
+
+# IDE related
+.idea
+
+# Test coverage
+coverage
+*.lcov
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+
+# build output
+.vercel
+
+# OS-specific
+.DS_Store
+
+tmp
+
+benchmarking/compare/.results
+

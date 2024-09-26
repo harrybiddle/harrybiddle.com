@@ -3,7 +3,7 @@
      *   - Convert to a waterfall chart
      *   - Simplify logic using functions in ynab.js
      */
-    import { parseMonth, getMonthFromString, formatZero } from "./ynab";
+    import { parseMonth, getMonthFromString, formatZero, noteIsYearly } from "./ynab";
 
     export let budgets;
     const parsedCategories = budgets.map(budget => {
@@ -17,9 +17,9 @@
     const rows = parsedCategories
       .map(budget =>
         budget
-          // only look at categories in the "One-Off" group
-          .filter((e) => e.group === "One-Off")
-          // sum up all activity and budget for this group
+          // only look at categories which are budgeted on a yearly timescale
+          .filter((e) => noteIsYearly(e.note))
+          // sum up all activity and budget
           .reduce(
             (accumulator, e) => ({
               month: e.month,

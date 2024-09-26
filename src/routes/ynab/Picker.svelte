@@ -1,122 +1,108 @@
 <script>
-    import History from "./History.svelte";
+	import CustomCheckbox from "./CustomCheckbox.svelte";
 
-    export let choices;
-    export let data;
+  import { onMount } from 'svelte';
 
-    import { beforeUpdate } from 'svelte';
+    /* choices should be an array of objects:
+  
+       [
+          {
+              id: "a",
+              label: "Scheduled",
+              show: true,
+              expanded: true,
+              children: [
+                {
+                  id: "a1",
+                  label: "Rent"
+                  show: false
+                },
+                ...
+              ]
+           },
+           ...
+       ]
+   */
+  export let choices;
+  
+  let mountedChoices = [];
 
-    let groupStates = [...choices.keys()].map(
-        group => ({group, checked: true, expanded: false})
-    )
-    let categoryStates = [...choices.entries()].reduce(
-          (accumulator, [group, categories]) => [
-              ...accumulator,
-              ...categories.map(category => ({group, category, checked: true}))
-          ],
-          [],
-    )
-    function setAllCheckedTo(checked) {
-        groupStates = groupStates.map(d => ({...d, checked}))
-        categoryStates = categoryStates.map(d => ({...d, checked}))
-    }
-    function setAllCategoriesInGroupCheckedTo(group, checked) {
-        categoryStates = categoryStates.map(d => ({...d, checked: d.group === group ? checked : d.checked}))
-    }
+  onMount(() => {mountedChoices = structuredClone(choices); });
 
-    let _data;
+  function reset() { choices = structuredClone(mountedChoices); }
 
-    function updateData() {
-        const checkedGroups = new Set(
-            groupStates
-                .filter(groupState => groupState.checked)
-                .map(groupState => groupState.group),
-        );
-        const expandedGroups = new Set(
-            groupStates
-                .filter(groupState => groupState.expanded)
-                .map(groupState => groupState.group),
-        );
-        const checkedCategories = new Set(
-            categoryStates
-                .filter(categoryState => categoryState.checked)
-                .map(categoryState => `${categoryState.group}-${categoryState.category}`),
-        );
-        const shouldInclude = dataItem =>
-            (dataItem.level === 1 && checkedGroups.has(dataItem.group) && !expandedGroups.has(dataItem.group)) ||
-            (dataItem.level === 2 && expandedGroups.has(dataItem.group) && checkedCategories.has(`${dataItem.group}-${dataItem.name}`));
+  function setAllChildrenCheckedTo(id, state) {
+    choices = choices.map(
+      choice => ({
+        ...choice,
+        children: choice.children.map(
+          child => ({
+            ...child,
+            show: id === choice.id ? state: child.show
+          })
+        )
+      })
+    )    
+  }
 
-        _data = data.filter(shouldInclude);
-    }
+  function choiceShownButAllChildrenHidden(choice) {
+    const childrenHidden = choice.children.every(child => !child.show);
+    return choice.show && childrenHidden
+  }
+  
+  function choiceShownButChildrenAreMixed(choice) {
+    const childrenMixed = new Set(choice.children.map(child => child.show)).size > 1;
+    return choice.show && childrenMixed;
+  }
 
-    let stacking = "monthly";
+  function setAllChoicesTo(state) {
+    choices = choices.map(choice => ({...choice, show: state}))        
+  }
 
-    updateData();  // TODO - is this necessary?
-	beforeUpdate(updateData);
 </script>
 
 <style>
-    .stackLabel {
-        display: inline;
-        margin-right: 1em;
-    }
+  details[open] > summary {
+    margin-bottom: calc(var(--spacing) * 0.25)
+  }
+  #options {
+    margin-bottom: calc(var(--spacing) * 0.75)
+  }
 </style>
 
-<History
-    names={[...new Set(data.map(d => d.name))]}
-    averaged={stacking === "averaged"}
-    data={_data}
-/>
+<div id="options">
+  <a on:click={() => setAllChoicesTo(true)}>select all</a>
+  |
+  <a on:click={() => setAllChoicesTo(false)}>select none</a>
+  |
+  <a on:click={reset}>reset</a>
+</div>
 
-<article>
-    <!-- Stacking options -->
-    <fieldset>
-      <label for="monthly" class="stackLabel">
-        <input bind:group={stacking} type="radio" id="monthly" name="stacking" value="monthly">
-        Monthly
-      </label>
-      <label for="averaged" class="stackLabel">
-        <input bind:group={stacking} type="radio" id="averaged" name="stacking" value="averaged">
-        Averaged
-      </label>
-    </fieldset>
-
-    <!-- Select/deselection of all groups -->
-    <small>
-        <a on:click={() => setAllCheckedTo(true)}>select all</a>
+{#each choices as choice}
+  <details bind:open={choice.expanded}>
+    <summary>
+      <input bind:checked={choice.show} type="checkbox" />
+      {choice.label}
+      {#if choiceShownButChildrenAreMixed(choice)}<sup style="color: #D93526">&#8226;</sup>{/if}
+      {#if choiceShownButAllChildrenHidden(choice)}⚠️{/if}      
+    </summary>
+    <div style="margin-left: 40px">
+      <small>
+        <a on:click={() => setAllChildrenCheckedTo(choice.id, true)}>select all</a>
         |
-        <a on:click={() => setAllCheckedTo(false)}>select none</a>
-    </small>
-    <br />
-    <br />
-
-    <!-- Selection/expansion of individual groups -->
-    <form>
-        {#each groupStates as groupState}
-            {@const group = groupState.group}
-            {@const _categoryStates = categoryStates.filter(d => d.group === group) }
-            <details bind:open={groupState.expanded}>
-                <summary>
-                        <input type="checkbox" id="{group}-checkbox" bind:checked={groupState.checked} name="{group}-checkbox" disabled={groupState.expanded}>
-                        {group}
-                </summary>
-                <div style="margin-left: 50px">
-                    <small>
-                        <a on:click={() => setAllCategoriesInGroupCheckedTo(group, true)}>select all</a>
-                        |
-                        <a on:click={() => setAllCategoriesInGroupCheckedTo(group, false)}>select none</a>
-                    </small>
-                    <fieldset>
-                    {#each _categoryStates as categoryState}
-                        {@const id=`checkbox-${group}-${categoryState.category}`}
-                        <label for={id}>
-                            <input type="checkbox" id="{id}" name="{id}" bind:checked={categoryState.checked}>
-                            {categoryState.category}
-                        </label>
-                    {/each}
-                    </fieldset>
-                </div>
-            </details>
+        <a on:click={() => setAllChildrenCheckedTo(choice.id, false)}>select none</a>
+      </small>      
+      <fieldset>
+        {#each choice.children as child}
+          <label class="child-container">            
+            <input bind:checked={child.show} type="checkbox" />                        
+            {child.label}              
+            <span style="float: right">
+              <CustomCheckbox bind:checked={child.average} />
+            </span>
+          </label>          
         {/each}
-    </form>
-</article>
+      </fieldset>
+    </div>
+  </details>
+{/each}

@@ -1,153 +1,187 @@
 <script>
+    /* TODO:
+     *  - Filters to show/remove some groups
+     *  - Optionally show categories, not just groups
+     *  - Bigger font size
+     *  - Split into two sub-components for faceted / non-faceted
+     *  - Add +- 2 std deviations to averages
+     *  - Add text mark for averages, not just popover? And labels for bars?
+     *  - Consistent legend colours between faceted / non-faceted
+     */
     import * as d3 from 'd3'
-    import { beforeUpdate } from 'svelte';
-    import * as Plot from '@observablehq/plot';
-    import PlotContainer from "../../lib/PlotContainer.svelte";
-    import { format } from "./ynab";
 
-    export let names;
-    export let data;
-    export let averaged;
+    import Picker from "./Picker.svelte";
+    import HistoryPlotAveraged from './HistoryPlotAveraged.svelte';    
+	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
 
-    let selectedNames;
-    let selectedColors;
-    let averages;
-    let overallAverage;
-    let _data;
+    import { format, parseBudget, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
+	
+    export let budgets;    
 
-    function updateData() {
-        // make a color palette
-        const colorGetter = d3.scaleOrdinal().domain(names).range(d3.schemeTableau10);
-        selectedNames = [...new Set(data.map(d => d.name))];
-        selectedColors = selectedNames.map(colorGetter);
-
-        // calculate averages
-        const nameToAverage = d3.rollup(
-            data,
-            data => d3.mean(data, d => d.activity),
-            d => d.name
-        )
-        averages = [...nameToAverage.entries()].map(([name, average]) => ({name, average}));
-        overallAverage = d3.sum(nameToAverage.values())
-
-        // sort data by the average value for nicely stacked chart
-        // TODO: can this be done in Plot options instead?
-        _data = data.sort((a, b) => nameToAverage.get(b.name) - nameToAverage.get(a.name));
-
-        // replace "One-Off" with average
-        const oneOffAverage = nameToAverage.get("One-Off")
-        if (oneOffAverage !== undefined) {
-            _data = data.map(d => d.group === "One-Off" ? ({...d, activity: oneOffAverage}) : d);
-        }
+    // parse budget information
+    function parse(budgets) {
+        return budgets.flatMap(parseBudget).filter((d) => d.activity != 0);
     }
 
-    function sumActivityPerMonth(_data) {
-        /* this function takes input like this, with multiple entries for each month:
-         *
-         *    [{"month": "2023-09-01T00:00:00.000Z", "activity": 2126.93, ...}, ...
-         *
-         * then groups by month and sums activity, returning the same array but with
-         * one entry per month
-         */
-        return d3.flatRollup(
-            _data,
-            ds => d3.sum(ds, d => d.activity),
-            d => d.month,
-        ).map(([month, activity]) => ({month, activity}))
+    function makeHierarchy(budgets) {
+        const categories = parse(budgets);
+        let hierarchy = categories.map((c) => ({
+            group_id: "g" + c.group_id,
+            group: c.group,
+            category_id: "c" + c.category_id,
+            category: c.category,
+            note: c.note,
+        }));
+        hierarchy = [...new Set(hierarchy.map(JSON.stringify))].map(JSON.parse);
+        return hierarchy;
     }
 
-    function computeMeanGroupedByName(_data) {
-        // _data looks like this:
-        // [{month: "2023-09-01T00:00:00.000Z", group: "Regular", name: "Regular", budgeted: 1341, activity: 2126.93, scheduled: 0, level: 1}, ...]
+    // parsing of the budget data to a set of filtering/averaging choices
+    function constructDefaultChoices(categories) {
+        // we make an initial guess at which categories should be shown and averaged,
+        const shouldAverage = (category) => noteIsYearly(category.note);
+        const shouldShow = (category) => category.category !== "House Purchase";
 
-        const numberOfMonths = new Set(_data.map(d => d.month.getUTCFullYear() + d.month.getUTCMonth() / 12 )).size
+        // construct choices
+        const hierarchy = makeHierarchy(budgets);
+        const groups = d3.flatGroup(
+            hierarchy,
+            (c) => c.group_id,
+            (c) => c.group,
+        );
+        return groups.map(([group_id, group, cs]) => ({
+            id: group_id,
+            label: group,
+            show: true,
+            expanded: false,
+            children: cs.map((c) => ({
+                id: c.category_id,
+                label: c.category,
+                show: shouldShow(c),
+                average: shouldAverage(c),
+            })),
+        }));
+    }
 
-        // group the data by name and take the mean
-        // object looks like [["Regular", 15036], ... ]
-        const arrayOfTuples = d3.flatRollup(
-            _data,
-            keys => d3.sum(keys, d => d.activity) / numberOfMonths,
-            d => d.name
+    function cartesianProduct(...a) {
+        return a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
+    }
+
+    // applying the filtering and averaging logic to the budget data,
+    // to produce the data for the chart
+    function preprocessData(budgets, choices, stacking) {
+        // TODO: clean up this whole function, which is quite confusing
+        // filter categories and groups to only those which are shown
+        // in case the choices are out of sync with the data, we look
+        // for the presence of "show: true"
+        const categoryChoices = choices.flatMap((g) => g.children);
+        const visibleCategoryIds = new Set(
+            categoryChoices.filter((c) => c.show).map((c) => c.id),
+        );
+        const visibleGroupIds = new Set(choices.filter((g) => g.show).map((g) => g.id));
+        const categories = parse(budgets);
+        let visibleCategories = categories
+            .filter((c) => visibleGroupIds.has("g" + c.group_id))
+            .filter((c) => visibleCategoryIds.has("c" + c.category_id));
+
+        // replace values by averages when requested
+        // TODO: clean up this code
+        const months = budgets.map((b) => new Date(b.month.month));
+        const numberMonths = months.length;
+        const categoryIdsToAverage = new Set(
+            categoryChoices.filter((c) => c.average).map((c) => c.id),
+        );
+        const averages = d3.flatRollup(
+            visibleCategories.filter((c) => categoryIdsToAverage.has("c" + c.category_id)),
+            (cs) => d3.sum(cs, (c) => c.activity) / numberMonths,
+            (c) => c.category_id,
+            (c) => c.category,
+            (c) => c.group_id,
+            (c) => c.group,
+        );
+        const visibleAveragedCategories = cartesianProduct(months, averages).map(
+            ([month, category_id, category, group_id, group, activity]) => ({
+                month,
+                category_id,
+                category,
+                group_id,
+                group,
+                activity,
+            }),
+        );
+        const visibleNonAveragedCategories = visibleCategories.filter(
+            (c) => !categoryIdsToAverage.has("c" + c.category_id),
+        );
+        visibleCategories = [...visibleNonAveragedCategories, ...visibleAveragedCategories];
+
+        // calculate overall average
+        const overallAverage = d3.sum(visibleCategories, (c) => c.activity) / numberMonths;
+
+        // sum up data
+        const groupsIdsToCollapse = new Set(
+            choices.filter((g) => !g.expanded).map((g) => g.id),
+        );
+        let groupsToSum = visibleCategories.filter((c) =>
+            groupsIdsToCollapse.has("g" + c.group_id),
+        );
+        let categoriesToSum = visibleCategories.filter(
+            (c) => !groupsIdsToCollapse.has("g" + c.group_id),
         );
 
-        // convert to array of objects, to produce
-        // [{name: "Regular", activity: 15036}, ... ]
-        return arrayOfTuples.map(
-            ([name, averageActivity]) => ({name, averageActivity})
-        )
+        const monthGrouping = stacking === "averaged" ? {} : { month: (d) => d.month };
+        const data = [
+            ...groupedSumBudgetedActivityScheduled(
+                groupsToSum,
+                { group: (c) => c.group, name: (c) => c.group, ...monthGrouping },
+                1, // level
+            ),
+            ...groupedSumBudgetedActivityScheduled(
+                categoriesToSum,
+                { group: (c) => c.group, name: (c) => c.category, ...monthGrouping },
+                2, // level
+            ),
+        ];
+
+        // Add overall average to the final data
+        return Object.assign(data, { average: overallAverage });
     }
 
-    beforeUpdate(updateData);
+    let stacking = "monthly";
+    let choices;
+    const categories = parse(budgets); // TODO: component breaks when I put it in the reactive block - why?
 
+    $:
+        choices = constructDefaultChoices(categories);
 </script>
 
-{#if data.length > 0}
-{#if averaged}
-    {@const averagedData = computeMeanGroupedByName(_data)}
-    <PlotContainer options={{
-      marginLeft: 100,
-      marginRight: 50, // to leave enough space for text mark
-      y: { label: null },  // hide y-axis label
-      x: { label: "average monthly spend" },
-      color: { legend: false, domain: selectedNames, range: selectedColors },
-      marks: [
-          Plot.barX(
-              averagedData,
-              {
-                  x: "averageActivity",
-                  y: "name",
-                  fill: "name",
-                  tip: { format: { x: format, fill: false } },
-                  sort: { y : "x" },
-              },
-         ),
-         Plot.text(
-             averagedData,
-             {
-                 x: "averageActivity",
-                 y: "name",
-                 text: d => format(d.averageActivity),
-                 lineAnchor: "middle",
-                 textAnchor: "start",
-                 dx: 5
-             },
-         ),
-      ],
-    }} />
-    <!-- the style here is chosen to match the Observable plot widget above -->
-    <p style="text-align: center; font-size: 0.6rem; font-family: 'PT Sans'">
-        Total average spend: €{format(d3.sum(averagedData, d => d.averageActivity))}
-    </p>
-{:else}
-    <PlotContainer options={{
-      x: { type: "band", tickFormat: d3.utcFormat("%b") },
-      y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-      color: { legend: true, domain: selectedNames, range: selectedColors },
-      marks: [
-          Plot.axisX(),
-          Plot.barY(_data, {
-              x: "month",
-              y: "activity",
-              fill: "name",
-              tip: { format: { y: format, x: d3.utcFormat("%b"), fy: false, fill: true } },
-          }),
-          Plot.text(
-              sumActivityPerMonth(_data), {
-                  x: "month",
-                  y: "activity",
-                  text: d => format(d.activity),
-                  dy: -10,
-          }),
-      ],
-    }} />
-{/if}
-    {#if selectedNames && selectedNames.includes("One-Off")}
-        <!-- footnote about one-off category -->
-        <div style="font-size: small; margin-bottom: 15px; font-style: italic">
-            Note: the one-off category includes &#9989; <b>house</b> but excludes
-            &#10060; <b>house purchase</b>.
-        </div>
+{#if choices && stacking}
+    {@const data = preprocessData(budgets, choices, stacking)}    
+    {@const hierarchy = makeHierarchy(budgets)}
+
+    {#if stacking === "averaged"}
+        <HistoryPlotAveraged {data} />
+    {:else if stacking === "monthly"}
+        <HistoryPlotByMonth {data} />
     {/if}
-{:else}
-(No data to show)
+
+    <p><small>Average spent: {format(data.average)}</small></p>
 {/if}
+
+<article>
+    <!-- Stacking options -->
+    <fieldset>
+      <label for="monthly" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="monthly" name="stacking" value="monthly">
+        Monthly
+      </label>
+      <label for="averaged" class="stackLabel">
+        <input bind:group={stacking} type="radio" id="averaged" name="stacking" value="averaged">
+        Averaged
+      </label>
+    </fieldset>
+
+    <!-- Selection/expansion and averaging of individual groups and categories -->
+    {#if choices}
+        <Picker bind:choices />
+    {/if}
+</article>

@@ -44,11 +44,14 @@ function memoize(fn) {
 
 export function parseMonth(d) {
 	return {
+		group_id: d.category_group_id,
 		group: d.category_group_name,
 		category: d.name,
+		category_id: d.id,
+		note: d.note,
 		activity: -d.activity / 1000,
 		budgeted: d.budgeted / 1000,
-		scheduled: 0
+		scheduled: 0,
 	};
 }
 
@@ -61,10 +64,17 @@ export function parseBudget(budget) {
 			.filter(d => ![
 					'Inflow: Ready to Assign',
 					'Deferred Income SubCategory',
-					'House Purchase',
 				].includes(d.category)
 			)
 	);
+}
+
+export function noteIsMonthly(note) {
+	return (note || "").includes("%monthly%")
+}
+
+export function noteIsYearly(note) {
+	return (note || "").includes("%yearly%")
 }
 
 export function humanMonth(dateObject) {

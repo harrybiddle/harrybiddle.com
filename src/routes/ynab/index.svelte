@@ -6,8 +6,7 @@
     import BudgetLoader from "./BudgetLoader.svelte";
     import OneOffLoader from "./OneOffLoader.svelte";
     import HistoryLoader from "./HistoryLoader.svelte";
-    import Picker from "./Picker.svelte";
-
+    
     const inputtedTokenValue = writable();
 
     const localStorageIsDefined = () => typeof localStorage !== 'undefined';
@@ -45,6 +44,46 @@
     function onHistoryPeriodChange(event) {
 		historyPeriod = event.currentTarget.value;
 	}
+
+    let choices = [
+        {
+            id: 1, 
+            label: "Scheduled", 
+            show: true,
+            expanded: true,
+            children: [
+                {
+                    id: 2,
+                    label: "Rent",
+                    show: false,
+                },
+                {
+                    id: 3,
+                    label: "Electricity",
+                    show: true,
+                },
+            ]
+        },
+        {
+            id: 4, 
+            label: "Regular", 
+            show: true,
+            expanded: false,
+            children: [
+                {
+                    id: 5,
+                    label: "Blueberry",
+                    show: false,
+                    average: true,
+                },
+                {
+                    id: 6,
+                    label: "Groceries",
+                    show: true,
+                },
+            ]
+        },
+    ]
 </script>
 
 <style>
@@ -54,10 +93,9 @@
     }
 </style>
 
-
 {#if localStorageIsDefined()}
     {#if !ynabTokenIsInLocalStorage()}
-       <article>
+        <article>
             <label>Enter something:</label>
             <input type="text" bind:value={$inputtedTokenValue}>
             <button type="button" on:click={setYnabToken}>Submit</button>
@@ -100,5 +138,4 @@
 
         <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
     {/if}
-{:else}
-{/if}
+{/if}        

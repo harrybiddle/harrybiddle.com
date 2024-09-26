@@ -9,7 +9,7 @@
      */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
-    import { parseBudget, sumBudgets } from "./ynab";
+    import { parseBudget, sumBudgets, noteIsMonthly, noteIsYearly } from "./ynab";
 
     export let budget;
     export let month;
@@ -59,22 +59,21 @@
         .filter(e => e.category !== "House")
         .map(
             e => {
-                // ignore the activity of "One-Off": set the activity to be the budget
-                // also consider the entire budget to be scheduled spending
-                if (e.group === "One-Off") {
-                  e.scheduled = e.budgeted;
-                  e.activity = e.budgeted;
+                if (noteIsYearly(e.note)) {
+                    // for yearly amounts, make it scheduled and cap spending at a constant
+                    // budgeted amount
+                    e.scheduled = e.budgeted;
+                    e.activity = e.budgeted;
+                }
+                else if (noteIsMonthly(e.note)) {
+                    // if the item is spent on a monthly basis, remove it from the daily
+                    // count by setting the scheduled amount to be what was budgeted. However
+                    // allow the activity to exceed this if we did overspend
+                    e.scheduled = e.budgeted;
+                    e.activity = Math.max(e.activity, e.budgeted);
                 }
 
-                // we also set the activity of the "Scheduled" category to group be what
-                // was budgeted, except if it exceeds the budget. We consider the entire
-                // budget to be scheduled spending
-                if (e.group === "Scheduled") {
-                  e.scheduled = e.budgeted;
-                  e.activity = Math.max(e.activity, e.budgeted);
-                }
-
-                // Modify the group of 'Uncategorized'
+                // Modify the group of 'Uncategorized' to be less American!
                 if (e.category === "Uncategorized") {
                     e.group = "Uncategorised"
                 }
