@@ -129,7 +129,7 @@
         );
 
         const monthGrouping = stacking === "averaged" ? {} : { month: (d) => d.month };
-        const data = [
+        let data = [
             ...groupedSumBudgetedActivityScheduled(
                 groupsToSum,
                 { group: (c) => c.group, name: (c) => c.group, ...monthGrouping },
@@ -141,6 +141,8 @@
                 2, // level
             ),
         ];
+        if (stacking === "averaged") 
+            data = data.map(d => ({...d, activity: d.activity / numberMonths}));
 
         // Add overall average to the final data
         return Object.assign(data, { average: overallAverage });

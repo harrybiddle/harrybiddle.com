@@ -23,6 +23,7 @@
                         y: "activity",
                         fill: "name",
                         tip: {format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true}},
+                        sort: d => -d.activity,
                     },
                 ),
             ],

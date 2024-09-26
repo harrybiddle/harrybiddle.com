@@ -10,7 +10,7 @@
 {#if data.length > 0}
     <PlotContainer
         options={{
-            marginLeft: 100,
+            marginLeft: 120,
             marginRight: 50, // to leave enough space for text mark
             y: { label: null },  // hide y-axis label
             x: { label: "average monthly spend" },
@@ -23,15 +23,15 @@
                         y: "name",
                         fill: "name",
                         tip: { format: { x: format, fill: false } },
-                        sort: { y : "x" },
+                        sort: d => d.activity,
                     },
                 ),
                 Plot.text(
                     data,
                     {
-                        x: "averageActivity",
+                        x: "activity",
                         y: "name",
-                        text: d => format(d.averageActivity),
+                        text: d => format(d.activity),
                         lineAnchor: "middle",
                         textAnchor: "start",
                         dx: 5

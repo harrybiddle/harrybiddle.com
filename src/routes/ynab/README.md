@@ -17,6 +17,9 @@
 
 ## History chart
 
+- Stable sorting across all years (i.e. sort by total/average)
+- Sorting in averaged chart
+- Centre the "average spent" text
 - Refactor to improve code readability
 - Add back stable discrete colour scheme
 - Merge HistoryLoader and History widgets?
