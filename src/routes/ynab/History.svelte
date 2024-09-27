@@ -1,13 +1,4 @@
 <script>
-    /* TODO:
-     *  - Filters to show/remove some groups
-     *  - Optionally show categories, not just groups
-     *  - Bigger font size
-     *  - Split into two sub-components for faceted / non-faceted
-     *  - Add +- 2 std deviations to averages
-     *  - Add text mark for averages, not just popover? And labels for bars?
-     *  - Consistent legend colours between faceted / non-faceted
-     */
     import * as d3 from 'd3'
 
     import Picker from "./Picker.svelte";
@@ -206,7 +197,7 @@
 
     <!-- Selection/expansion and averaging of individual groups and categories -->
     {#if choices}
-        <Picker bind:choices />
+        <Picker bind:choices defaultChoices={constructDefaultChoices(categories)} />
     {/if}
 </article>
 
@@ -214,10 +205,6 @@
     article {
         margin-top: 10px;
         padding: 20px;
-
-        /* still looks to big relative to the page! */
-        transform: scale(0.85);
-        transform-origin: top;
     }
 
     label {

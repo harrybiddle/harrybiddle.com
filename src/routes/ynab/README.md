@@ -34,6 +34,8 @@
   - Merge HistoryLoader and History widgets?
   - Check functionality of "reset" button
   - Allow any start and end month
+  - Picker should store current state in a Storage of some kind and try to merge current state with new state
+    when it is ...re-mounted? Updated?
 - Refactor to improve code readabilit
 - Add income 
 - Work off transactions?

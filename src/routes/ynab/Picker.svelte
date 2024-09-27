@@ -1,9 +1,5 @@
-<script>
-	import CustomCheckbox from "./CustomCheckbox.svelte";
-
-  import { onMount } from 'svelte';
-
-    /* choices should be an array of objects:
+<!--
+    Choices should be an array of objects:
   
        [
           {
@@ -22,14 +18,15 @@
            },
            ...
        ]
-   */
+   
+-->
+<script>
+  import CustomCheckbox from "./CustomCheckbox.svelte";
+
   export let choices;
-  
-  let mountedChoices = [];
+  export let defaultChoices = undefined;
 
-  onMount(() => {mountedChoices = structuredClone(choices); });
-
-  function reset() { choices = structuredClone(mountedChoices); }
+  function reset() { choices = structuredClone(defaultChoices); }
 
   function setAllChildrenTo(id, key, state) {
     choices = choices.map(
@@ -74,8 +71,10 @@
   <a on:click={() => setAllChoicesTo(true)}>select all</a>
   |
   <a on:click={() => setAllChoicesTo(false)}>none</a>
-  |
-  <a on:click={reset}>reset</a>
+  {#if defaultChoices}
+    |
+    <a on:click={reset}>reset</a>
+  {/if}
 </div>
 
 {#each choices as choice}
