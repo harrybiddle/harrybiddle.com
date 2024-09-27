@@ -73,7 +73,7 @@
 <div id="options">
   <a on:click={() => setAllChoicesTo(true)}>select all</a>
   |
-  <a on:click={() => setAllChoicesTo(false)}>select none</a>
+  <a on:click={() => setAllChoicesTo(false)}>none</a>
   |
   <a on:click={reset}>reset</a>
 </div>
@@ -91,12 +91,12 @@
         <small>
           <a on:click={() => setAllChildrenTo(choice.id, "show", true)}>select all</a>
           |
-          <a on:click={() => setAllChildrenTo(choice.id, "show", false)}>select none</a>
+          <a on:click={() => setAllChildrenTo(choice.id, "show", false)}>none</a>
         </small>      
         <small>
           <a on:click={() => setAllChildrenTo(choice.id, "average", true)}>average all</a>
           |
-          <a on:click={() => setAllChildrenTo(choice.id, "average", false)}>average none</a>
+          <a on:click={() => setAllChildrenTo(choice.id, "average", false)}>none</a>
         </small>   
       </div>   
       <fieldset>
