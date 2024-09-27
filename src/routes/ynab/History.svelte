@@ -216,7 +216,7 @@
         padding: 20px;
 
         /* still looks to big relative to the page! */
-        transform: scale(0.75); 
+        transform: scale(0.85);
         transform-origin: top;
     }
 
