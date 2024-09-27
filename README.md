@@ -4,6 +4,7 @@
 
  - Upgrade to Pico 2?
  - Reduce general scale of site (https://github.com/picocss/pico/discussions/482)
+ - Dark mode
 
 ## Creating a project
 

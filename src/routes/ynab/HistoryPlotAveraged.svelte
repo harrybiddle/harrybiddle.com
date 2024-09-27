@@ -10,9 +10,10 @@
 {#if data.length > 0}
     <PlotContainer
         options={{
-            style: { fontSize: "50px" },
-            marginLeft: 120,
+            style: { fontSize: "15.75px", fontFamily: "PT Sans,sans-serif", overflow: false, background: "transparent", },
+            marginLeft: 150,
             marginRight: 50, // to leave enough space for text mark
+            marginBottom: 50,
             y: { label: null },  // hide y-axis label
             x: { label: "average monthly spend" },
             color: { legend: false },

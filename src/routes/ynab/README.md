@@ -21,11 +21,14 @@
 
 ## History chart
 
+- Averaging chart:
+  - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
+    https://github.com/observablehq/plot/issues/394
 - Both charts:
   - Pass in ids, not names, in case of clashes
   - Add back stable discrete colour scheme
   - Centre the "average spent" text
-  - Bigger font size
+  - Bigger font size in legend
   - Find some way to avoid scrolling between settings and the chart itself (collapse sidebar?)
 - Configuration:
   - Merge HistoryLoader and History widgets?

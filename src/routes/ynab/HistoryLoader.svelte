@@ -29,9 +29,9 @@
         else if (period === "lastTwelveMonths") {
             months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
         } 
-        else if (period === "previousYear") {
-            const previousYear = thisYear - 1;
-            months = allMonths.filter(m => m.year() === previousYear)
+        else if (period === "lastYear") {
+            const lastYear = thisYear - 1;
+            months = allMonths.filter(m => m.year() === lastYear)
         }
 
         // fetch data. TODO: do we need to fetch the whole budget?

@@ -46,7 +46,9 @@
         options={{
             x: { type: "band", tickFormat: d3.utcFormat("%b"), domain: months.sort(d3.ascending) },
             y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
-            color: { legend: true },
+            style: { fontSize: "15.75px", fontFamily: "PT Sans,sans-serif", overflow: true, background: "transparent", },
+            marginBottom: 50,
+            color: { legend: true, className: "foobar" },
             marks: [
                 Plot.axisX(),
                 Plot.barY(
@@ -55,8 +57,7 @@
                         x: "month",
                         y: "activity",
                         fill: "name",                        
-                        tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
-                        
+                        tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },                        
                     },
                 ),
                 Plot.text(
@@ -67,7 +68,7 @@
                         text: d => format(d.activity),
                         lineAnchor: "middle",
                         textAnchor: "middle",
-                        dy: -7
+                        dy: -12
                     },
                 ),
             ],
@@ -76,3 +77,11 @@
 {:else}
     (No data to show)
 {/if}
+
+<style>
+    /* don't know why this doesn't work.... */
+    :global(.foobar) {
+        font-size: "15.75px";
+        font-family: "PT Sans,sans-serif";
+    }
+</style>
