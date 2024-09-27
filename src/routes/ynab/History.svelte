@@ -95,16 +95,18 @@
         const categoryIdsToAverage = new Set(
             categoryChoices.filter((c) => c.average).map((c) => c.id),
         );
-        const visibleAverages = d3.flatRollup(
-            visibleCategories,
+        const visibleCategoriesToAverage = visibleCategories.filter(
+            (c) => categoryIdsToAverage.has("c" + c.category_id)
+        );
+        const averages = d3.flatRollup(
+            visibleCategoriesToAverage,
             (cs) => d3.sum(cs, (c) => c.activity) / numberMonths,
             (c) => c.category_id,
             (c) => c.category,
             (c) => c.group_id,
             (c) => c.group,
         );
-        const r = visibleAverages.filter((c) => categoryIdsToAverage.has("c" + c.category_id));
-        const visibleAveragedCategories = cartesianProduct(months, r).map(
+        const visibleAveragedCategories = cartesianProduct(months, averages).map(
             ([month, category_id, category, group_id, group, activity]) => ({
                 month,
                 category_id,
