@@ -9,5 +9,5 @@
 </script>
 
 {#key options}
-<div use:append {...$$restProps}></div>
+	<div use:append {...$$restProps}></div>
 {/key}

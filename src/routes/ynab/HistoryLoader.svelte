@@ -17,17 +17,21 @@
     const thisYear = month.year();
 
     function fetchData(period) {
-        // filter to the right period
-        let months = [];
+        // filter to the right period        
+        // we default to period === "yearSoFar"
+        const yearSoFar = allMonths.filter(m => m.year() === thisYear);
+
+        let months = yearSoFar; 
+
         if (period === "lastSixMonths") {
             months = Array.from({length: 6}, (_, index) => month.subtract(index + 1, "month"));
-        } else if (period === "lastTwelveMonths") {
+        } 
+        else if (period === "lastTwelveMonths") {
             months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
-        } else if (period === "previousYear") {
+        } 
+        else if (period === "previousYear") {
             const previousYear = thisYear - 1;
             months = allMonths.filter(m => m.year() === previousYear)
-        } else {  // assume period === "yearSoFar"
-            months = allMonths.filter(m => m.year() === thisYear)
         }
 
         // fetch data. TODO: do we need to fetch the whole budget?
@@ -53,7 +57,7 @@
 
 {#await promise}
     <p aria-busy="true">Loading data</p>
-{:then budgets}
+{:then budgets}    
     <History {budgets} />
 {:catch error}
     <p>Error</p>

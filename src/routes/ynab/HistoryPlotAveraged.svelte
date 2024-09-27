@@ -10,6 +10,7 @@
 {#if data.length > 0}
     <PlotContainer
         options={{
+            style: { fontSize: "50px" },
             marginLeft: 120,
             marginRight: 50, // to leave enough space for text mark
             y: { label: null },  // hide y-axis label
@@ -19,11 +20,12 @@
                 Plot.barX(
                     data,
                     {
+                        fontSize: 16,
                         x: "activity",
                         y: "name",
                         fill: "name",
                         tip: { format: { x: format, fill: false } },
-                        sort: d => d.activity,
+                        sort: {y: "-x"},
                     },
                 ),
                 Plot.text(

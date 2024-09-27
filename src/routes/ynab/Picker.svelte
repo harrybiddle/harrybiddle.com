@@ -31,14 +31,14 @@
 
   function reset() { choices = structuredClone(mountedChoices); }
 
-  function setAllChildrenCheckedTo(id, state) {
+  function setAllChildrenTo(id, key, state) {
     choices = choices.map(
       choice => ({
         ...choice,
         children: choice.children.map(
           child => ({
             ...child,
-            show: id === choice.id ? state: child.show
+            [key]: id === choice.id ? state: child[key]
           })
         )
       })
@@ -86,12 +86,19 @@
       {#if choiceShownButChildrenAreMixed(choice)}<sup style="color: #D93526">&#8226;</sup>{/if}
       {#if choiceShownButAllChildrenHidden(choice)}⚠️{/if}      
     </summary>
-    <div style="margin-left: 40px">
-      <small>
-        <a on:click={() => setAllChildrenCheckedTo(choice.id, true)}>select all</a>
-        |
-        <a on:click={() => setAllChildrenCheckedTo(choice.id, false)}>select none</a>
-      </small>      
+    <div style="margin-left: 40px">      
+      <div style="display: flex; justify-content: space-between">      
+        <small>
+          <a on:click={() => setAllChildrenTo(choice.id, "show", true)}>select all</a>
+          |
+          <a on:click={() => setAllChildrenTo(choice.id, "show", false)}>select none</a>
+        </small>      
+        <small>
+          <a on:click={() => setAllChildrenTo(choice.id, "average", true)}>average all</a>
+          |
+          <a on:click={() => setAllChildrenTo(choice.id, "average", false)}>average none</a>
+        </small>   
+      </div>   
       <fieldset>
         {#each choice.children as child}
           <label class="child-container">            

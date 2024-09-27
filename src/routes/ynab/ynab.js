@@ -114,7 +114,7 @@ function unroll(rollup, keys, label = 'value', p = {}) {
 export function groupedSumBudgetedActivityScheduled(iterable, getters, level) {
 	/* TODO: take groupGetter, nameGetter */
 
-	const asMap = d3.rollup(
+	const asMap = d3.rollup(  // TODO: can we use flatRollup?
 		iterable,
 		categories => ({
 			budgeted: d3.sum(categories, e => e.budgeted),

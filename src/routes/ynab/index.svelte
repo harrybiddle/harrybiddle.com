@@ -41,101 +41,62 @@
     }
 
     let historyPeriod = "yearSoFar";
-    function onHistoryPeriodChange(event) {
-		historyPeriod = event.currentTarget.value;
-	}
-
-    let choices = [
-        {
-            id: 1, 
-            label: "Scheduled", 
-            show: true,
-            expanded: true,
-            children: [
-                {
-                    id: 2,
-                    label: "Rent",
-                    show: false,
-                },
-                {
-                    id: 3,
-                    label: "Electricity",
-                    show: true,
-                },
-            ]
-        },
-        {
-            id: 4, 
-            label: "Regular", 
-            show: true,
-            expanded: false,
-            children: [
-                {
-                    id: 5,
-                    label: "Blueberry",
-                    show: false,
-                    average: true,
-                },
-                {
-                    id: 6,
-                    label: "Groceries",
-                    show: true,
-                },
-            ]
-        },
-    ]
 </script>
 
 <style>
     label {
         display: inline;
-        margin-right: 20px;
+        margin-right: 15px;
+    }
+
+    #scaled {
+        /* make everything smaller - https://github.com/picocss/pico/discussions/482 */
+        transform: scale(0.9);
+        transform-origin: top;
+    }
+
+    select {
+        padding: 
+            calc(0.5 * var(--form-element-spacing-vertical)) 
+            calc(0.5 * var(--form-element-spacing-horizontal));
     }
 </style>
 
-{#if localStorageIsDefined()}
-    {#if !ynabTokenIsInLocalStorage()}
-        <article>
-            <label>Enter something:</label>
-            <input type="text" bind:value={$inputtedTokenValue}>
-            <button type="button" on:click={setYnabToken}>Submit</button>
-        </article>
-    {:else}
-        {@const dateInfo = getDateInformation() }
+<div id="scaled">
+    {#if localStorageIsDefined()}
+        {#if !ynabTokenIsInLocalStorage()}
+            <article>
+                <label>Enter something:</label>
+                <input type="text" bind:value={$inputtedTokenValue}>
+                <button type="button" on:click={setYnabToken}>Submit</button>
+            </article>
+        {:else}
+            {@const dateInfo = getDateInformation() }
 
-        <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
-        <div style="font-size: small; font-style: italic">
-            * The one-off category excludes &#10060; <b>house</b> and excludes &#10060;
-            <b>house purchase</b>.
-        </div>
+            <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
+            <small style="font-style: italic">
+                * The one-off category excludes &#10060; <b>house</b> and excludes &#10060;
+                <b>house purchase</b>.
+            </small>
 
-        <h2>One-Off Balance</h2>
-        <div style="font-size: medium; margin-bottom: 15px">
-            Includes &#9989; <b>house</b> but excludes &#10060; <b>house purchase</b>.
-        </div>
-        <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
+            <h2>One-Off Balance</h2>
+            <div style="font-size: medium; margin-bottom: 15px">
+                Includes &#9989; <b>house</b> but excludes &#10060; <b>house purchase</b>.
+            </div>
+            <OneOffLoader ynabToken="{ynabToken()}" month={dateInfo.month} />
 
-        <h2>History</h2>
-        <fieldset>
-            <label for="yearSoFar">
-                <input type="radio" checked={historyPeriod==="yearSoFar"} id="yearSoFar" name="historyPeriod" value="yearSoFar" on:change={onHistoryPeriodChange}>
-                Year so far
-            </label>
-            <label for="lastSixMonths">
-                <input type="radio" checked={historyPeriod==="lastSixMonths"} id="lastSixMonths" name="historyPeriod" value="lastSixMonths" on:change={onHistoryPeriodChange}>
-                Last six months
-            </label>
-            <label for="lastTwelveMonths">
-                <input type="radio" checked={historyPeriod==="lastTwelveMonths"} id="lastTwelveMonths" name="historyPeriod" value="lastTwelveMonths" on:change={onHistoryPeriodChange}>
-                Last twelve months
-            </label>
-            <label for="previousYear">
-                <input type="radio" checked={historyPeriod==="previousYear"} id="previousYear" name="historyPeriod" value="previousYear" on:change={onHistoryPeriodChange}>
-                Previous year
-            </label>
-        </fieldset>
-        <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
+            <h2>History</h2>
 
-        <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
-    {/if}
-{/if}        
+            <select bind:value={historyPeriod}>
+                <option value="yearSoFar">Year so far</option>
+                <option value="lastSixMonths">Last six months</option>
+                <option value="lastTwelveMonths">Last twelve months</option>
+                <option value="lastYear">Last year</option>
+              </select>
+            
+            <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
+
+            <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
+        {/if}
+    {/if}        
+</div>

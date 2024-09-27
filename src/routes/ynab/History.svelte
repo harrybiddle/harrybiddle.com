@@ -67,6 +67,10 @@
         return a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
     }
 
+    function getMonths(budgets) {
+        return budgets.map((b) => new Date(b.month.month));
+    }
+
     // applying the filtering and averaging logic to the budget data,
     // to produce the data for the chart
     function preprocessData(budgets, choices, stacking) {
@@ -86,20 +90,21 @@
 
         // replace values by averages when requested
         // TODO: clean up this code
-        const months = budgets.map((b) => new Date(b.month.month));
+        const months = getMonths(budgets);
         const numberMonths = months.length;
         const categoryIdsToAverage = new Set(
             categoryChoices.filter((c) => c.average).map((c) => c.id),
         );
-        const averages = d3.flatRollup(
-            visibleCategories.filter((c) => categoryIdsToAverage.has("c" + c.category_id)),
+        const visibleAverages = d3.flatRollup(
+            visibleCategories,
             (cs) => d3.sum(cs, (c) => c.activity) / numberMonths,
             (c) => c.category_id,
             (c) => c.category,
             (c) => c.group_id,
             (c) => c.group,
         );
-        const visibleAveragedCategories = cartesianProduct(months, averages).map(
+        const r = visibleAverages.filter((c) => categoryIdsToAverage.has("c" + c.category_id));
+        const visibleAveragedCategories = cartesianProduct(months, r).map(
             ([month, category_id, category, group_id, group, activity]) => ({
                 month,
                 category_id,
@@ -128,21 +133,34 @@
             (c) => !groupsIdsToCollapse.has("g" + c.group_id),
         );
 
-        const monthGrouping = stacking === "averaged" ? {} : { month: (d) => d.month };
+        const grouping = { 
+            group: c => c.group,
+            group_id: c => c.group_id,
+            ...(stacking === "averaged" ? {} : { month: (d) => d.month })
+        };
         let data = [
             ...groupedSumBudgetedActivityScheduled(
                 groupsToSum,
-                { group: (c) => c.group, name: (c) => c.group, ...monthGrouping },
+                { ...grouping, id: c => "g" + c.group_id, name: c => c.group },
                 1, // level
             ),
             ...groupedSumBudgetedActivityScheduled(
                 categoriesToSum,
-                { group: (c) => c.group, name: (c) => c.category, ...monthGrouping },
+                { ...grouping, id: c => "c" + c.category_id, name: c => c.category },
                 2, // level
             ),
         ];
+
         if (stacking === "averaged") 
             data = data.map(d => ({...d, activity: d.activity / numberMonths}));
+
+        // Add a sort order, which is by the average activity
+        const lookup = d3.rollup(
+            data,
+            ds => d3.sum(ds, d => d.activity) / numberMonths,
+            d => d.id
+        )
+        data = data.map(d => ({...d, sortOrder: lookup.get(d.id)}));
 
         // Add overall average to the final data
         return Object.assign(data, { average: overallAverage });
@@ -163,20 +181,22 @@
     {#if stacking === "averaged"}
         <HistoryPlotAveraged {data} />
     {:else if stacking === "monthly"}
-        <HistoryPlotByMonth {data} />
+        <HistoryPlotByMonth {data} months={getMonths(budgets)} />
     {/if}
 
-    <p><small>Average spent: {format(data.average)}</small></p>
+    <p style="text-align: center; margin-bottom: 0px">
+        <small>Average spent: {format(data.average)}</small>
+    </p>
 {/if}
 
 <article>
     <!-- Stacking options -->
     <fieldset>
-      <label for="monthly" class="stackLabel">
+      <label for="monthly">
         <input bind:group={stacking} type="radio" id="monthly" name="stacking" value="monthly">
         Monthly
       </label>
-      <label for="averaged" class="stackLabel">
+      <label for="averaged">
         <input bind:group={stacking} type="radio" id="averaged" name="stacking" value="averaged">
         Averaged
       </label>
@@ -187,3 +207,19 @@
         <Picker bind:choices />
     {/if}
 </article>
+
+<style>
+    article {
+        margin-top: 10px;
+        padding: 20px;
+
+        /* still looks to big relative to the page! */
+        transform: scale(0.75); 
+        transform-origin: top;
+    }
+
+    label {
+        display: inline;
+        margin-right: 20px;
+    }
+</style>

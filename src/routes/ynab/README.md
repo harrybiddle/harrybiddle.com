@@ -1,15 +1,19 @@
 # To-do's
 
 - Add income in somewhere
+- Add "g" and "c" prefixes during data load
+- Font size and scale is a mess!
 
 ## Budget chart:
 
+- Better handle yearly/monthly:
+  - Put all yearly and all montly categories into one group? Then maybe do not have a group total otherwise.
+  - OR optional expansion of any group?
 - Prettify the "Estimated spend at end of month" and maybe add a Euro symbol
 - Have an option at the top to toggle between sparkbar view (as it is now) and "table" view, where there would be entries for: total remaining in month, average remaining per day, etc.
 - Expand top transactions
 - Go to earlier month
 - Improve linear prediction
-- Optional expansion of any group
 
 ## One-off chart
 
@@ -17,19 +21,21 @@
 
 ## History chart
 
-- Stable sorting across all years (i.e. sort by total/average)
-- Sorting in averaged chart
-- Centre the "average spent" text
-- Refactor to improve code readability
-- Add back stable discrete colour scheme
-- Merge HistoryLoader and History widgets?
-- Check functionality of "reset" button
-- Allow any start and end month
+- Both charts:
+  - Pass in ids, not names, in case of clashes
+  - Add back stable discrete colour scheme
+  - Centre the "average spent" text
+  - Bigger font size
+  - Find some way to avoid scrolling between settings and the chart itself (collapse sidebar?)
+- Configuration:
+  - Merge HistoryLoader and History widgets?
+  - Check functionality of "reset" button
+  - Allow any start and end month
+- Refactor to improve code readabilit
 - Add income 
 - Work off transactions?
 - Optionally include owings and mortgage amortisation 
 - Prettier layout of configuration options & chart
-- Bigger font size in chart
 - Clearer language between "previous year" and "last 12 months" etc.
 - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB).
 - View linear prediction for current month?
