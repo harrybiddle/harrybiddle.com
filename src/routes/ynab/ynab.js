@@ -69,6 +69,10 @@ export function parseBudget(budget) {
 	);
 }
 
+export function noteIsExclude(note) {
+	return (note || "").includes("%exclude%")
+}
+
 export function noteIsMonthly(note) {
 	return (note || "").includes("%monthly%")
 }

@@ -9,7 +9,7 @@
      */
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
     import * as d3 from 'd3';
-    import { parseBudget, sumBudgets, noteIsMonthly, noteIsYearly } from "./ynab";
+    import { parseBudget, sumBudgets, noteIsMonthly, noteIsYearly, noteIsExclude } from "./ynab";
 
     export let budget;
     export let month;
@@ -54,9 +54,7 @@
     const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
 
     const parsed = parseBudget(budget)
-        // filter out the "house" category for now, since this is large while we
-        // renovate the new house
-        .filter(e => e.category !== "House")
+        .filter(e => !noteIsExclude(e.category.note))
         .map(
             e => {
                 if (noteIsYearly(e.note)) {
