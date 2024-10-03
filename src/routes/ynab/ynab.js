@@ -105,7 +105,7 @@ export function getMonthFromString(monthString) {
 }
 
 export const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
-export const formatZero = x => (x == 0 ? '-' : format(x));
+export const formatZero = x => (Math.abs(x) < 5 ? '-' : format(x));
 
 function unroll(rollup, keys, label = 'value', p = {}) {
 	return Array.from(rollup, ([key, value]) =>
@@ -130,44 +130,4 @@ export function groupedSumBudgetedActivityScheduled(iterable, getters, level) {
 	const asArray = unroll(asMap, Object.keys(getters));
 	const withLevel = asArray.map(e => ({ ...e, level }));
 	return withLevel;
-}
-
-export function sumBudgets(categories) {
-	const data = [
-		...groupedSumBudgetedActivityScheduled(
-			categories,
-			({month: d => d.month, group: c => 'Total', name: c => 'Total'}),
-			2
-		),
-		...groupedSumBudgetedActivityScheduled(
-			categories,
-			({month: d => d.month, group: c => c.group, name: c => c.group}),
-			1
-		),
-		...groupedSumBudgetedActivityScheduled(
-			categories,
-			({month: d => d.month, group: c => c.group, name: c => c.category}),
-			0
-		)
-	];
-
-	return data.sort((a, b) => {
-		// An object with level = 2 always comes first
-		if (a.level === 2 && b.level !== 2) return -1;
-		if (a.level !== 2 && b.level === 2) return 1;
-
-		// Compare by the "group" property
-		if (a.group < b.group) return 1;
-		if (a.group > b.group) return -1;
-
-		// If the "group" properties are equal, compare by the "level" property
-		if (a.level < b.level) return 1;
-		if (a.level > b.level) return -1;
-
-		// If the "level" properties are equal, compare by the "name" property
-		if (a.name < b.name) return -1;
-		if (a.name > b.name) return 1;
-
-		return 0; // Objects are considered equal
-	});
 }

@@ -7,22 +7,17 @@
      *   - Maybe swap columns 2 and 4
      *   - Column headers?
      */
-    import SparkBarCatchup from "./SparkBarCatchUp.svelte";
+    import BudgetRow from "./BudgetRow.svelte";
+    import Accordion from "./Accordion.svelte";
+
     import * as d3 from 'd3';
-    import { parseBudget, sumBudgets, noteIsMonthly, noteIsYearly, noteIsExclude } from "./ynab";
+
+    import { parseBudget, noteIsMonthly, noteIsYearly, noteIsExclude, format, groupedSumBudgetedActivityScheduled } from "./ynab";
 
     export let budget;
     export let month;
     export let today;
     export let offset;
-
-    const colours = ({
-        blue: "#429EA6",
-        green: "#95E06C",
-        darkGreen: "#0B5D1E",
-        red: "#DA7422",
-        grey: "lightgrey"
-    });
 
     function mapRange(value, fromMin, fromMax, toMin, toMax) {
         // Calculate the normalized value within the input range
@@ -50,9 +45,6 @@
     const currentZeroToOne = offset == 0 ? currentDay / numberDaysInMonth : 1
     // --------------------------------------------------------------------------------
 
-    const format = x => d3.format(",.2r")(Math.round(x / 10) * 10)
-    const formatZero = x => (Math.abs(x) < 5 ? "-" : format(x))
-
     const parsed = parseBudget(budget)
         .filter(e => !noteIsExclude(e.category.note))
         .map(
@@ -71,7 +63,7 @@
                     e.activity = Math.max(e.activity, e.budgeted);
                 }
 
-                // Modify the group of 'Uncategorized' to be less American!
+                // British spelling for 'Uncategorized'
                 if (e.category === "Uncategorized") {
                     e.group = "Uncategorised"
                 }
@@ -92,55 +84,66 @@
         }
     )
 
-    const summary = sumBudgets(parsed);
-
-    const final = summary.map(c => {
+    function sumup(categories) {
+        return ({
+            budgeted: d3.sum(categories, e => e.budgeted),
+            activity: d3.sum(categories, e => e.activity),
+            scheduled: d3.sum(categories, e => e.scheduled), 
+        });
+    }    
+    
+    function addLines(c) {
         const pToEuros = p => mapRange(p, 0, 1, c.scheduled, c.budgeted)
-        const lines = linesZeroToOne.map(pToEuros);
-        const current = pToEuros(currentZeroToOne);
-        const remaining = current - c.activity;
-
-        return ({...c, lines, current, remaining})
-    })
-
-    function shouldDisplayRow(row) {
-        // hide all level 0's except "regular"
-        if ((row.level === 0) && (row.group !== "Regular")) return false
-
-        // only show if the row has an activity, a schedule, or a budget
-        return (row.activity || row.budgeted || row.scheduled);
+        const current = pToEuros(currentZeroToOne)
+        return ({
+            lines: linesZeroToOne.map(pToEuros),
+            current: current,
+            remaining: current - c.activity,            
+        })
     }
+
+    const total = sumup(parsed);
+    const totalLines = addLines(total);
+
+    const nonzero = parsed.filter(d => (d.activity || d.budgeted || d.scheduled));
+    const final = d3.flatRollup(
+        nonzero,
+        categories => {
+            const groupTotal = sumup(categories);
+
+            const children = groupedSumBudgetedActivityScheduled(
+			    categories,
+			    ({
+                    month: d => d.month, 
+                    group: c => c.group, 
+                    group_id: c => c.group_id, 
+                    id: c => c.category_id, 
+                    name: c => c.category,
+                }),
+			    0 /* level */
+		    );
+
+            return ({...groupTotal, children: children})
+        },
+        d => d.group_id,
+        d => d.group,
+    ).map(([group_id, group, row]) => ({...row, name: group, level: 1, show: group === "Regular"}))
+    .sort((a, b) => b.budgeted - a.budgeted);
+
+    console.log(final);
 </script>
 
 <style>
-    table {
-        border-collapse: collapse;
-    }
-    td {
-        padding: 3px;
-    }
-    tr td:first-child {
-        /* category name */
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 120px;
-        text-transform: none;
-    }
-    tr td:nth-child(2) {
-        /* budgeted */
-        text-align: right;
-        vertical-align: middle;
-        color: lightgray;
-    }
-    tr td:nth-child(3) {
-        /* sparkbar */
-        vertical-align: middle;
-    }
-    tr td:nth-child(4) {
-        /* remaining */
-        text-align: right;
-        vertical-align: middle;
+    .grid {
+        display: grid;
+        grid-template-columns: 
+            130px                   /* Label:    fixed width     */
+            80px                    /* Budgeted: fixed width     */
+            1fr                     /* Sparkbar: remaining space */
+            80px                    /* Excess:   fixed width     */
+        ;
+        font-size: 0.7954545455em;  /* 17.5 px                   */
+        gap: 0px;
     }
 </style>
 
@@ -148,28 +151,56 @@
     Estimated spend at end of month: {format(projectedSpend)}
 </p>
 
-<table class="sparkbars">
-    {#each final as c}
-        {#if shouldDisplayRow(c) }
-            {@const fontWeight = c.level > 0 ? "bold" : "normal"}
-            <tr style="
-                border-bottom: 1px solid {c.level > 1 ? 'black' : 'transparent'};
-                text-transform: {c.level > 1 ? 'uppercase' : 'none'};
-                background: {c.level > 1 ? 'WhiteSmoke' : 'transparent'};
-            ">
-                <td style="font-weight: {fontWeight}">{c.name}{c.name === "One-Off" ? "*" : ""}</td>
-                <td style="font-weight: {fontWeight}">{formatZero(c.budgeted)}</td>
-                <td style="vertical-align: middle">
-                    <SparkBarCatchup
-                        activity={c.activity}
-                        budgeted={c.budgeted}
-                        scheduled={c.scheduled}
-                        lines={c.lines}
-                        current={c.current}
-                    />
-                </td>
-                <td style="font-weight: {fontWeight}; color: {c.remaining < 0 ? colours.red : (c.remaining < 5 ? colours.grey : colours.green)};">{formatZero(c.remaining)}</td>
-            </tr>
-        {/if}
-    {/each}
-</table>
+<!-- Total -->
+<div class="grid">    
+    <BudgetRow 
+        activity={total.activity}
+        budgeted={total.budgeted}
+        current={totalLines.current}
+        level=2
+        lines={totalLines.lines}
+        name="Total"
+        remaining={totalLines.remaining}
+        scheduled={totalLines.scheduled}
+    />    
+</div>
+
+<!-- Category Groups -->
+{#each final as c}
+    {@const m = addLines(c)}
+
+    <Accordion open={c.show}>
+        <div class="grid" slot="head">
+            <BudgetRow 
+                activity={c.activity}
+                budgeted={c.budgeted}
+                current={m.current}
+                level={c.level}
+                lines={m.lines}
+                name={c.name}
+                remaining={m.remaining}
+                scheduled={m.scheduled}
+            />    
+        </div>
+
+        <!-- Categories -->
+         <div slot="body">
+            {#each c.children as child}
+                {@const mchild = addLines(child)}
+
+                <div class="grid">    
+                    <BudgetRow 
+                        activity={child.activity}
+                        budgeted={child.budgeted}
+                        current={mchild.current}
+                        level={child.level}
+                        lines={mchild.lines}
+                        name={child.name}
+                        remaining={mchild.remaining}
+                        scheduled={mchild.scheduled}
+                    />    
+                </div>
+            {/each}
+        </div>
+    </Accordion>
+{/each}
