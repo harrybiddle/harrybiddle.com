@@ -46,7 +46,7 @@
     // --------------------------------------------------------------------------------
 
     const parsed = parseBudget(budget)
-        .filter(e => !noteIsExclude(e.category.note))
+        .filter(e => !noteIsExclude(e.note))
         .map(
             e => {
                 if (noteIsYearly(e.note)) {
@@ -129,8 +129,6 @@
         d => d.group,
     ).map(([group_id, group, row]) => ({...row, name: group, level: 1, show: group === "Regular"}))
     .sort((a, b) => b.budgeted - a.budgeted);
-
-    console.log(final);
 </script>
 
 <style>
@@ -161,7 +159,7 @@
         lines={totalLines.lines}
         name="Total"
         remaining={totalLines.remaining}
-        scheduled={totalLines.scheduled}
+        scheduled={total.scheduled}
     />    
 </div>
 
@@ -179,7 +177,7 @@
                 lines={m.lines}
                 name={c.name}
                 remaining={m.remaining}
-                scheduled={m.scheduled}
+                scheduled={total.scheduled}
             />    
         </div>
 
@@ -197,7 +195,7 @@
                         lines={mchild.lines}
                         name={child.name}
                         remaining={mchild.remaining}
-                        scheduled={mchild.scheduled}
+                        scheduled={child.scheduled}
                     />    
                 </div>
             {/each}
