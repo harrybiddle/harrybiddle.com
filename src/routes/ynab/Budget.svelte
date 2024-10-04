@@ -135,10 +135,10 @@
     .grid {
         display: grid;
         grid-template-columns: 
-            130px                   /* Label:    fixed width     */
-            80px                    /* Budgeted: fixed width     */
+            120px                   /* Label:    fixed width     */
+            50px                    /* Budgeted: fixed width     */
             1fr                     /* Sparkbar: remaining space */
-            80px                    /* Excess:   fixed width     */
+            60px                    /* Excess:   fixed width     */
         ;
         font-size: 0.7954545455em;  /* 17.5 px                   */
         gap: 0px;
