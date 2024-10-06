@@ -21,10 +21,10 @@
         grey: "lightgrey"
     });
 
-    function remainingClass(remaining) {
-        if (remaining < 0) return "remainingNegative";
-        if (remaining < 5) return "remainingZero";
-        else return "remainingPositive";
+    function excessClass(remaining) {
+        if (remaining < 0) return "negativeExcess";
+        if (remaining < 5) return "zeroExcess";
+        else return "positiveExcess";
     }
 </script>
 
@@ -51,9 +51,14 @@
 
 <!-- Excess (e.g. -50) -->
 <span 
-    class="excess level{level} {remainingClass(remaining)}"
+    class="excess level{level} {excessClass(remaining)}"
 >
     {formatZero(remaining)}
+</span>
+
+<!-- Remaining -->
+<span class="remaining level{level} {excessClass(budgeted - activity)}">
+    {format(budgeted - activity)}
 </span>
 
 <style>
@@ -75,20 +80,28 @@
         background: var(--pico-color-slate-100);
         text-transform: uppercase;
     }        
-    .budgeted {
+    .label {
+        padding-left: 10px;
+    }
+    .budgeted {        
         text-align: right;
         color: var(--pico-color-slate-250);
     }
     .excess {
+        padding-right: 10px;
         text-align: right;
-    }    
-    .remainingPositive {
+    }  
+    .remaining {
+        padding-right: 10px;
+        text-align: right;
+    }        
+    .positiveExcess {
         color: rgb(149, 224, 108);
     }
-    .remainingNegative {
+    .negativeExcess {
         color: rgb(218, 116, 34);
     }
-    .remainingZero {
+    .zeroExcess {
         color: var(--pico-color-slate-250);
     }    
 </style>

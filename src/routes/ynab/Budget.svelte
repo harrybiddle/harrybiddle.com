@@ -132,16 +132,26 @@
 </script>
 
 <style>
+    #grid-container {
+        overflow-x: auto;          /* Enable horizontal scrolling */
+        max-width: 100%;           /* Ensure it doesn't extend beyond the viewport */
+        --overflow-column-width: 100px
+    }
+
     .grid {
         display: grid;
         grid-template-columns: 
-            120px                   /* Label:    fixed width     */
-            50px                    /* Budgeted: fixed width     */
-            1fr                     /* Sparkbar: remaining space */
-            60px                    /* Excess:   fixed width     */
+            120px                         /* Label:    fixed width     */
+            50px                          /* Budgeted: fixed width     */
+            calc(100% - 120px - 50px - 60px - var(--overflow-column-width))  /* Sparkbar: remaining space */
+            60px                          /* Excess:   fixed width     */
+            var(--overflow-column-width)  /* Remaining: fixed with, overflow */
         ;
         font-size: 0.7954545455em;  /* 17.5 px                   */
         gap: 0px;
+
+        /* Set width to over 100% to force overflow */
+        width: calc(100% + var(--overflow-column-width));  
     }
 </style>
 
@@ -149,56 +159,60 @@
     Estimated spend at end of month: {format(projectedSpend)}
 </p>
 
-<!-- Total -->
-<div class="grid">    
-    <BudgetRow 
-        activity={total.activity}
-        budgeted={total.budgeted}
-        current={totalLines.current}
-        level=2
-        lines={totalLines.lines}
-        name="Total"
-        remaining={totalLines.remaining}
-        scheduled={total.scheduled}
-    />    
-</div>
+<div id="grid-container">
 
-<!-- Category Groups -->
-{#each final as c}
-    {@const m = addLines(c)}
+    <!-- Total -->
+    <div class="grid">    
+        <BudgetRow 
+            activity={total.activity}
+            budgeted={total.budgeted}
+            current={totalLines.current}
+            level=2
+            lines={totalLines.lines}
+            name="Total"
+            remaining={totalLines.remaining}
+            scheduled={total.scheduled}
+        />    
+    </div>
 
-    <Accordion open={c.show}>
-        <div class="grid" slot="head">
-            <BudgetRow 
-                activity={c.activity}
-                budgeted={c.budgeted}
-                current={m.current}
-                level={c.level}
-                lines={m.lines}
-                name={c.name}
-                remaining={m.remaining}
-                scheduled={total.scheduled}
-            />    
-        </div>
+    <!-- Category Groups -->
+    {#each final as c}
+        {@const m = addLines(c)}
 
-        <!-- Categories -->
-         <div slot="body">
-            {#each c.children as child}
-                {@const mchild = addLines(child)}
+        <Accordion open={c.show}>
+            <div class="grid" slot="head">
+                <BudgetRow 
+                    activity={c.activity}
+                    budgeted={c.budgeted}
+                    current={m.current}
+                    level={c.level}
+                    lines={m.lines}
+                    name={c.name}
+                    remaining={m.remaining}
+                    scheduled={m.scheduled}
+                />    
+            </div>
 
-                <div class="grid">    
-                    <BudgetRow 
-                        activity={child.activity}
-                        budgeted={child.budgeted}
-                        current={mchild.current}
-                        level={child.level}
-                        lines={mchild.lines}
-                        name={child.name}
-                        remaining={mchild.remaining}
-                        scheduled={child.scheduled}
-                    />    
-                </div>
-            {/each}
-        </div>
-    </Accordion>
-{/each}
+            <!-- Categories -->
+            <div slot="body">
+                {#each c.children as child}
+                    {@const mchild = addLines(child)}
+
+                    <div class="grid">    
+                        <BudgetRow 
+                            activity={child.activity}
+                            budgeted={child.budgeted}
+                            current={mchild.current}
+                            level={child.level}
+                            lines={mchild.lines}
+                            name={child.name}
+                            remaining={mchild.remaining}
+                            scheduled={child.scheduled}
+                        />    
+                    </div>
+                {/each}
+            </div>
+        </Accordion>
+    {/each}
+
+</div>    
