@@ -189,7 +189,7 @@
                     lines={m.lines}
                     name={c.name}
                     remaining={m.remaining}
-                    scheduled={m.scheduled}
+                    scheduled={c.scheduled}
                 />    
             </div>
 
