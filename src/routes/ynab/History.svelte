@@ -1,3 +1,7 @@
+<script context="module">
+    let counter = 0
+</script>
+
 <script>
     import * as d3 from 'd3'
 
@@ -7,7 +11,9 @@
 
     import { format, parseBudget, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
 	
-    export let budgets;    
+    export let budgets;  
+    
+    counter += 1;
 
     // parse budget information
     function parse(budgets) {
@@ -178,19 +184,19 @@
     {/if}
 
     <p style="text-align: center; margin-bottom: 0px">
-        <small>Average spent: {format(data.average)}</small>
+        <small>Average: {format(data.average)}</small>
     </p>
 {/if}
 
 <article>
     <!-- Stacking options -->
     <fieldset>
-      <label for="monthly">
-        <input bind:group={stacking} type="radio" id="monthly" name="stacking" value="monthly">
+      <label for={`monthly${counter}`}>
+        <input bind:group={stacking} type="radio" id={`monthly${counter}`} name="stacking" value="monthly">
         Monthly
       </label>
-      <label for="averaged">
-        <input bind:group={stacking} type="radio" id="averaged" name="stacking" value="averaged">
+      <label for={`averaged${counter}`}>
+        <input bind:group={stacking} type="radio" id={`averaged${counter}`} name="stacking" value="averaged">
         Averaged
       </label>
     </fieldset>
