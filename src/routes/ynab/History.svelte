@@ -64,8 +64,20 @@
         return a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
     }
 
-    function getMonths(budgets) {
-        return budgets.map((b) => new Date(b.month.month));
+    function getMonths(categories) {
+        const dates = categories.map(c => c.month);
+        const uniqueDates = new Set();
+        const result = [];
+
+        dates.forEach(date => {
+            const time = date.getTime();
+            if (!uniqueDates.has(time)) {
+                uniqueDates.add(time);
+                result.push(date);
+            }
+        });
+
+        return result;
     }
 
     // applying the filtering and averaging logic to the budget data,
@@ -87,7 +99,7 @@
 
         // replace values by averages when requested
         // TODO: clean up this code
-        const months = getMonths(budgets);
+        const months = getMonths(categories);
         const numberMonths = months.length;
         const categoryIdsToAverage = new Set(
             categoryChoices.filter((c) => c.average).map((c) => c.id),
@@ -179,7 +191,7 @@
     {#if stacking === "averaged"}
         <HistoryPlotAveraged {data} />
     {:else if stacking === "monthly"}
-        <HistoryPlotByMonth {data} months={getMonths(budgets)} />
+        <HistoryPlotByMonth {data} months={getMonths(categories)} />
     {/if}
 
     <p style="text-align: center; margin-bottom: 0px">
