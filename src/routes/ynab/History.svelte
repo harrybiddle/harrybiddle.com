@@ -175,7 +175,6 @@
 
 {#if choices && stacking}
     {@const data = preprocessData(budgets, choices, stacking)}    
-    {@const hierarchy = makeHierarchy(budgets)}
 
     {#if stacking === "averaged"}
         <HistoryPlotAveraged {data} />

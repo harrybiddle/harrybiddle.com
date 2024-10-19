@@ -1,5 +1,5 @@
 <script>
-    import { ynab } from "./ynab"
+    import { loadExpenditure } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
@@ -36,12 +36,7 @@
 
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
-            return Promise.all(
-                months.map(month => {
-                    const monthString = month.format("YYYY-MM-DD");
-                    return ynab(ynabToken, `budgets/${budgetId}/months/${monthString}`, {})
-                })
-            )    
+            return loadExpenditure(months, ynabToken, budgetId);
         }
         else {
             return new Promise(resolve => {

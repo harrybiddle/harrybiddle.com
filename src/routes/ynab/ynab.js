@@ -131,3 +131,94 @@ export function groupedSumBudgetedActivityScheduled(iterable, getters, level) {
 	const withLevel = asArray.map(e => ({ ...e, level }));
 	return withLevel;
 }
+
+
+function addOneMonth(my_date) {
+	let newDate = new Date(my_date);
+	newDate.setMonth(newDate.getMonth() + 1);
+	return newDate;
+}
+
+
+function parsePayee(payee_name, payee_id) { 
+	if (!payee_name) {
+		return ({
+			category_group_id: "other", 
+			category_group_name:"Other", 
+			id: "uncategorised", 
+			name: "Uncategorised",
+		});
+	}
+	const i = payee_name.indexOf("|");
+
+	if (i === -1) {
+		return ({
+			category_group_id: "other", 
+			category_group_name:"Other", 
+			id: `p${payee_id}`, 
+			name: payee_name,
+		});
+	} else {
+		const group = payee_name.substring(0, i).trim();
+		const category = payee_name.substring(i + 1).trim();
+		return ({
+			category_group_id: group, 
+			category_group_name: group, 
+			id: payee_id, 
+			name: category,
+		});
+	}
+}
+
+
+export async function loadIncome(months, ynabToken, budgetId) {	
+	const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
+
+	const m = months.sort(d3.ascending);    
+	const firstMonth = m[0];
+	const lastMonth = addOneMonth(m[m.length - 1]);            
+
+	const response = await ynab(
+		ynabToken, 
+		`budgets/${budgetId}/categories/${incomeCategoryId}/transactions`, 
+		{since_date: firstMonth.format("YYYY-MM-DD")},
+	)
+	
+	const transactions = response["transactions"].filter(
+		t => new Date(t.date) < lastMonth
+	);
+
+	const data = d3.flatGroup(
+		transactions,
+		t => t.date.substring(0, 7) + "-01",  // "2024-01-06" -> "2024-01-01"                
+	).map(
+		([monthString, ts]) => ({
+			month: ({
+				month: monthString,
+				categories: d3.flatRollup(
+					ts,
+					ts_ => d3.sum(ts_, t => t.amount),
+					t => t.payee_name,
+					t => t.payee_id,
+				).map(
+					([payee_name, payee_id, amount]) => ({
+						activity: -amount,
+						...parsePayee(payee_name, payee_id),
+					}),
+				)
+			})
+		})
+	) 
+
+	// TODO: add any missing months
+	return data;
+}
+
+export function loadExpenditure(months, ynabToken, budgetId) {
+	return Promise.all(
+		months.map(month => {
+			const monthString = month.format("YYYY-MM-DD");
+			return ynab(ynabToken, `budgets/${budgetId}/months/${monthString}`, {})
+		})
+	)    	
+}
