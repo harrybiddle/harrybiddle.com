@@ -222,3 +222,9 @@ export function loadExpenditure(months, ynabToken, budgetId) {
 		})
 	)    	
 }
+
+
+export function parse(budgets) {
+	/* Parse hierarchical budget response (one per month) to a flat list */
+	return budgets.flatMap(parseBudget).filter((d) => d.activity != 0);
+}

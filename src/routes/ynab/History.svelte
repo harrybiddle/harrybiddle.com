@@ -9,19 +9,13 @@
     import HistoryPlotAveraged from './HistoryPlotAveraged.svelte';    
 	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
 
-    import { format, parseBudget, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
+    import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
 	
-    export let budgets;  
+    export let categories;  
     
     counter += 1;
 
-    // parse budget information
-    function parse(budgets) {
-        return budgets.flatMap(parseBudget).filter((d) => d.activity != 0);
-    }
-
-    function makeHierarchy(budgets) {
-        const categories = parse(budgets);
+    function makeHierarchy(categories) {
         let hierarchy = categories.map((c) => ({
             group_id: "g" + c.group_id,
             group: c.group,
@@ -40,7 +34,7 @@
         const shouldShow = (category) => category.category !== "House Purchase";
 
         // construct choices
-        const hierarchy = makeHierarchy(budgets);
+        const hierarchy = makeHierarchy(categories);
         const groups = d3.flatGroup(
             hierarchy,
             (c) => c.group_id,
@@ -82,7 +76,7 @@
 
     // applying the filtering and averaging logic to the budget data,
     // to produce the data for the chart
-    function preprocessData(budgets, choices, stacking) {
+    function preprocessData(categories, choices, stacking) {
         // TODO: clean up this whole function, which is quite confusing
         // filter categories and groups to only those which are shown
         // in case the choices are out of sync with the data, we look
@@ -92,7 +86,6 @@
             categoryChoices.filter((c) => c.show).map((c) => c.id),
         );
         const visibleGroupIds = new Set(choices.filter((g) => g.show).map((g) => g.id));
-        const categories = parse(budgets);
         let visibleCategories = categories
             .filter((c) => visibleGroupIds.has("g" + c.group_id))
             .filter((c) => visibleCategoryIds.has("c" + c.category_id));
@@ -179,14 +172,13 @@
 
     let stacking = "monthly";
     let choices;
-    const categories = parse(budgets); // TODO: component breaks when I put it in the reactive block - why?
 
     $:
         choices = constructDefaultChoices(categories);
 </script>
 
 {#if choices && stacking}
-    {@const data = preprocessData(budgets, choices, stacking)}    
+    {@const data = preprocessData(categories, choices, stacking)}    
 
     {#if stacking === "averaged"}
         <HistoryPlotAveraged {data} />

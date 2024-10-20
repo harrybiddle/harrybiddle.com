@@ -1,5 +1,5 @@
 <script>
-    import { loadIncome } from "./ynab"
+    import { loadIncome, parse } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
@@ -52,7 +52,7 @@
 {#await promise}
     <p aria-busy="true">Loading data</p>
 {:then budgets}    
-    <History {budgets} />
+    <History categories={parse(budgets)} />
 {:catch error}
     <p>Error</p>
 {/await}
