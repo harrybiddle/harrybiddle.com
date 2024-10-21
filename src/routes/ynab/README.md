@@ -7,18 +7,13 @@
 
 ## Budget chart:
 
-- Better handle yearly/monthly:
-  - Put all yearly and all montly categories into one group? Then maybe do not have a group total otherwise.
-  - OR optional expansion of any group?
-- Prettify the "Estimated spend at end of month" and maybe add a Euro symbol
-- Have an option at the top to toggle between sparkbar view (as it is now) and "table" view, where there would be entries for: total remaining in month, average remaining per day, etc.
+- Prettify the "Estimated spend at end of month"
 - Expand top transactions
-- Go to earlier month
 - Improve linear prediction
 
 ## One-off chart
 
-- General improvement!
+- Re-make  using a sparkbar for the whole year
 
 ## History chart
 
@@ -36,14 +31,10 @@
   - Bug where radio option for Monthly/Averaged disappears on all but last element
   - Merge HistoryLoader and History widgets?
   - Check functionality of "reset" button
-  - Allow any start and end month
-  - Picker should store current state in a Storage of some kind and try to merge current state with new state
-    when it is ...re-mounted? Updated?
-- Refactor to improve code readabilit
-- Add income
+  - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
+- Refactor to improve code readability
 - Work off transactions?
-- Optionally include owings and mortgage amortisation
+- Optionally include transfers: owings and mortgage amortisation
 - Prettier layout of configuration options & chart
-- Clearer language between "previous year" and "last 12 months" etc.
-- Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB).
 - View linear prediction for current month?
+- Allow any start and end month
