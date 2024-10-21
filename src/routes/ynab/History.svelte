@@ -27,15 +27,10 @@
 	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
 
     import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
-	import { beforeUpdate, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	
-    export let foo;
+    export let categories;
     export let dual = false;
-
-    let categoriesCopy = [];
-
-    onMount(() => { console.log("mount"); categoriesCopy = structuredClone(foo) });
-    beforeUpdate(() => { console.log("before update"); });
     
     counter += 1;
 
@@ -200,17 +195,18 @@
     let stacking = "monthly";
     let choices;
 
-    $:
-        choices = constructDefaultChoices(categoriesCopy);
+    onMount(() => { 
+        choices = constructDefaultChoices(categories);
+    });
 </script>
 
 {#if choices && stacking}
-    {@const data = preprocessData(categoriesCopy, choices, stacking)}    
+    {@const data = preprocessData(categories, choices, stacking)}    
 
     {#if stacking === "averaged"}
         <HistoryPlotAveraged {data} {dual} />
     {:else if stacking === "monthly"}
-        <HistoryPlotByMonth {data} months={getMonths(categoriesCopy)} {dual}  />
+        <HistoryPlotByMonth {data} months={getMonths(categories)} {dual}  />
     {/if}
 
     <p style="text-align: center; margin-bottom: 0px">
@@ -233,7 +229,7 @@
 
     <!-- Selection/expansion and averaging of individual groups and categories -->
     {#if choices}
-        <Picker bind:choices defaultChoices={constructDefaultChoices(categoriesCopy)} />
+        <Picker bind:choices defaultChoices={constructDefaultChoices(categories)} />
     {/if}
 </article>
 

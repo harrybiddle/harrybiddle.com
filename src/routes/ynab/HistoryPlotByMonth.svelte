@@ -44,14 +44,12 @@
     const left = data => sort(dual ? data.filter(d => d.leftmost_bar) : data);
     const right = data => sort(dual ? data.filter(d => !d.leftmost_bar) : []);
 
-    console.log(data);
-
 </script>
 
 {#if data.length > 0}
     <PlotContainer
         options={{
-            // x: { type: "band", tickFormat: d3.utcFormat("%b"), domain: months.sort(d3.ascending) },
+            x: { type: "band", tickFormat: d3.utcFormat("%b"), domain: months.sort(d3.ascending) },
             y: { grid: true, ticks: 5, tickFormat: d => d3.format(".2s")(d).replace(".0", "") },
             style: { fontSize: "15.75px", fontFamily: "PT Sans,sans-serif", overflow: true, background: "transparent", },
             marginBottom: 50,
@@ -60,40 +58,38 @@
                 Plot.axisX(),
                 // leftmost bar
                 Plot.barY(
-                    // left(data), 
-                    sort(data),
+                    left(sort(data)),
                     {
-                        // fx: "month",
-                        x: "leftmost_bar",
+                        x: "month",
                         y: "activity",
                         fill: "name",                 
                         tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
-                        // ...(
-                        //     dual ? ({
-                        //         insetLeft: 15,
-                        //         insetRight: 15,
-                        //         dx: -15,
-                        //     }) : ({})
-                        // )
+                        ...(
+                            dual ? ({
+                                insetLeft: 15,
+                                insetRight: 15,
+                                dx: -15,
+                            }) : ({})
+                        )
                     },
                 ),
-                // // rightmost bar
-                // Plot.barY(
-                //     right(data), 
-                //     {
-                //         x: "month",
-                //         y: "activity",
-                //         fill: "name",                 
-                //         tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
-                //         ...(
-                //             dual ? ({
-                //                 insetLeft: 15,
-                //                 insetRight: 15,
-                //                 dx: 15,
-                //             }) : ({})
-                //         )                        
-                //     },
-                // ),
+                // rightmost bar
+                Plot.barY(
+                    right(data), 
+                    {
+                        x: "month",
+                        y: "activity",
+                        fill: "name",                 
+                        tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
+                        ...(
+                            dual ? ({
+                                insetLeft: 15,
+                                insetRight: 15,
+                                dx: 15,
+                            }) : ({})
+                        )                        
+                    },
+                ),
                 ...(
                     dual ? [] : [
                         Plot.text(
