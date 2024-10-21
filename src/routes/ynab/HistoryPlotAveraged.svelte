@@ -5,7 +5,6 @@
     import { format } from "./ynab";
     
     export let data;
-    export let dual = false;
 </script>
 
 {#if data.length > 0}

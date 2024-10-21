@@ -25,6 +25,8 @@
     import Picker from "./Picker.svelte";
     import HistoryPlotAveraged from './HistoryPlotAveraged.svelte';    
 	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
+    import ProfitLossPlotByMonth from './ProfitLossPlotByMonth.svelte';
+    import ProfitLossPlotAveraged from './ProfitLossPlotAveraged.svelte';
 
     import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
 	import { onMount } from 'svelte';
@@ -204,9 +206,17 @@
     {@const data = preprocessData(categories, choices, stacking)}    
 
     {#if stacking === "averaged"}
-        <HistoryPlotAveraged {data} {dual} />
+        {#if dual}
+            <ProfitLossPlotAveraged {data} />
+        {:else}
+            <HistoryPlotAveraged {data} />
+        {/if}
     {:else if stacking === "monthly"}
-        <HistoryPlotByMonth {data} months={getMonths(categories)} {dual}  />
+        {#if dual}
+            <ProfitLossPlotByMonth {data} months={getMonths(categories)} />
+        {:else}
+            <HistoryPlotByMonth {data} months={getMonths(categories)} />
+        {/if}
     {/if}
 
     <p style="text-align: center; margin-bottom: 0px">

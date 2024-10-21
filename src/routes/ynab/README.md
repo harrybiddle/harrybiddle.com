@@ -24,6 +24,7 @@
 - Averaging chart:
   - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
     https://github.com/observablehq/plot/issues/394
+  - Cashflow averaging chart should be a vertical waterfall
 - Both charts:
   - Pass in ids, not names, in case of clashes
   - Add back stable discrete colour scheme

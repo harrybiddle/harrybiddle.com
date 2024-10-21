@@ -40,8 +40,8 @@
             const expenditure = await loadExpenditure(months, ynabToken, budgetId);            
 
             return [
-                ...parse(income).map(d => ({...d, leftmost_bar: true})), 
-                ...parse(expenditure).map(d => ({...d, leftmost_bar: false})), 
+                ...parse(income),
+                ...parse(expenditure).map(d => ({...d, activity: -d.activity})), 
             ];
         }
         else {

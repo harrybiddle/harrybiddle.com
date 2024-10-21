@@ -22,7 +22,6 @@
 
     export let data;
     export let months;
-    export let dual = false;
 
     function sumOverMonths(data) {
         /*
@@ -40,10 +39,6 @@
         ).map(([month, activity]) => ({activity, month}))
     }
 
-    const sort = data => data.sort((a, b) => b.sortOrder - a.sortOrder);
-    const left = data => sort(dual ? data.filter(d => d.leftmost_bar) : data);
-    const right = data => sort(dual ? data.filter(d => !d.leftmost_bar) : []);
-
 </script>
 
 {#if data.length > 0}
@@ -56,55 +51,26 @@
             color: { legend: true, className: "foobar" },
             marks: [
                 Plot.axisX(),
-                // leftmost bar
                 Plot.barY(
-                    left(sort(data)),
+                    data.sort((a, b) => b.sortOrder - a.sortOrder),
                     {
                         x: "month",
                         y: "activity",
                         fill: "name",                 
                         tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
-                        ...(
-                            dual ? ({
-                                insetLeft: 15,
-                                insetRight: 15,
-                                dx: -15,
-                            }) : ({})
-                        )
                     },
-                ),
-                // rightmost bar
-                Plot.barY(
-                    right(data), 
+                ),            
+                Plot.text(
+                    sumOverMonths(data),
                     {
                         x: "month",
                         y: "activity",
-                        fill: "name",                 
-                        tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
-                        ...(
-                            dual ? ({
-                                insetLeft: 15,
-                                insetRight: 15,
-                                dx: 15,
-                            }) : ({})
-                        )                        
+                        text: d => format(d.activity),
+                        lineAnchor: "middle",
+                        textAnchor: "middle",
+                        dy: -12
                     },
                 ),
-                ...(
-                    dual ? [] : [
-                        Plot.text(
-                        sumOverMonths(data),
-                        {
-                            x: "month",
-                            y: "activity",
-                            text: d => format(d.activity),
-                            lineAnchor: "middle",
-                            textAnchor: "middle",
-                            dy: -12
-                        },
-                        ),
-                    ]
-                )
             ],
         }}
     />
