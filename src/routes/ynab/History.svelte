@@ -1,3 +1,20 @@
+<!--
+  @History
+
+  Displays past activity as a bar chart.
+
+  The data inputted should be an array of objects with the following properties:
+
+   | Property              | Description |
+   |-----------------------|-------------|
+   | activity              | Positive number |
+   | group, group_id       | Grouping of entries |
+   | category, category_id | Sub-grouping of entries |
+   | month                 | Javascript Date object representing the first day of the month |
+   | note                  | (Optional) A string containing information about default averaging (%yearly%) |
+   | leftmost_bar          | (Optional) A boolean, whether to include in the left or right bar. Only used when dual = True |
+
+-->
 <script context="module">
     let counter = 0
 </script>
@@ -10,8 +27,15 @@
 	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
 
     import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
+	import { beforeUpdate, onMount } from 'svelte';
 	
-    export let categories;  
+    export let foo;
+    export let dual = false;
+
+    let categoriesCopy = [];
+
+    onMount(() => { console.log("mount"); categoriesCopy = structuredClone(foo) });
+    beforeUpdate(() => { console.log("before update"); });
     
     counter += 1;
 
@@ -107,15 +131,17 @@
             (c) => c.category,
             (c) => c.group_id,
             (c) => c.group,
+            (c) => Boolean(c.leftmost_bar),
         );
         const visibleAveragedCategories = cartesianProduct(months, averages).map(
-            ([month, category_id, category, group_id, group, activity]) => ({
+            ([month, category_id, category, group_id, group, activity, leftmost_bar]) => ({
                 month,
                 category_id,
                 category,
                 group_id,
                 group,
                 activity,
+                leftmost_bar,
             }),
         );
         const visibleNonAveragedCategories = visibleCategories.filter(
@@ -140,6 +166,7 @@
         const grouping = { 
             group: c => c.group,
             group_id: c => c.group_id,
+            leftmost_bar: c=> c.leftmost_bar,
             ...(stacking === "averaged" ? {} : { month: (d) => d.month })
         };
         let data = [
@@ -174,16 +201,16 @@
     let choices;
 
     $:
-        choices = constructDefaultChoices(categories);
+        choices = constructDefaultChoices(categoriesCopy);
 </script>
 
 {#if choices && stacking}
-    {@const data = preprocessData(categories, choices, stacking)}    
+    {@const data = preprocessData(categoriesCopy, choices, stacking)}    
 
     {#if stacking === "averaged"}
-        <HistoryPlotAveraged {data} />
+        <HistoryPlotAveraged {data} {dual} />
     {:else if stacking === "monthly"}
-        <HistoryPlotByMonth {data} months={getMonths(categories)} />
+        <HistoryPlotByMonth {data} months={getMonths(categoriesCopy)} {dual}  />
     {/if}
 
     <p style="text-align: center; margin-bottom: 0px">
@@ -206,7 +233,7 @@
 
     <!-- Selection/expansion and averaging of individual groups and categories -->
     {#if choices}
-        <Picker bind:choices defaultChoices={constructDefaultChoices(categories)} />
+        <Picker bind:choices defaultChoices={constructDefaultChoices(categoriesCopy)} />
     {/if}
 </article>
 
