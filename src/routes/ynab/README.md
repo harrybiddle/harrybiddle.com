@@ -21,6 +21,8 @@
 
 ## History chart
 
+Why does average profit/loss change when averaging/not averaging sub-categories?
+
 - Averaging chart:
   - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
     https://github.com/observablehq/plot/issues/394
@@ -32,6 +34,7 @@
   - Bigger font size in legend
   - Find some way to avoid scrolling between settings and the chart itself (collapse sidebar?)
 - Configuration:
+  - Bug where radio option for Monthly/Averaged disappears on all but last element
   - Merge HistoryLoader and History widgets?
   - Check functionality of "reset" button
   - Allow any start and end month

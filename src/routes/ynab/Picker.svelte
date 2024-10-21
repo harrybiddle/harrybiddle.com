@@ -1,6 +1,6 @@
 <!--
     Choices should be an array of objects:
-  
+
        [
           {
               id: "a",
@@ -18,7 +18,7 @@
            },
            ...
        ]
-   
+
 -->
 <script>
   import CustomCheckbox from "./CustomCheckbox.svelte";
@@ -39,21 +39,32 @@
           })
         )
       })
-    )    
+    )
   }
 
   function choiceShownButAllChildrenHidden(choice) {
     const childrenHidden = choice.children.every(child => !child.show);
     return choice.show && childrenHidden
   }
-  
+
   function choiceShownButChildrenAreMixed(choice) {
     const childrenMixed = new Set(choice.children.map(child => child.show)).size > 1;
     return choice.show && childrenMixed;
   }
 
   function setAllChoicesTo(state) {
-    choices = choices.map(choice => ({...choice, show: state}))        
+    choices = choices.map(choice => ({...choice, show: state}))
+  }
+
+  function averageNothing() {
+    choices = choices.map(
+      choice => ({
+        ...choice,
+        children: choice.children.map(
+          child => ({ ...child, average: false })
+        )
+      })
+    );
   }
 
 </script>
@@ -70,7 +81,9 @@
 <div id="options">
   <a on:click={() => setAllChoicesTo(true)}>select all</a>
   |
-  <a on:click={() => setAllChoicesTo(false)}>none</a>
+  <a on:click={() => setAllChoicesTo(false)}>select none</a>
+  |
+  <a on:click={averageNothing}>average none</a>
   {#if defaultChoices}
     |
     <a on:click={reset}>reset</a>
@@ -83,30 +96,30 @@
       <input bind:checked={choice.show} type="checkbox" />
       {choice.label}
       {#if choiceShownButChildrenAreMixed(choice)}<sup style="color: #D93526">&#8226;</sup>{/if}
-      {#if choiceShownButAllChildrenHidden(choice)}⚠️{/if}      
+      {#if choiceShownButAllChildrenHidden(choice)}⚠️{/if}
     </summary>
-    <div style="margin-left: 40px">      
-      <div style="display: flex; justify-content: space-between">      
+    <div style="margin-left: 40px">
+      <div style="display: flex; justify-content: space-between">
         <small>
           <a on:click={() => setAllChildrenTo(choice.id, "show", true)}>select all</a>
           |
           <a on:click={() => setAllChildrenTo(choice.id, "show", false)}>none</a>
-        </small>      
+        </small>
         <small>
           <a on:click={() => setAllChildrenTo(choice.id, "average", true)}>average all</a>
           |
           <a on:click={() => setAllChildrenTo(choice.id, "average", false)}>none</a>
-        </small>   
-      </div>   
+        </small>
+      </div>
       <fieldset>
         {#each choice.children as child}
-          <label class="child-container">            
-            <input bind:checked={child.show} type="checkbox" />                        
-            {child.label}              
+          <label class="child-container">
+            <input bind:checked={child.show} type="checkbox" />
+            {child.label}
             <span style="float: right">
               <CustomCheckbox bind:checked={child.average} />
             </span>
-          </label>          
+          </label>
         {/each}
       </fieldset>
     </div>
