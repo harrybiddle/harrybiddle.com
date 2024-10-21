@@ -12,7 +12,6 @@
    | category, category_id | Sub-grouping of entries |
    | month                 | Javascript Date object representing the first day of the month |
    | note                  | (Optional) A string containing information about default averaging (%yearly%) |
-   | leftmost_bar          | (Optional) A boolean, whether to include in the left or right bar. Only used when dual = True |
 
 -->
 <script context="module">
@@ -23,17 +22,17 @@
     import * as d3 from 'd3'
 
     import Picker from "./Picker.svelte";
-    import HistoryPlotAveraged from './HistoryPlotAveraged.svelte';    
+    import HistoryPlotAveraged from './HistoryPlotAveraged.svelte';
 	import HistoryPlotByMonth from './HistoryPlotByMonth.svelte';
     import ProfitLossPlotByMonth from './ProfitLossPlotByMonth.svelte';
     import ProfitLossPlotAveraged from './ProfitLossPlotAveraged.svelte';
 
     import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
 	import { onMount } from 'svelte';
-	
+
     export let categories;
     export let dual = false;
-    
+
     counter += 1;
 
     function makeHierarchy(categories) {
@@ -128,17 +127,15 @@
             (c) => c.category,
             (c) => c.group_id,
             (c) => c.group,
-            (c) => Boolean(c.leftmost_bar),
         );
         const visibleAveragedCategories = cartesianProduct(months, averages).map(
-            ([month, category_id, category, group_id, group, activity, leftmost_bar]) => ({
+            ([month, category_id, category, group_id, group, activity]) => ({
                 month,
                 category_id,
                 category,
                 group_id,
                 group,
                 activity,
-                leftmost_bar,
             }),
         );
         const visibleNonAveragedCategories = visibleCategories.filter(
@@ -160,10 +157,9 @@
             (c) => !groupsIdsToCollapse.has("g" + c.group_id),
         );
 
-        const grouping = { 
+        const grouping = {
             group: c => c.group,
             group_id: c => c.group_id,
-            leftmost_bar: c=> c.leftmost_bar,
             ...(stacking === "averaged" ? {} : { month: (d) => d.month })
         };
         let data = [
@@ -179,7 +175,7 @@
             ),
         ];
 
-        if (stacking === "averaged") 
+        if (stacking === "averaged")
             data = data.map(d => ({...d, activity: d.activity / numberMonths}));
 
         // Add a sort order, which is by the average activity
@@ -197,13 +193,13 @@
     let stacking = "monthly";
     let choices;
 
-    onMount(() => { 
+    onMount(() => {
         choices = constructDefaultChoices(categories);
     });
 </script>
 
 {#if choices && stacking}
-    {@const data = preprocessData(categories, choices, stacking)}    
+    {@const data = preprocessData(categories, choices, stacking)}
 
     {#if stacking === "averaged"}
         {#if dual}

@@ -7,7 +7,7 @@
     import HistoryLoader from "./HistoryLoader.svelte";
 	import IncomeHistoryLoader from './IncomeHistoryLoader.svelte';
 	import CashflowLoader from './CashflowLoader.svelte';
-    
+
     const inputtedTokenValue = writable();
 
     const localStorageIsDefined = () => typeof localStorage !== 'undefined';
@@ -57,8 +57,8 @@
     }
 
     select {
-        padding: 
-            calc(0.5 * var(--form-element-spacing-vertical)) 
+        padding:
+            calc(0.5 * var(--form-element-spacing-vertical))
             calc(0.5 * var(--form-element-spacing-horizontal));
     }
 </style>
