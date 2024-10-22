@@ -1,3 +1,17 @@
+
+To start Squid:
+
+```shell
+# start
+sudo squid -k start
+
+# cehck configuration
+sudo squid -k check
+
+# configuration file
+/usr/local/etc/squid/squid.conf
+```
+
 # To-do's
 
 - Add income in somewhere
@@ -13,10 +27,11 @@
 
 ## One-off chart
 
-- Re-make  using a sparkbar for the whole year
+- Re-make using a sparkbar for the whole year
 
 ## History chart
 
+- A single configuration for all three charts (income/expenditure/net) and put the three charts in tabs.
 - Averaging chart:
   - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
     https://github.com/observablehq/plot/issues/394
@@ -34,7 +49,7 @@
   - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
 - Refactor to improve code readability
 - Work off transactions?
-- Optionally include transfers: owings and mortgage amortisation
+- Optionally include transfers of owings
 - Prettier layout of configuration options & chart
 - View linear prediction for current month?
 - Allow any start and end month

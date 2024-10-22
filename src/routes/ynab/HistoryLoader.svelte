@@ -1,5 +1,5 @@
 <script>
-    import { loadExpenditure, parse } from "./ynab"
+    import { loadExpenditure, loadTransfers, parse } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
@@ -16,19 +16,19 @@
 
     const thisYear = month.year();
 
-    function fetchData(period) {
-        // filter to the right period        
+    async function fetchData(period) {
+        // filter to the right period
         // we default to period === "yearSoFar"
         const yearSoFar = allMonths.filter(m => m.year() === thisYear);
 
-        let months = yearSoFar; 
+        let months = yearSoFar;
 
         if (period === "lastSixMonths") {
             months = Array.from({length: 6}, (_, index) => month.subtract(index + 1, "month"));
-        } 
+        }
         else if (period === "lastTwelveMonths") {
             months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
-        } 
+        }
         else if (period === "lastYear") {
             const lastYear = thisYear - 1;
             months = allMonths.filter(m => m.year() === lastYear)
@@ -36,7 +36,9 @@
 
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
-            return loadExpenditure(months, ynabToken, budgetId);
+            const transfers = await loadTransfers(months, ynabToken, budgetId);
+            const expenditure = await loadExpenditure(months, ynabToken, budgetId);
+            return [...parse(expenditure), ...transfers];
         }
         else {
             return new Promise(resolve => {
@@ -52,8 +54,8 @@
 
 {#await promise}
     <p aria-busy="true">Loading data</p>
-{:then budgets}    
-    <History categories={parse(budgets)} />
+{:then categories}
+    <History {categories} />
 {:catch error}
     <p>Error</p>
 {/await}

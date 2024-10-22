@@ -1,5 +1,5 @@
 <script>
-    import { loadExpenditure, loadIncome, parse } from "./ynab"
+    import { loadExpenditure, loadIncome, loadTransfers, parse } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
@@ -17,18 +17,18 @@
     const thisYear = month.year();
 
     async function fetchData(period) {
-        // filter to the right period        
+        // filter to the right period
         // we default to period === "yearSoFar"
         const yearSoFar = allMonths.filter(m => m.year() === thisYear);
 
-        let months = yearSoFar; 
+        let months = yearSoFar;
 
         if (period === "lastSixMonths") {
             months = Array.from({length: 6}, (_, index) => month.subtract(index + 1, "month"));
-        } 
+        }
         else if (period === "lastTwelveMonths") {
             months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
-        } 
+        }
         else if (period === "lastYear") {
             const lastYear = thisYear - 1;
             months = allMonths.filter(m => m.year() === lastYear)
@@ -37,11 +37,13 @@
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
             const income = await loadIncome(months, ynabToken, budgetId);
-            const expenditure = await loadExpenditure(months, ynabToken, budgetId);            
+            const expenditure = await loadExpenditure(months, ynabToken, budgetId);
+            const transfers = await loadTransfers(months, ynabToken, budgetId);
 
             return [
                 ...parse(income),
-                ...parse(expenditure).map(d => ({...d, activity: -d.activity})), 
+                ...parse(expenditure).map(d => ({...d, activity: -d.activity})),
+                ...transfers.map(d => ({...d, activity: -d.activity}))
             ];
         }
         else {
@@ -58,7 +60,7 @@
 
 {#await promise}
     <p aria-busy="true">Loading data</p>
-{:then categories}    
+{:then categories}
     <History {categories} dual={true} />
 {:catch error}
     <p>Error {error.message}</p>

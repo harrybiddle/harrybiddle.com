@@ -9,12 +9,12 @@
         activity (the total spend), name (display name), month (a `Date` object),
         sortOrder (anything that is sortable, such as an integer).
 
-    months: an array of `Date` objects. This is used to draw the x-axis, which 
+    months: an array of `Date` objects. This is used to draw the x-axis, which
         important if we don't have a data point for every month.
 -->
 
 <script>
-    import * as d3 from 'd3'    
+    import * as d3 from 'd3'
     import * as Plot from '@observablehq/plot';
 
     import PlotContainer from "../../lib/PlotContainer.svelte";
@@ -28,7 +28,7 @@
             Returns an array like the following:
 
                 [
-                    { activity: 100.50, month: "2024-08-01T00:00:00.000Z" }, 
+                    { activity: 100.50, month: "2024-08-01T00:00:00.000Z" },
                     ...
                 ]
         */
@@ -56,10 +56,10 @@
                     {
                         x: "month",
                         y: "activity",
-                        fill: "name",                 
+                        fill: "name",
                         tip: { format: {y: format, x: d3.utcFormat("%b"), fy: false, fill: true} },
                     },
-                ),            
+                ),
                 Plot.text(
                     sumOverMonths(data),
                     {

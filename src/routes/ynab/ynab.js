@@ -23,7 +23,7 @@ function _ynab(token, endpoint, params, i) {
 export const ynab = memoize(_ynab);
 
 function url(endpoint, params = {}) {
-	let url = new URL(endpoint, 'https://api.youneedabudget.com/v1/');
+	let url = new URL(endpoint, 'https://api.ynab.com/v1/');
 	for (let [name, value] of Object.entries(params)) url.searchParams.append(name, value);
 	return url.toString();
 }
@@ -55,11 +55,19 @@ export function parseMonth(d) {
 	};
 }
 
+function monthOfDateString(dateString) {
+	const date = new Date(dateString);
+	return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
 export function parseBudget(budget) {
 	return (
 		budget.month.categories
 			// add category group and process millicents
-			.map(e => ({ month: new Date(budget.month.month), ...parseMonth(e) }))
+			.map(e => ({
+				month: monthOfDateString(budget.month.month),
+				...parseMonth(e)
+			}))
 			// ignore income
 			.filter(d => ![
 					'Inflow: Ready to Assign',
@@ -140,12 +148,12 @@ function addOneMonth(my_date) {
 }
 
 
-function parsePayee(payee_name, payee_id) { 
+function parsePayee(payee_name, payee_id) {
 	if (!payee_name) {
 		return ({
-			category_group_id: "other", 
-			category_group_name:"Other", 
-			id: "uncategorised", 
+			category_group_id: "other",
+			category_group_name:"Other",
+			id: "uncategorised",
 			name: "Uncategorised",
 		});
 	}
@@ -153,44 +161,44 @@ function parsePayee(payee_name, payee_id) {
 
 	if (i === -1) {
 		return ({
-			category_group_id: "other", 
-			category_group_name:"Other", 
-			id: `p${payee_id}`, 
+			category_group_id: "other",
+			category_group_name:"Other",
+			id: `p${payee_id}`,
 			name: payee_name,
 		});
 	} else {
 		const group = payee_name.substring(0, i).trim();
 		const category = payee_name.substring(i + 1).trim();
 		return ({
-			category_group_id: group, 
-			category_group_name: group, 
-			id: payee_id, 
+			category_group_id: group,
+			category_group_name: group,
+			id: payee_id,
 			name: category,
 		});
 	}
 }
 
 
-export async function loadIncome(months, ynabToken, budgetId) {	
+export async function loadIncome(months, ynabToken, budgetId) {
 	const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
 
-	const m = months.sort(d3.ascending);    
+	const m = months.sort(d3.ascending);
 	const firstMonth = m[0];
-	const lastMonth = addOneMonth(m[m.length - 1]);            
+	const lastMonth = addOneMonth(m[m.length - 1]);
 
 	const response = await ynab(
-		ynabToken, 
-		`budgets/${budgetId}/categories/${incomeCategoryId}/transactions`, 
+		ynabToken,
+		`budgets/${budgetId}/categories/${incomeCategoryId}/transactions`,
 		{since_date: firstMonth.format("YYYY-MM-DD")},
 	)
-	
+
 	const transactions = response["transactions"].filter(
 		t => new Date(t.date) < lastMonth
 	);
 
 	const data = d3.flatGroup(
 		transactions,
-		t => t.date.substring(0, 7) + "-01",  // "2024-01-06" -> "2024-01-01"                
+		t => t.date.substring(0, 7) + "-01",  // "2024-01-06" -> "2024-01-01"
 	).map(
 		([monthString, ts]) => ({
 			month: ({
@@ -208,7 +216,7 @@ export async function loadIncome(months, ynabToken, budgetId) {
 				)
 			})
 		})
-	) 
+	)
 
 	// TODO: add any missing months
 	return data;
@@ -220,7 +228,54 @@ export function loadExpenditure(months, ynabToken, budgetId) {
 			const monthString = month.format("YYYY-MM-DD");
 			return ynab(ynabToken, `budgets/${budgetId}/months/${monthString}`, {})
 		})
-	)    	
+	)
+}
+
+export async function loadTransfers(months, ynabToken, budgetId) {
+	const mortgageAccountId = "a85376eb-0669-4039-b208-c68938917384";
+
+	// get all transactions since the earliest date in the array
+	const sortedMonths = months.sort(d3.ascending);
+	const earliestDate = sortedMonths[0];
+	const response = await ynab(
+		ynabToken,
+		`budgets/${budgetId}/accounts/${mortgageAccountId}/transactions`,
+		{ since_date: earliestDate.format("YYYY-MM-DD") },
+	);
+
+	// filter transactions to ones that fall in or before the last
+	// month in the array
+	const latestDate = sortedMonths[sortedMonths.length - 1].toDate();
+	const firstDayOfNextMonth = new Date(
+		latestDate.getFullYear(),
+		latestDate.getMonth() + 1,
+		1,
+	);
+	let transactions = response.transactions.filter(
+		t => new Date(t["date"]) < firstDayOfNextMonth
+	);
+
+	// ignore the initial transaction
+	transactions = transactions.filter(
+		t => t.memo !== "Take out Mortgage"
+	)
+
+	// ignore zero transactions
+	transactions = transactions.filter(t => t.amount > 0);
+
+	// get into the right format
+	const ret = transactions.map(
+		t => ({
+			activity: t.amount / 1000,
+			category_id: "mortgage",
+			category: "Mortgage Amortisation",
+			group: "House",
+			group_id: "ac164e0b-237d-4a6f-8f95-618760ea9207",
+			month: monthOfDateString(t["date"])
+		})
+	)
+
+	return ret;
 }
 
 
