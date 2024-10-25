@@ -232,39 +232,42 @@ export function loadExpenditure(months, ynabToken, budgetId) {
 }
 
 export async function loadTransfers(months, ynabToken, budgetId) {
-	const mortgageAccountId = "a85376eb-0669-4039-b208-c68938917384";
+
 
 	// get all transactions since the earliest date in the array
 	const sortedMonths = months.sort(d3.ascending);
 	const earliestDate = sortedMonths[0];
-	const response = await ynab(
-		ynabToken,
-		`budgets/${budgetId}/accounts/${mortgageAccountId}/transactions`,
-		{ since_date: earliestDate.format("YYYY-MM-DD") },
-	);
 
-	// filter transactions to ones that fall in or before the last
-	// month in the array
-	const latestDate = sortedMonths[sortedMonths.length - 1].toDate();
-	const firstDayOfNextMonth = new Date(
-		latestDate.getFullYear(),
-		latestDate.getMonth() + 1,
-		1,
-	);
-	let transactions = response.transactions.filter(
-		t => new Date(t["date"]) < firstDayOfNextMonth
-	);
+	async function getTransactions(accountId) {
+		const response = await ynab(
+			ynabToken,
+			`budgets/${budgetId}/accounts/${accountId}/transactions`,
+			{ since_date: earliestDate.format("YYYY-MM-DD") },
+		);
 
-	// ignore the initial transaction
-	transactions = transactions.filter(
+		// filter transactions to ones that fall in or before the last
+		// month in the array
+		const latestDate = sortedMonths[sortedMonths.length - 1].toDate();
+		const firstDayOfNextMonth = new Date(
+			latestDate.getFullYear(),
+			latestDate.getMonth() + 1,
+			1,
+		);
+		let transactions = response.transactions.filter(
+			t => new Date(t["date"]) < firstDayOfNextMonth
+		);
+
+		// ignore zero transactions
+		return transactions.filter(t => Math.abs(t.amount) > 0);
+	}
+
+	// mortgage transactions
+	const mortgageAccountId = "a85376eb-0669-4039-b208-c68938917384";
+	let mortgageTransactions = await getTransactions(mortgageAccountId)
+	mortgageTransactions = mortgageTransactions.filter(
 		t => t.memo !== "Take out Mortgage"
 	)
-
-	// ignore zero transactions
-	transactions = transactions.filter(t => t.amount > 0);
-
-	// get into the right format
-	const ret = transactions.map(
+	const mortgageCategories = mortgageTransactions.map(
 		t => ({
 			activity: t.amount / 1000,
 			category_id: "mortgage",
@@ -275,7 +278,22 @@ export async function loadTransfers(months, ynabToken, budgetId) {
 		})
 	)
 
-	return ret;
+	// owings transactions
+	const owingsAccountId = "645be5f7-3a5d-4723-a6e9-97929eaf658d";
+	const owingsTransactions = await getTransactions(owingsAccountId);
+	const owingsCategories = owingsTransactions.map(
+		t => ({
+			activity: t.amount / 1000,
+			category_id: "owings",
+			category: "Owings",
+			group: "Regular",
+			group_id: "449c5313-e397-4aa7-91f2-400c49ef1301",
+			month: monthOfDateString(t["date"]),
+			note: "%yearly%",
+		})
+	)
+
+	return [...mortgageCategories, ...owingsCategories];
 }
 
 

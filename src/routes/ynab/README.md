@@ -49,7 +49,6 @@ sudo squid -k check
   - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
 - Refactor to improve code readability
 - Work off transactions?
-- Optionally include transfers of owings
 - Prettier layout of configuration options & chart
 - View linear prediction for current month?
 - Allow any start and end month
