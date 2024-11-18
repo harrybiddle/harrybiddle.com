@@ -8,7 +8,6 @@
     export let data;
     export let months;
 
-
     function sumOverNames(data) {
         return d3.flatRollup(
             data,

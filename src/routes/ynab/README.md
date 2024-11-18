@@ -52,3 +52,24 @@ sudo squid -k check
 - Prettier layout of configuration options & chart
 - View linear prediction for current month?
 - Allow any start and end month
+
+## Cashflow sankey
+
+From https://sankeymatic.com/build/
+
+```
+Harry [3000] Regular Income
+Louise [2900] Regular Income
+Other [260] Regular Income
+
+Regular Income [6020] Expenditure
+Savings [480] Expenditure
+
+Regular Income [140] Mortgage
+
+Savings [1700] House Renovation
+
+Investments [590] Savings
+Withdrawn Savings [1770] Savings
+Savings [180] Owings
+```

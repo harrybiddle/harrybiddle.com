@@ -1,9 +1,9 @@
 <script>
-    import * as Plot from '@observablehq/plot';    
+    import * as Plot from '@observablehq/plot';
 
     import PlotContainer from "../../lib/PlotContainer.svelte";
     import { format } from "./ynab";
-    
+
     export let data;
 </script>
 
@@ -41,8 +41,8 @@
                     },
                 ),
             ],
-        }} 
-    /> 
+        }}
+    />
 {:else}
     (No data to show)
 {/if}
