@@ -74,31 +74,10 @@
         {:else}
             {@const dateInfo = getDateInformation() }
 
-            <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
-            <small style="font-style: italic">
-                * The one-off category excludes &#10060; <b>house</b> and excludes &#10060;
-                <b>house purchase</b>.
-            </small>
-
-            <h2>History</h2>
-
-            <select bind:value={historyPeriod}>
-                <option value="yearSoFar">Year so far</option>
-                <option value="lastSixMonths">Last six months</option>
-                <option value="lastTwelveMonths">Last twelve months</option>
-                <option value="lastYear">Last year</option>
-              </select>
-
-            <h3>Expenditure</h3>
-            <HistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
-
-            <h3>Income</h3>
-            <IncomeHistoryLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
-
             <h3>Cashflow</h3>
             <CashflowLoader ynabToken="{ynabToken()}" month={dateInfo.month} period={historyPeriod} />
 
             <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
         {/if}
-    {/if}        
+    {/if}
 </div>

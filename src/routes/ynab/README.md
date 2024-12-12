@@ -21,9 +21,8 @@ sudo squid -k check
 
 ## Budget chart:
 
-- Prettify the "Estimated spend at end of month"
+- Two predictions: what's been budgeted, and what is projected (based on an improved algorithm!)
 - Expand top transactions
-- Improve linear prediction
 
 ## One-off chart
 

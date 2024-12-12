@@ -231,7 +231,7 @@ export function loadExpenditure(months, ynabToken, budgetId) {
 	)
 }
 
-export async function loadTransfers(months, ynabToken, budgetId) {
+export async function loadTransfers(months, ynabToken, budgetId, forSankey) {
 
 
 	// get all transactions since the earliest date in the array
@@ -272,8 +272,8 @@ export async function loadTransfers(months, ynabToken, budgetId) {
 			activity: t.amount / 1000,
 			category_id: "mortgage",
 			category: "Mortgage Amortisation",
-			group: "House",
-			group_id: "ac164e0b-237d-4a6f-8f95-618760ea9207",
+			group: forSankey ? "Mortgage" : "House",
+			group_id: forSankey ? "gMortgage" : "ac164e0b-237d-4a6f-8f95-618760ea9207",
 			month: monthOfDateString(t["date"])
 		})
 	)
@@ -286,8 +286,8 @@ export async function loadTransfers(months, ynabToken, budgetId) {
 			activity: t.amount / 1000,
 			category_id: "owings",
 			category: "Owings",
-			group: "Regular",
-			group_id: "449c5313-e397-4aa7-91f2-400c49ef1301",
+			group: forSankey ? "Owings" : "Regular",
+			group_id: forSankey ? "gOwings" : "449c5313-e397-4aa7-91f2-400c49ef1301",
 			month: monthOfDateString(t["date"]),
 			note: "%yearly%",
 		})

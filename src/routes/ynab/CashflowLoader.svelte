@@ -16,6 +16,8 @@
 
     const thisYear = month.year();
 
+    const houseRenovationCategoryId = "b71f58f0-adee-4120-b7e0-968517141326";  // One-Off, House
+
     async function fetchData(period) {
         // filter to the right period
         // we default to period === "yearSoFar"
@@ -38,11 +40,20 @@
         if (live) {
             const income = await loadIncome(months, ynabToken, budgetId);
             const expenditure = await loadExpenditure(months, ynabToken, budgetId);
-            const transfers = await loadTransfers(months, ynabToken, budgetId);
+            const transfers = await loadTransfers(months, ynabToken, budgetId, true);
+
+            // pull out house renovation category into its own group
+            const parsedExpenditure = parse(expenditure).map(d => ({...d, activity: -d.activity}));
+            parsedExpenditure.forEach(d => {
+                if (d.category_id === houseRenovationCategoryId) {
+                    d.group = "House Renovation";
+                    d.group_id = "gHouseRenovation";
+                }
+            });
 
             return [
                 ...parse(income),
-                ...parse(expenditure).map(d => ({...d, activity: -d.activity})),
+                ...parsedExpenditure,
                 ...transfers.map(d => ({...d, activity: -d.activity}))
             ];
         }
