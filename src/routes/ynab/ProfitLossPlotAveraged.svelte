@@ -46,7 +46,7 @@
 
         const total = d3.sum(data, (d) => d.activity);
 
-        const reservoir = "Investments & Savings";
+        const reservoir = "Savings Income";
         const regular = "Primary Income";
 
         const links = [
@@ -95,14 +95,14 @@
 
         const f = (x) => d3.format(".2r")(Math.round(x / 10) * 10);
         const sankeyData = {
-            nodes: nodeNames.map((name) => ({
-            node: nodeNames.indexOf(name),
-            name: name,
+                nodes: nodeNames.map((name) => ({
+                node: nodeNames.indexOf(name),
+                name: name,
             })),
             links: links.map((link) => ({
-            source: nodeNames.indexOf(link.source),
-            target: nodeNames.indexOf(link.target),
-            value: link.value,
+                source: nodeNames.indexOf(link.source),
+                target: nodeNames.indexOf(link.target),
+                value: link.value,
             })),
         };
 
@@ -128,10 +128,10 @@
 		options={{
 			x: { axis: null },
 			y: { axis: null },
-			width: width,
-			height: height,
+            style: { fontSize: "15.75px", fontFamily: "PT Sans,sans-serif" },
 			marginTop: 20,
-			marginRight: 120,
+            marginBottom: 20,
+			marginRight: 150,
 			marks: [
 				processedData.links.map((link) =>
 					Plot.areaY(link, {
@@ -155,7 +155,7 @@
 					x: 'x1',
 					dx: 5,
 					y: (d) => (d.y1 + d.y0) / 2,
-					text: 'name',
+					text: d => `${d.name}\n${format(d.value)}`,
 					textAnchor: 'start'
 				})
 			]

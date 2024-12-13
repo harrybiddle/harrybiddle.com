@@ -31,6 +31,9 @@ sudo squid -k check
 ## History chart
 
 - A single configuration for all three charts (income/expenditure/net) and put the three charts in tabs.
+- Cashflow sankey:
+  - Pull gifts out of "Other", into own category?
+  - Testing suite for different situations
 - Averaging chart:
   - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
     https://github.com/observablehq/plot/issues/394
@@ -51,24 +54,3 @@ sudo squid -k check
 - Prettier layout of configuration options & chart
 - View linear prediction for current month?
 - Allow any start and end month
-
-## Cashflow sankey
-
-From https://sankeymatic.com/build/
-
-```
-Harry [3000] Regular Income
-Louise [2900] Regular Income
-Other [260] Regular Income
-
-Regular Income [6020] Expenditure
-Savings [480] Expenditure
-
-Regular Income [140] Mortgage
-
-Savings [1700] House Renovation
-
-Investments [590] Savings
-Withdrawn Savings [1770] Savings
-Savings [180] Owings
-```
