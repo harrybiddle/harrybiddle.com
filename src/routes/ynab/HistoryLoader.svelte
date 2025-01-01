@@ -1,43 +1,22 @@
 <script>
-    import { loadExpenditure, loadTransfers, parse } from "./ynab"
+    import { loadExpenditure, loadTransfers, parse, rangeArray } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
     export let ynabToken;
-    export let month;
-    export let period;
+    export let firstMonthstamp;
+    export let lastMonthstamp;
 
     const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
 
-    // get the last 24 months
-    // this is sufficiently large to cover all periods
-    // (this year / last year / last six months)
-    let allMonths = Array.from({ length: 24 }, (_, index) => month.subtract(index + 1, "month"));
+    async function fetchData(_firstMonthstamp, _lastMonthstamp) {
 
-    const thisYear = month.year();
-
-    async function fetchData(period) {
-        // filter to the right period
-        // we default to period === "yearSoFar"
-        const yearSoFar = allMonths.filter(m => m.year() === thisYear);
-
-        let months = yearSoFar;
-
-        if (period === "lastSixMonths") {
-            months = Array.from({length: 6}, (_, index) => month.subtract(index + 1, "month"));
-        }
-        else if (period === "lastTwelveMonths") {
-            months = Array.from({length: 12}, (_, index) => month.subtract(index + 1, "month"));
-        }
-        else if (period === "lastYear") {
-            const lastYear = thisYear - 1;
-            months = allMonths.filter(m => m.year() === lastYear)
-        }
+        const monthstamps = rangeArray(_firstMonthstamp, _lastMonthstamp + 1);
 
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
-            const transfers = await loadTransfers(months, ynabToken, budgetId);
-            const expenditure = await loadExpenditure(months, ynabToken, budgetId);
+            const transfers = await loadTransfers(monthstamps, ynabToken, budgetId);
+            const expenditure = await loadExpenditure(monthstamps, ynabToken, budgetId);
             return [...parse(expenditure), ...transfers];
         }
         else {
@@ -48,7 +27,7 @@
     }
 
     let promise;
-    $: promise = fetchData(period)
+    $: promise = fetchData(firstMonthstamp, lastMonthstamp)
 
 </script>
 

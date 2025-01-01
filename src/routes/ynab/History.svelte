@@ -190,7 +190,7 @@
         return Object.assign(data, { average: overallAverage });
     }
 
-    let stacking = "averaged";
+    let stacking = "monthly";
     let choices;
 
     onMount(() => {

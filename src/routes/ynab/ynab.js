@@ -222,39 +222,34 @@ export async function loadIncome(months, ynabToken, budgetId) {
 	return data;
 }
 
-export function loadExpenditure(months, ynabToken, budgetId) {
+export function loadExpenditure(monthstamps, ynabToken, budgetId) {
 	return Promise.all(
-		months.map(month => {
-			const monthString = month.format("YYYY-MM-DD");
+		monthstamps.map(monthstamp => {
+			const monthString = parseMonthstamp(monthstamp).dateString;
 			return ynab(ynabToken, `budgets/${budgetId}/months/${monthString}`, {})
 		})
 	)
 }
 
-export async function loadTransfers(months, ynabToken, budgetId, forSankey) {
-
-
+export async function loadTransfers(monthstamps, ynabToken, budgetId, forSankey) {
 	// get all transactions since the earliest date in the array
-	const sortedMonths = months.sort(d3.ascending);
-	const earliestDate = sortedMonths[0];
+	const sortedMonthstamps = monthstamps.sort(d3.ascending);
+	const firstMonthstamp = sortedMonthstamps[0];
 
 	async function getTransactions(accountId) {
+		const sinceDate = parseMonthstamp(firstMonthstamp).dateString;
 		const response = await ynab(
 			ynabToken,
 			`budgets/${budgetId}/accounts/${accountId}/transactions`,
-			{ since_date: earliestDate.format("YYYY-MM-DD") },
+			{ since_date: sinceDate },
 		);
 
 		// filter transactions to ones that fall in or before the last
 		// month in the array
-		const latestDate = sortedMonths[sortedMonths.length - 1].toDate();
-		const firstDayOfNextMonth = new Date(
-			latestDate.getFullYear(),
-			latestDate.getMonth() + 1,
-			1,
-		);
+		const lastMonthstamp = sortedMonthstamps[sortedMonthstamps.length - 1];
+		const firstDateOfNextMonth = parseMonthstamp(lastMonthstamp + 1).date;
 		let transactions = response.transactions.filter(
-			t => new Date(t["date"]) < firstDayOfNextMonth
+			t => new Date(t["date"]) < firstDateOfNextMonth
 		);
 
 		// ignore zero transactions
@@ -314,7 +309,14 @@ export function parseMonthstamp(monthstamp) {
     const month = monthstamp % 12;
 	const date = new Date(Date.UTC(year, month, 1));
 	const monthString = date.toLocaleString(undefined, { month: 'long' });
-    return { year, month, date, monthString };
+	const dateString = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    return {
+		year,         // 2024
+		month,        // 0 to 11
+		date,         // Date object
+		monthString,  // "January"
+		dateString,   // "2024-01-01"
+	 };
 }
 
 export function constructMonthstamp(year, month) {
@@ -324,4 +326,8 @@ export function constructMonthstamp(year, month) {
 export function currentMonthstamp() {
 	const date = new Date();
 	return constructMonthstamp(date.getUTCFullYear(), date.getUTCMonth());
+}
+
+export function rangeArray(a, b) {
+	return Array.from({ length: b - a }, (_, i) => a + i);
 }
