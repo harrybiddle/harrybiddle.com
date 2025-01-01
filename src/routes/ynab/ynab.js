@@ -179,21 +179,25 @@ function parsePayee(payee_name, payee_id) {
 }
 
 
-export async function loadIncome(months, ynabToken, budgetId) {
+export async function loadIncome(monthstamps, ynabToken, budgetId) {
 	const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
 
-	const m = months.sort(d3.ascending);
-	const firstMonth = m[0];
-	const lastMonth = addOneMonth(m[m.length - 1]);
-
+	// get all income transactions since the earliest date in the array
+	const sortedMonthstamps = monthstamps.sort(d3.ascending);
+	const firstMonthstamp = sortedMonthstamps[0];
+	const sinceDate = parseMonthstamp(firstMonthstamp).dateString;
 	const response = await ynab(
 		ynabToken,
 		`budgets/${budgetId}/categories/${incomeCategoryId}/transactions`,
-		{since_date: firstMonth.format("YYYY-MM-DD")},
+		{ since_date: sinceDate },
 	)
 
-	const transactions = response["transactions"].filter(
-		t => new Date(t.date) < lastMonth
+	// filter transactions to ones that fall in or before the last
+	// month in the array
+	const lastMonthstamp = sortedMonthstamps[sortedMonthstamps.length - 1];
+	const firstDateOfNextMonth = parseMonthstamp(lastMonthstamp + 1).date;
+	let transactions = response.transactions.filter(
+		t => new Date(t["date"]) < firstDateOfNextMonth
 	);
 
 	const data = d3.flatGroup(
@@ -326,8 +330,4 @@ export function constructMonthstamp(year, month) {
 export function currentMonthstamp() {
 	const date = new Date();
 	return constructMonthstamp(date.getUTCFullYear(), date.getUTCMonth());
-}
-
-export function rangeArray(a, b) {
-	return Array.from({ length: b - a }, (_, i) => a + i);
 }

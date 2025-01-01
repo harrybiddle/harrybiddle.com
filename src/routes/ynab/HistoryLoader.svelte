@@ -1,22 +1,19 @@
 <script>
-    import { loadExpenditure, loadTransfers, parse, rangeArray } from "./ynab"
+    import { loadExpenditure, loadTransfers, parse } from "./ynab"
     import { live } from "./constants"
     import History from "./History.svelte";
 
     export let ynabToken;
-    export let firstMonthstamp;
-    export let lastMonthstamp;
+    export let monthstamps;
 
     const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
 
-    async function fetchData(_firstMonthstamp, _lastMonthstamp) {
-
-        const monthstamps = rangeArray(_firstMonthstamp, _lastMonthstamp + 1);
+    async function fetchData(_monthstamps) {
 
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
-            const transfers = await loadTransfers(monthstamps, ynabToken, budgetId);
-            const expenditure = await loadExpenditure(monthstamps, ynabToken, budgetId);
+            const transfers = []; // await loadTransfers(_monthstamps, ynabToken, budgetId);
+            const expenditure = await loadExpenditure(_monthstamps, ynabToken, budgetId);
             return [...parse(expenditure), ...transfers];
         }
         else {
@@ -27,7 +24,7 @@
     }
 
     let promise;
-    $: promise = fetchData(firstMonthstamp, lastMonthstamp)
+    $: promise = fetchData(monthstamps)
 
 </script>
 

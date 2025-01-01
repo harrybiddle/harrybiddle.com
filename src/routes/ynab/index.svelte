@@ -44,6 +44,12 @@
 
     let firstMonthstamp;
     let lastMonthstamp;
+
+    function rangeArray(a, b) {
+        return Array.from({ length: b - a }, (_, i) => a + i);
+    }
+    $: monthstamps = rangeArray(firstMonthstamp, lastMonthstamp + 1);
+
 </script>
 
 <style>
@@ -69,6 +75,8 @@
                 <button type="button" on:click={setYnabToken}>Submit</button>
             </article>
         {:else}
+            {@const dateInfo = getDateInformation() }
+
             <BudgetLoader ynabToken="{ynabToken()}" month={dateInfo.month} today={dateInfo.today} {offset} />
             <small style="font-style: italic">
                 * The one-off category excludes &#10060; <b>house</b> and excludes &#10060;
@@ -79,14 +87,14 @@
 
             <MonthRangePicker bind:firstMonthstamp bind:lastMonthstamp />
 
-            <h3>Expenditure</h3>
-            <HistoryLoader ynabToken="{ynabToken()}" {firstMonthstamp} {lastMonthstamp} />
-<!--
-            <h3>Income</h3>
-            <IncomeHistoryLoader ynabToken="{ynabToken()}" {firstMonthstamp} {lastMonthstamp} />
+            <h4>Expenditure</h4>
+            <HistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
 
-            <h3>Cashflow</h3>
-            <CashflowLoader ynabToken="{ynabToken()}" {firstMonthstamp} {lastMonthstamp} /> -->
+            <h4>Income</h4>
+            <IncomeHistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
+
+            <h4>Cashflow</h4>
+            <CashflowLoader ynabToken="{ynabToken()}" {monthstamps} />
 
             <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
         {/if}
