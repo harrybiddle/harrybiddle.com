@@ -16,25 +16,49 @@
     ];
 
     // click handlers
+    function setter(caller) {
+        return () => {
+            const [a, b] = caller();
+            firstMonthstamp = a;
+            lastMonthstamp = b;
+        }
+    }
     function yearSoFar() {
-        firstMonthstamp = constructMonthstamp(currentYear, 0);
-        lastMonthstamp = constructMonthstamp(currentYear, 11);
+        return [
+            constructMonthstamp(currentYear, 0),
+            constructMonthstamp(currentYear, 11),
+        ];
     }
     function threeMonths() {
-        firstMonthstamp = _currentMonthstamp - 3;
-        lastMonthstamp = _currentMonthstamp - 1;
+        return [
+            _currentMonthstamp - 3,
+            _currentMonthstamp - 1,
+        ];
     }
     function sixMonths() {
-        firstMonthstamp = _currentMonthstamp - 6;
-        lastMonthstamp = _currentMonthstamp - 1;
+        return [
+            _currentMonthstamp - 6,
+            _currentMonthstamp - 1,
+        ];
     }
     function lastYear() {
-        firstMonthstamp = constructMonthstamp(currentYear - 1, 0);
-        lastMonthstamp = constructMonthstamp(currentYear - 1, 11);
+        return [
+            constructMonthstamp(currentYear - 1, 0),
+            constructMonthstamp(currentYear - 1, 11),
+        ];
+    }
+
+    // button styling
+    function cls(firstMonthstamp, lastMonthstamp, caller) {
+        const [a, b] = caller();
+        if (firstMonthstamp === a && lastMonthstamp === b)
+            return "";  // filled
+        else
+            return "outline";
     }
 
     // initiate with default values
-    sixMonths();
+    setter(sixMonths)();
 
 </script>
 
@@ -60,8 +84,23 @@
 
 <!-- Quick buttons -------------------------------------------------------------------->
 <div>
-    <button class="outline" type="button" on:click={yearSoFar}>Year so far</button>
-    <button class="outline" type="button" on:click={threeMonths}>3 months</button>
-    <button class="outline" type="button" on:click={sixMonths}>6 months</button>
-    <button class="outline" type="button" on:click={lastYear}>Last year</button>
+    <button type="button"
+        class={cls(firstMonthstamp, lastMonthstamp, yearSoFar)}
+        on:click={setter(yearSoFar)}
+    >Year so far</button>
+
+    <button type="button"
+        class={cls(firstMonthstamp, lastMonthstamp, threeMonths)}
+        on:click={setter(threeMonths)}
+    >3 months</button>
+
+    <button type="button"
+        class={cls(firstMonthstamp, lastMonthstamp, sixMonths)}
+        on:click={setter(sixMonths)}
+    >6 months</button>
+
+    <button type="button"
+        class={cls(firstMonthstamp, lastMonthstamp, lastYear)}
+        on:click={setter(lastYear)}
+    >Last year</button>
 </div>
