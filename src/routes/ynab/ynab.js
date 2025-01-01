@@ -301,3 +301,27 @@ export function parse(budgets) {
 	/* Parse hierarchical budget response (one per month) to a flat list */
 	return budgets.flatMap(parseBudget).filter((d) => d.activity != 0);
 }
+
+export function monthstampFromDateString(dateString) {
+    const date = new Date(dateString);
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    return constructMonthstamp(year, month);
+}
+
+export function parseMonthstamp(monthstamp) {
+    const year = Math.floor(monthstamp / 12);
+    const month = monthstamp % 12;
+	const date = new Date(Date.UTC(year, month, 1));
+	const monthString = date.toLocaleString(undefined, { month: 'long' });
+    return { year, month, date, monthString };
+}
+
+export function constructMonthstamp(year, month) {
+	return 12 * year + month;
+}
+
+export function currentMonthstamp() {
+	const date = new Date();
+	return constructMonthstamp(date.getUTCFullYear(), date.getUTCMonth());
+}

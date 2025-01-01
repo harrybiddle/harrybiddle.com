@@ -23,6 +23,8 @@ sudo squid -k check
 
 - Two predictions: what's been budgeted, and what is projected (based on an improved algorithm!)
 - Expand top transactions
+- Replace %yearly% transactions with the past year's average and make it clear by having a grey bar
+    - OR a yearly budget?
 
 ## One-off chart
 

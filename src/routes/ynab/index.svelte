@@ -7,6 +7,7 @@
     import HistoryLoader from "./HistoryLoader.svelte";
 	import IncomeHistoryLoader from './IncomeHistoryLoader.svelte';
 	import CashflowLoader from './CashflowLoader.svelte';
+	import MonthRangePicker from './MonthRangePicker.svelte';
 
     const inputtedTokenValue = writable();
 
@@ -41,7 +42,8 @@
         // --------------------------------------------------------------------------------
     }
 
-    let historyPeriod = "yearSoFar";
+    let firstMonthstamp;
+    let lastMonthstamp;
 </script>
 
 <style>
@@ -56,11 +58,6 @@
         transform-origin: top;
     }
 
-    select {
-        padding:
-            calc(0.5 * var(--form-element-spacing-vertical))
-            calc(0.5 * var(--form-element-spacing-horizontal));
-    }
 </style>
 
 <div id="scaled">

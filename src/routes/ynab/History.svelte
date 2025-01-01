@@ -51,7 +51,7 @@
     function constructDefaultChoices(categories) {
         // we make an initial guess at which categories should be shown and averaged,
         const shouldAverage = (category) => noteIsYearly(category.note);
-        const shouldShow = (category) => !["House Purchase", "Mortgage Amortisation", "Owings"].includes(category.category);
+        const shouldShow = (category) => !["House Purchase", "Mortgage Amortisation", "Owings", "House"].includes(category.category);
 
         // construct choices
         const hierarchy = makeHierarchy(categories);
