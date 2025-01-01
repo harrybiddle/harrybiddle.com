@@ -55,4 +55,3 @@ sudo squid -k check
 - Work off transactions?
 - Prettier layout of configuration options & chart
 - View linear prediction for current month?
-- Allow any start and end month
