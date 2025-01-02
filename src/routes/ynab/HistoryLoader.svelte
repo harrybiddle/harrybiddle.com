@@ -12,7 +12,7 @@
 
         // fetch data. TODO: do we need to fetch the whole budget?
         if (live) {
-            const transfers = []; // await loadTransfers(_monthstamps, ynabToken, budgetId);
+            const transfers = await loadTransfers(_monthstamps, ynabToken, budgetId);
             const expenditure = await loadExpenditure(_monthstamps, ynabToken, budgetId);
             return [...parse(expenditure), ...transfers];
         }

@@ -8,6 +8,7 @@
 	import IncomeHistoryLoader from './IncomeHistoryLoader.svelte';
 	import CashflowLoader from './CashflowLoader.svelte';
 	import MonthRangePicker from './MonthRangePicker.svelte';
+	import Tabs from './Tabs.svelte';
 
     const inputtedTokenValue = writable();
 
@@ -87,14 +88,17 @@
 
             <MonthRangePicker bind:firstMonthstamp bind:lastMonthstamp />
 
-            <h4>Expenditure</h4>
-            <HistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
-
-            <h4>Income</h4>
-            <IncomeHistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
-
-            <h4>Cashflow</h4>
-            <CashflowLoader ynabToken="{ynabToken()}" {monthstamps} />
+            <Tabs>
+                <div slot="tab0">
+                    <HistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
+                </div>
+                <div slot="tab1">
+                    <IncomeHistoryLoader ynabToken="{ynabToken()}" {monthstamps} />
+                </div>
+                <div slot="tab2">
+                    <CashflowLoader ynabToken="{ynabToken()}" {monthstamps} />
+                </div>
+            </Tabs>
 
             <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
         {/if}

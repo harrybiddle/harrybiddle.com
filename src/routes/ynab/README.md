@@ -32,10 +32,14 @@ sudo squid -k check
 
 ## History chart
 
-- A single configuration for all three charts (income/expenditure/net) and put the three charts in tabs.
-- Cashflow sankey:
-  - Pull gifts out of "Other", into own category?
-  - Testing suite for different situations
+- Add options for averaging. "Average over: timeframe, year, budget, none"
+- Profit/loss
+  - Sankey:
+    - Pull gifts out of "Other", into own category?
+    - Testing suite for different situations
+  - Revamp monthly profit/loss:
+    - Do not stack expenditure & income; just one single bar
+    - Add cumulative profit line
 - Averaging chart:
   - Shorten y-axis labels with truncate/ellipses instead of having a big margin, or wrap them
     https://github.com/observablehq/plot/issues/394
@@ -50,8 +54,12 @@ sudo squid -k check
   - Bug where radio option for Monthly/Averaged disappears on all but last element
   - Merge HistoryLoader and History widgets?
   - Check functionality of "reset" button
-  - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
+  - A single, shared configuration for all three charts (income/expenditure/net)
+  - Prettier container and layout
+  - "Income" and "Expenditure" headings for configuration
+  - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from
+  YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
 - Refactor to improve code readability
+  - Pull up loading of data higher up
 - Work off transactions?
-- Prettier layout of configuration options & chart
 - View linear prediction for current month?
