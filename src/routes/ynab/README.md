@@ -5,12 +5,30 @@ To start Squid:
 # start
 sudo squid -k start
 
-# cehck configuration
+# check configuration
 sudo squid -k check
 
 # configuration file
 /usr/local/etc/squid/squid.conf
 ```
+
+# Technical notes
+
+The dashboard runs off an array of the following data structure:
+
+ | Key               | Type       | Values | Note |
+ |-------------------|------------|--------|------|
+ | activity          | float      |        | Used for history & budget |
+ | budget            | float      |        | Used for history when averaging over budget; and for budget for scheduled & yearly |
+ | timeframe         | enum       | daily/monthly/yearly | |
+ | funded_by_savings | boolean    | yes/no | |
+ | scheduled         | boolean    | yes/no | |
+ | category_id       | identifier |        | |
+ | category          | string     |        | |
+ | group_id          | identifier |        | |
+ | group             | string     |        | |
+ | sankey_category   | enum       | ....   | |
+ | monthstamp        | integer    |        | |
 
 # To-do's
 

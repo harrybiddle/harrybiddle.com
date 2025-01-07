@@ -20,8 +20,6 @@ function _ynab(token, endpoint, params, i) {
 	);
 }
 
-export const ynab = memoize(_ynab);
-
 function url(endpoint, params = {}) {
 	let url = new URL(endpoint, 'https://api.ynab.com/v1/');
 	for (let [name, value] of Object.entries(params)) url.searchParams.append(name, value);
@@ -41,6 +39,8 @@ function memoize(fn) {
 		return (_cache[serializedArgs] = fn.apply(null, args));
 	};
 }
+
+export const ynab = memoize(_ynab);
 
 export function parseMonth(d) {
 	return {
