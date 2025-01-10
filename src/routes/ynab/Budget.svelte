@@ -1,134 +1,63 @@
+<!--
+    @SparkBarCatchup
+
+    Expects an array of objects like:
+
+        {
+            "monthstamp": 24300,
+            "is_income": false,
+            "is_scheduled": false,
+            "is_yearly": false,
+            "with_now": false,
+            "group_id": "d98ee767-55cd-4ebf-aef8-4c04ec828914",
+            "group": "Car",
+            "category": "Petrol",
+            "category_id": "25a313d2-8c32-42eb-b7ea-cfb6ed5310ba",
+            "activity": 0,
+            "budgeted": 0
+        }
+-->
 <script>
     /* To-do:
      *   - Add text for "last updated" (latest transaction)
-     *   - Collapse/expand category group on click
-     *   - Clearer styling (background color?) to distinguish category groups
-     *   - Consider striped rows for visual clarity
+     *   - Collapse/expand category on click
      *   - Maybe swap columns 2 and 4
-     *   - Column headers?
      */
     import BudgetRow from "./BudgetRow.svelte";
     import Accordion from "./Accordion.svelte";
 
     import * as d3 from 'd3';
 
-    import { parseBudget, noteIsMonthly, noteIsYearly, noteIsExclude, format, groupedSumBudgetedActivityScheduled } from "./ynab";
+    export let categories;
+    export let pNow;
+    export let pLines;
 
-    export let budget;
-    export let month;
-    export let today;
-    export let offset;
+    let groups  = [];
 
-    function mapRange(value, fromMin, fromMax, toMin, toMax) {
-        // Calculate the normalized value within the input range
-        const normalizedValue = (value - fromMin) / (fromMax - fromMin);
-
-        // Map the normalized value to the output range
-        return toMin + normalizedValue * (toMax - toMin);
-    }
-
-    // --------------------------------------------------------------------------------
-    // date operations
-    // --------------------------------------------------------------------------------
-    const target = month;
-    const currentDay = today;
-    let datesInMonth;
-    {
-        const start = target.startOf("month");
-        datesInMonth = Array.from(Array(start.daysInMonth()).keys()).map((x) =>
-            start.add(x, "days")
-        );
-    }
-    const saturdays = datesInMonth.filter((d) => d.day() == 6);
-    const numberDaysInMonth = datesInMonth.length;
-    const linesZeroToOne = saturdays.map((d) => d.date() / numberDaysInMonth);
-    const currentZeroToOne = offset == 0 ? currentDay / numberDaysInMonth : 1
-    // --------------------------------------------------------------------------------
-
-    const parsed = parseBudget(budget)
-        .filter(e => !noteIsExclude(e.note))
-        .map(
-            e => {
-                if (noteIsYearly(e.note)) {
-                    // for yearly amounts, make it scheduled and cap spending at a constant
-                    // budgeted amount
-                    e.scheduled = e.budgeted;
-                    e.activity = e.budgeted;
-                }
-                else if (noteIsMonthly(e.note)) {
-                    // if the item is spent on a monthly basis, remove it from the daily
-                    // count by setting the scheduled amount to be what was budgeted. However
-                    // allow the activity to exceed this if we did overspend
-                    e.scheduled = e.budgeted;
-                    e.activity = Math.max(e.activity, e.budgeted);
-                }
-
-                // British spelling for 'Uncategorized'
-                if (e.category === "Uncategorized") {
-                    e.group = "Uncategorised"
-                }
-
-                return e;
-            }
+    $: {
+        // group the categories into groups and add in the group total
+        // we also sort the groups and categories so the biggest are at the top
+        const nonzeroCategories = categories.filter(d => (d.activity || d.budgeted));
+        const budgetedAscending = (a, b) => b.budgeted - a.budgeted;
+        groups = d3.flatRollup(
+            nonzeroCategories,
+            _categories => ({
+                budgeted: d3.sum(_categories, e => e.budgeted),
+                activity: d3.sum(_categories, e => e.activity),
+                children: _categories.sort(budgetedAscending),
+                group_id: _categories[0].group_id,
+                group: _categories[0].group,
+                show: _categories[0].group === "Regular",
+            }),
+            // group by keys
+            d => d.group_id,
+            d => d.group,
         )
+        .map(([group_id, group, row]) => row)
+        .sort(budgetedAscending);
 
-    const projectedSpend = d3.sum(
-        parsed,
-        item => {
-            if (item.scheduled !== 0) {
-                return Math.max(item.scheduled, item.activity);
-            }
-            else {
-                return item.activity / currentZeroToOne;
-            }
-        }
-    )
-
-    function sumup(categories) {
-        return ({
-            budgeted: d3.sum(categories, e => e.budgeted),
-            activity: d3.sum(categories, e => e.activity),
-            scheduled: d3.sum(categories, e => e.scheduled), 
-        });
-    }    
-    
-    function addLines(c) {
-        const pToEuros = p => mapRange(p, 0, 1, c.scheduled, c.budgeted)
-        const current = pToEuros(currentZeroToOne)
-        return ({
-            lines: linesZeroToOne.map(pToEuros),
-            current: current,
-            remaining: current - c.activity,            
-        })
+        console.log(groups);
     }
-
-    const total = sumup(parsed);
-    const totalLines = addLines(total);
-
-    const nonzero = parsed.filter(d => (d.activity || d.budgeted || d.scheduled));
-    const final = d3.flatRollup(
-        nonzero,
-        categories => {
-            const groupTotal = sumup(categories);
-
-            const children = groupedSumBudgetedActivityScheduled(
-			    categories,
-			    ({
-                    month: d => d.month, 
-                    group: c => c.group, 
-                    group_id: c => c.group_id, 
-                    id: c => c.category_id, 
-                    name: c => c.category,
-                }),
-			    0 /* level */
-		    );
-
-            return ({...groupTotal, children: children})
-        },
-        d => d.group_id,
-        d => d.group,
-    ).map(([group_id, group, row]) => ({...row, name: group, level: 1, show: group === "Regular"}))
-    .sort((a, b) => b.budgeted - a.budgeted);
 </script>
 
 <style>
@@ -140,79 +69,51 @@
 
     .grid {
         display: grid;
-        grid-template-columns: 
-            120px                         /* Label:    fixed width     */
-            50px                          /* Budgeted: fixed width     */
+        grid-template-columns:
+            120px                         /* Label:    fixed width           */
+            50px                          /* Budgeted: fixed width           */
             calc(100% - 120px - 50px - 60px - var(--overflow-column-width))  /* Sparkbar: remaining space */
-            60px                          /* Excess:   fixed width     */
-            var(--overflow-column-width)  /* Remaining: fixed with, overflow */
+            60px                          /* Remaining: fixed width          */
+            var(--overflow-column-width)  /* Excess:    fixed with, overflow */
         ;
         font-size: 0.7954545455em;  /* 17.5 px                   */
         gap: 0px;
 
         /* Set width to over 100% to force overflow */
-        width: calc(100% + var(--overflow-column-width));  
+        width: calc(100% + var(--overflow-column-width));
     }
 </style>
 
-<p>
-    Estimated spend at end of month: {format(projectedSpend)}
-</p>
-
 <div id="grid-container">
 
-    <!-- Total -->
-    <div class="grid">    
-        <BudgetRow 
-            activity={total.activity}
-            budgeted={total.budgeted}
-            current={totalLines.current}
-            level=2
-            lines={totalLines.lines}
-            name="Total"
-            remaining={totalLines.remaining}
-            scheduled={total.scheduled}
-        />    
-    </div>
-
     <!-- Category Groups -->
-    {#each final as c}
-        {@const m = addLines(c)}
-
-        <Accordion open={c.show}>
+    {#each groups as group}
+        <Accordion open={group.show}>
             <div class="grid" slot="head">
-                <BudgetRow 
-                    activity={c.activity}
-                    budgeted={c.budgeted}
-                    current={m.current}
-                    level={c.level}
-                    lines={m.lines}
-                    name={c.name}
-                    remaining={m.remaining}
-                    scheduled={c.scheduled}
-                />    
+                <BudgetRow
+                    activity={group.activity}
+                    budgeted={group.budgeted}
+                    name={group.group}
+                    level=1
+                    {pLines}
+                />
             </div>
 
             <!-- Categories -->
             <div slot="body">
-                {#each c.children as child}
-                    {@const mchild = addLines(child)}
-
-                    <div class="grid">    
-                        <BudgetRow 
-                            activity={child.activity}
-                            budgeted={child.budgeted}
-                            current={mchild.current}
-                            level={child.level}
-                            lines={mchild.lines}
-                            name={child.name}
-                            remaining={mchild.remaining}
-                            scheduled={child.scheduled}
-                        />    
+                {#each group.children as category}
+                    <div class="grid">
+                        <BudgetRow
+                            activity={category.activity}
+                            budgeted={category.budgeted}
+                            name={category.category}
+                            level=0
+                            {pLines}
+                            pNow={category.with_now ? pNow : null}
+                        />
                     </div>
                 {/each}
             </div>
         </Accordion>
     {/each}
-
-</div>    
+</div>

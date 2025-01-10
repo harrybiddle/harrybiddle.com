@@ -1,36 +1,39 @@
 
 <script>
+	import { color } from "d3";
     import SparkBarCatchup from "./SparkBarCatchUp.svelte";
+    import SparkBarRemaining from "./SparkBarRemaining.svelte";
 
     import { format, formatZero } from "./ynab";
 
+    import { colours } from "./constants";
+
     export let activity;
     export let budgeted;
-    export let current;
-    export let level;
-    export let lines;
     export let name;
-    export let remaining;
-    export let scheduled;
+    export let level;
+    export let pLines = [];
+    export let pNow = null;
 
-    const colours = ({
-        blue: "#429EA6",
-        green: "#95E06C",
-        darkGreen: "#0B5D1E",
-        red: "#DA7422",
-        grey: "lightgrey"
-    });
-
-    function excessClass(remaining) {
-        if (remaining < 0) return "negativeExcess";
-        if (remaining < 5) return "zeroExcess";
-        else return "positiveExcess";
+    function colourRemaining(remaining) {
+        if (remaining < 0) return colours.red;
+        if (remaining < 5) return colours.grey;
+        else return colours.green;
     }
+
+    function colourExcess(remaining) {
+        if (remaining < 0) return colours.red;
+        if (remaining < 5) return colours.grey;
+        else return colours.teal;
+    }
+
+    let lines = [];
+    $: lines = pLines.map(p => p * budgeted);
 </script>
 
 <!-- Label (e.g. "Regular")-->
 <span class="label level{level}">
-    {name}{name === "One-Off" ? "*" : ""}
+    {name}
 </span>
 
 <!-- Budgeted amount (e.g. 1,200) -->
@@ -40,26 +43,36 @@
 
 <!-- Sparkbar -->
 <span class="sparkbar level{level}">
-    <SparkBarCatchup
-        activity={activity}
-        budgeted={budgeted}
-        scheduled={scheduled}
-        lines={lines}
-        current={current}
-    />
-</span>
-
-<!-- Excess (e.g. -50) -->
-<span 
-    class="excess level{level} {excessClass(remaining)}"
->
-    {formatZero(remaining)}
+    {#if pNow === null}
+        <SparkBarRemaining
+            {activity}
+            {budgeted}
+            {lines}
+        />
+    {:else}
+        <SparkBarCatchup
+            {activity}
+            {budgeted}
+            {lines}
+            expected={pNow * budgeted}
+        />
+    {/if}
 </span>
 
 <!-- Remaining -->
-<span class="remaining level{level} {excessClass(budgeted - activity)}">
+<span class="remaining level{level}" style="color: {colourRemaining(budgeted - activity)}">
     {format(budgeted - activity)}
 </span>
+
+<!-- Excess (e.g. -50) -->
+{#if pNow === null}
+    <span class="excess level{level}"></span>
+{:else}
+    {@const excess = budgeted * pNow - activity}
+    <span class="excess level{level}" style="color: {colourExcess(excess)}">
+        {formatZero(excess)}
+    </span>
+{/if}
 
 <style>
     span {
@@ -69,39 +82,25 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-transform: none;        
+        text-transform: none;
     }
     .level1 {
-        font-weight: bold;    
+        font-weight: bold;
         background: var(--pico-color-slate-50);
     }
-    .level2 {
-        font-weight: bold;
-        background: var(--pico-color-slate-100);
-        text-transform: uppercase;
-    }        
     .label {
         padding-left: 10px;
     }
-    .budgeted {        
+    .budgeted {
         text-align: right;
         color: var(--pico-color-slate-250);
     }
     .excess {
         padding-right: 10px;
         text-align: right;
-    }  
+    }
     .remaining {
         padding-right: 10px;
         text-align: right;
-    }        
-    .positiveExcess {
-        color: rgb(149, 224, 108);
     }
-    .negativeExcess {
-        color: rgb(218, 116, 34);
-    }
-    .zeroExcess {
-        color: var(--pico-color-slate-250);
-    }    
 </style>

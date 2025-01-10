@@ -27,11 +27,13 @@
     import ProfitLossPlotByMonth from './ProfitLossPlotByMonth.svelte';
     import ProfitLossPlotAveraged from './ProfitLossPlotAveraged.svelte';
 
-    import { format, noteIsYearly, groupedSumBudgetedActivityScheduled } from "./ynab";
+    import { format } from "./ynab";
 	import { onMount } from 'svelte';
 
     export let categories;
     export let dual = false;
+
+    const groupedSumBudgetedActivity = x => x;
 
     counter += 1;
 
@@ -41,7 +43,7 @@
             group: c.group,
             category_id: "c" + c.category_id,
             category: c.category,
-            note: c.note,
+            timeframe: c.timeframe,
         }));
         hierarchy = [...new Set(hierarchy.map(JSON.stringify))].map(JSON.parse);
         return hierarchy;
@@ -50,7 +52,7 @@
     // parsing of the budget data to a set of filtering/averaging choices
     function constructDefaultChoices(categories) {
         // we make an initial guess at which categories should be shown and averaged,
-        const shouldAverage = (category) => noteIsYearly(category.note);
+        const shouldAverage = (category) => category.timeframe === "year";
         const shouldShow = (category) => !["House Purchase", "Mortgage Amortisation", "Owings", "House"].includes(category.category);
 
         // construct choices
@@ -163,12 +165,12 @@
             ...(stacking === "averaged" ? {} : { month: (d) => d.month })
         };
         let data = [
-            ...groupedSumBudgetedActivityScheduled(
+            ...groupedSumBudgetedActivity(
                 groupsToSum,
                 { ...grouping, id: c => "g" + c.group_id, name: c => c.group },
                 1, // level
             ),
-            ...groupedSumBudgetedActivityScheduled(
+            ...groupedSumBudgetedActivity(
                 categoriesToSum,
                 { ...grouping, id: c => "c" + c.category_id, name: c => c.category },
                 2, // level

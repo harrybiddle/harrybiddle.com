@@ -1,6 +1,5 @@
 <script>
     import { loadIncome, parse } from "./ynab"
-    import { live } from "./constants"
     import History from "./History.svelte";
 
     export let ynabToken;
@@ -9,12 +8,7 @@
     const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
 
     async function fetchData(_monthstamps) {
-        if (live) {
-            return loadIncome(_monthstamps, ynabToken, budgetId);
-        }
-        else {
-            return new Promise(resolve => { resolve([]); })
-        }
+        return loadIncome(_monthstamps, ynabToken, budgetId);
     }
 
     let promise;
