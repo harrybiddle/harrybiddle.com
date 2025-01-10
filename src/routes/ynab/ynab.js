@@ -20,6 +20,7 @@ function _ynab(token, endpoint, params, i) {
 	);
 }
 
+
 function url(endpoint, params = {}) {
 	let url = new URL(endpoint, 'https://api.ynab.com/v1/');
 	for (let [name, value] of Object.entries(params)) url.searchParams.append(name, value);
@@ -179,6 +180,25 @@ function unroll(rollup, keys, label = 'value', p = {}) {
 	).flat();
 }
 
+
+export function groupedSumBudgetedActivity(iterable, getters, level) {
+	/* TODO: take groupGetter, nameGetter */
+
+	const asMap = d3.rollup(  // TODO: can we use flatRollup?
+			iterable,
+			categories => ({
+					budgeted: d3.sum(categories, e => e.budgeted),
+					activity: d3.sum(categories, e => e.activity),
+					scheduled: d3.sum(categories, e => e.scheduled)
+			}),
+			...Object.values(getters),
+	);
+	const asArray = unroll(asMap, Object.keys(getters));
+	const withLevel = asArray.map(e => ({ ...e, level }));
+	return withLevel;
+ }
+
+
 function parsePayee(payee_name, payee_id) {
 	if (!payee_name) {
 		return ({
@@ -304,7 +324,7 @@ export async function loadTransfers(monthstamps, ynabToken, budgetId, forSankey)
 			category: "Mortgage Amortisation",
 			group: forSankey ? "Mortgage" : "House",
 			group_id: forSankey ? "gMortgage" : "ac164e0b-237d-4a6f-8f95-618760ea9207",
-			month: monthOfDateString(t["date"])
+			monthstamp: monthstampFromDateString(t["date"])
 		})
 	)
 

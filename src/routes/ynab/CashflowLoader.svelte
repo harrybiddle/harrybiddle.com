@@ -13,22 +13,13 @@
 
         // fetch data. TODO: do we need to fetch the whole budget?
 
-        const income = await loadIncome(_monthstamps, ynabToken, budgetId);
+        const incomeResponse = await loadIncome(_monthstamps, ynabToken, budgetId);
         const expenditure = await loadExpenditure(_monthstamps, ynabToken, budgetId);
         const transfers = await loadTransfers(_monthstamps, ynabToken, budgetId, true);
 
-        // pull out house renovation category into its own group
-        const parsedExpenditure = parse(expenditure).map(d => ({...d, activity: -d.activity}));
-        parsedExpenditure.forEach(d => {
-            if (d.category_id === houseRenovationCategoryId) {
-                d.group = "House Renovation";
-                d.group_id = "gHouseRenovation";
-            }
-        });
-
         return [
-            ...parse(income),
-            ...parsedExpenditure,
+            ...parse(incomeResponse),
+            ...expenditure.map(d => ({...d, activity: -d.activity})),
             ...transfers.map(d => ({...d, activity: -d.activity}))
         ];
     }
@@ -41,7 +32,7 @@
 {#await promise}
     <p aria-busy="true">Loading data</p>
 {:then categories}
-    <History {categories} dual={true} />
+    <History {categories} {monthstamps} dual={true} />
 {:catch error}
     <p>Error {error.message}</p>
 {/await}

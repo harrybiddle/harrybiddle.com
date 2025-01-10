@@ -55,8 +55,6 @@
         )
         .map(([group_id, group, row]) => row)
         .sort(budgetedAscending);
-
-        console.log(groups);
     }
 </script>
 

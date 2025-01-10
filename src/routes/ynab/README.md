@@ -50,6 +50,7 @@ The dashboard runs off an array of the following data structure:
 
 ## History chart
 
+- Serious simplification of code needed!
 - Add options for averaging. "Average over: timeframe, year, budget, none"
 - Profit/loss
   - Sankey:

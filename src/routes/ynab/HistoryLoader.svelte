@@ -10,7 +10,7 @@
     async function fetchData(_monthstamps) {
         const transfers = await loadTransfers(_monthstamps, ynabToken, budgetId);
         const expenditure = await loadExpenditure(_monthstamps, ynabToken, budgetId);
-        return [...parse(expenditure), ...transfers];
+        return [...expenditure, ...transfers];
     }
 
     let promise;
@@ -21,7 +21,7 @@
 {#await promise}
     <p aria-busy="true">Loading data</p>
 {:then categories}
-    <History {categories} />
+    <History {categories} {monthstamps} />
 {:catch error}
     <p>Error</p>
 {/await}

@@ -27,23 +27,21 @@
     import ProfitLossPlotByMonth from './ProfitLossPlotByMonth.svelte';
     import ProfitLossPlotAveraged from './ProfitLossPlotAveraged.svelte';
 
-    import { format } from "./ynab";
+    import { format, groupedSumBudgetedActivity } from "./ynab";
 	import { onMount } from 'svelte';
 
     export let categories;
+    export let monthstamps;
     export let dual = false;
-
-    const groupedSumBudgetedActivity = x => x;
 
     counter += 1;
 
     function makeHierarchy(categories) {
         let hierarchy = categories.map((c) => ({
-            group_id: "g" + c.group_id,
+            group_id: c.group_id,
             group: c.group,
-            category_id: "c" + c.category_id,
+            category_id: c.category_id,
             category: c.category,
-            timeframe: c.timeframe,
         }));
         hierarchy = [...new Set(hierarchy.map(JSON.stringify))].map(JSON.parse);
         return hierarchy;
@@ -80,22 +78,6 @@
         return a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
     }
 
-    function getMonths(categories) {
-        const dates = categories.map(c => c.month);
-        const uniqueDates = new Set();
-        const result = [];
-
-        dates.forEach(date => {
-            const time = date.getTime();
-            if (!uniqueDates.has(time)) {
-                uniqueDates.add(time);
-                result.push(date);
-            }
-        });
-
-        return result;
-    }
-
     // applying the filtering and averaging logic to the budget data,
     // to produce the data for the chart
     function preprocessData(categories, choices, stacking) {
@@ -109,18 +91,17 @@
         );
         const visibleGroupIds = new Set(choices.filter((g) => g.show).map((g) => g.id));
         let visibleCategories = categories
-            .filter((c) => visibleGroupIds.has("g" + c.group_id))
-            .filter((c) => visibleCategoryIds.has("c" + c.category_id));
+            .filter((c) => visibleGroupIds.has(c.group_id))
+            .filter((c) => visibleCategoryIds.has(c.category_id));
 
         // replace values by averages when requested
         // TODO: clean up this code
-        const months = getMonths(categories);
-        const numberMonths = months.length;
+        const numberMonths = monthstamps.length;
         const categoryIdsToAverage = new Set(
             categoryChoices.filter((c) => c.average).map((c) => c.id),
         );
         const visibleCategoriesToAverage = visibleCategories.filter(
-            (c) => categoryIdsToAverage.has("c" + c.category_id)
+            (c) => categoryIdsToAverage.has(c.category_id)
         );
         const averages = d3.flatRollup(
             visibleCategoriesToAverage,
@@ -130,9 +111,9 @@
             (c) => c.group_id,
             (c) => c.group,
         );
-        const visibleAveragedCategories = cartesianProduct(months, averages).map(
-            ([month, category_id, category, group_id, group, activity]) => ({
-                month,
+        const visibleAveragedCategories = cartesianProduct(monthstamps, averages).map(
+            ([monthstamp, category_id, category, group_id, group, activity]) => ({
+                monthstamp,
                 category_id,
                 category,
                 group_id,
@@ -141,7 +122,7 @@
             }),
         );
         const visibleNonAveragedCategories = visibleCategories.filter(
-            (c) => !categoryIdsToAverage.has("c" + c.category_id),
+            (c) => !categoryIdsToAverage.has(c.category_id),
         );
         visibleCategories = [...visibleNonAveragedCategories, ...visibleAveragedCategories];
 
@@ -153,26 +134,26 @@
             choices.filter((g) => !g.expanded).map((g) => g.id),
         );
         let groupsToSum = visibleCategories.filter((c) =>
-            groupsIdsToCollapse.has("g" + c.group_id),
+            groupsIdsToCollapse.has(c.group_id),
         );
         let categoriesToSum = visibleCategories.filter(
-            (c) => !groupsIdsToCollapse.has("g" + c.group_id),
+            (c) => !groupsIdsToCollapse.has(c.group_id),
         );
 
         const grouping = {
             group: c => c.group,
             group_id: c => c.group_id,
-            ...(stacking === "averaged" ? {} : { month: (d) => d.month })
+            ...(stacking === "averaged" ? {} : { monthstamp: (d) => d.monthstamp })
         };
         let data = [
             ...groupedSumBudgetedActivity(
                 groupsToSum,
-                { ...grouping, id: c => "g" + c.group_id, name: c => c.group },
+                { ...grouping, id: c => c.group_id, name: c => c.group },
                 1, // level
             ),
             ...groupedSumBudgetedActivity(
                 categoriesToSum,
-                { ...grouping, id: c => "c" + c.category_id, name: c => c.category },
+                { ...grouping, id: c => c.category_id, name: c => c.category },
                 2, // level
             ),
         ];
@@ -211,9 +192,9 @@
         {/if}
     {:else if stacking === "monthly"}
         {#if dual}
-            <ProfitLossPlotByMonth {data} months={getMonths(categories)} />
+            <ProfitLossPlotByMonth {data} {monthstamps} />
         {:else}
-            <HistoryPlotByMonth {data} months={getMonths(categories)} />
+            <HistoryPlotByMonth {data} {monthstamps} />
         {/if}
     {/if}
 
