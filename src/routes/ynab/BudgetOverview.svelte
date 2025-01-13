@@ -88,7 +88,7 @@
     }
 </style>
 
-<div style="display: flex; flex-direction: column;">
+<div style="display: flex; flex-direction: column; margin-bottom: 50px;">
     <!-- income -->
     <div style="display: flex; flex-direction: column; align-items: flex-end">
         <div class="bar" style="width: {p(income)}%; background-color: {colours.teal}; color: white;">
