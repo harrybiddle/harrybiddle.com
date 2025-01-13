@@ -97,7 +97,7 @@
 />
 
 
-<h3>Flexible budget</h3>
+<h4>Flexible budget</h4>
 <Tabs label0="Monthly" label1="Yearly">
     <!-- Monthly Flexible Budget -->
     <div slot="tab0">
@@ -109,7 +109,7 @@
     </div>
 </Tabs>
 
-<h3>Scheduled</h3>
+<h4>Scheduled</h4>
 <Tabs label0="Monthly" label1="Yearly">
     <!-- TODO: Monthly Scheduled Budget -->
     <div slot="tab0">

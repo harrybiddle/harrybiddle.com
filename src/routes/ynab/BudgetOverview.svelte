@@ -73,51 +73,101 @@
 
 <style>
     div {
-        font-size: large;
+        height: 1.5em;
     }
-    .bar {
-        height: 2em;
-        margin: 5px 0px 5px 0px;
-        overflow: visible;
-        white-space: nowrap;
-
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
+    table {
+        border-spacing: 0;
+        border-collapse: collapse;
+    }
+    td {
+        padding: 0;
+        padding: 3px 0px;
+        border: 0px;
         padding-right: 5px;
+    }
+    td:first-child {
+        width: 100%;
+    }
+    td:nth-child(2) {
+        text-align: right;
+    }
+    td:not(:first-child) {
+        white-space: nowrap;
     }
 </style>
 
-<div style="display: flex; flex-direction: column; margin-bottom: 50px;">
+<table>
     <!-- income -->
-    <div style="display: flex; flex-direction: column; align-items: flex-end">
-        <div class="bar" style="width: {p(income)}%; background-color: {colours.teal}; color: white;">
-            Income {format(income)}
-        </div>
-    </div>
+    <tr>
+        <td>
+            <div style="margin-left: auto; width: {p(income)}%; background-color: {colours.green}"></div>
+        </td>
+        <td style="color: {colours.green}">
+            {format(income)}
+        </td>
+        <td style="color: {colours.green}">
+            Income
+        </td>
+    </tr>
 
     <!-- scheduled -->
-    <div style="display: flex; flex-direction: column; align-items: flex-end">
-        <div class="bar" style="width: {p(scheduled)}%; background-color: {colours.grey}; color: grey">Scheduled {format(scheduled)}</div>
-    </div>
+    <tr>
+        <td>
+            <div style="margin-left: auto; width: {p(scheduled)}%; background-color: lightgrey"></div>
+        </td>
+        <td style="color: grey">
+            {format(scheduled)}
+        </td>
+        <td style="color: grey">
+            Scheduled
+        </td>
+    </tr>
+    <!--
+    For demonstration, here is how we could underlay a "projected" amount
+    <tr>
+        <td>
+            <div style="height: 0px; overflow: visible">
+                <div style="margin-left: auto; width: {p(scheduled)}%; background-color: purple; z-index: -1; position: relative; top: -20px"></div>
+            </div>
+        </td>
+    </tr> -->
 
     <!-- yearly flexible -->
-    <div style="display: flex; flex-direction: column; align-items: flex-end">
-        <div class="bar" style="width: {p(yearlyFlexible)}%; margin-right: {p(scheduled)}%; background-color: {colours.grey}; color: grey">
-            Yearly flexible {format(yearlyFlexible)}
-        </div>
-    </div>
+    <tr>
+        <td>
+            <div style="margin-left: auto; margin-right: {p(scheduled)}%; width: {p(yearlyFlexible)}%; background-color: lightgrey"></div>
+        </td>
+        <td style="color: grey">
+            {format(yearlyFlexible)}
+        </td>
+        <td style="color: grey">
+            Yearly flexible
+        </td>
+    </tr>
 
     <!-- monthly flexible -->
-    <div style="display: flex; flex-direction: column; align-items: flex-end">
-        <div class="bar" style="width: {p(monthlyFlexible)}%; margin-right: {p(scheduled + yearlyFlexible)}%; background-color: {colours.grey}; color: grey">
-            Monthly flexible {format(monthlyFlexible)}
-        </div>
-    </div>
+    <tr>
+        <td>
+            <div style="margin-left: {p(Math.max(0, saving))}%; width: {p(monthlyFlexible)}%; background-color: lightgrey"></div>
+        </td>
+        <td style="color: grey">
+            {format(monthlyFlexible)}
+        </td>
+        <td style="color: grey">
+            Monthly flexible
+        </td>
+    </tr>
 
     <!-- savings/overspend -->
-    <div style="display: flex; flex-direction: column;">
-        <div class="bar" style="width: {p(Math.abs(saving))}%; background-color: {saving < 0 ? colours.red : colours.green};"></div>
-        <div style="white-space: nowrap; color: {saving < 0 ? colours.red : colours.green}">{saving < 0 ? "Overspend " : "Saving "}{format(saving)}</div>
-    </div>
-</div>
+    <tr>
+        <td>
+            <div style="width: {p(Math.abs(saving))}%; background-color: {saving < 0 ? colours.red : colours.green};"></div>
+        </td>
+        <td style="color: {saving < 0 ? colours.red : colours.green}">
+            {format(Math.abs(saving))}
+        </td>
+        <td style="color: {saving < 0 ? colours.red : colours.green}">
+            {saving < 0 ? "Overspend " : "Saving "}
+        </td>
+    </tr>
+</table>
