@@ -13,12 +13,12 @@
 
         // fetch data. TODO: do we need to fetch the whole budget?
 
-        const incomeResponse = await loadIncome(_monthstamps, ynabToken, budgetId);
+        const income = await loadIncome(_monthstamps, ynabToken, budgetId);
         const expenditure = await loadExpenditure(_monthstamps, ynabToken, budgetId);
         const transfers = await loadTransfers(_monthstamps, ynabToken, budgetId, true);
 
         return [
-            ...parse(incomeResponse),
+            ...income,
             ...expenditure.map(d => ({...d, activity: -d.activity})),
             ...transfers.map(d => ({...d, activity: -d.activity}))
         ];

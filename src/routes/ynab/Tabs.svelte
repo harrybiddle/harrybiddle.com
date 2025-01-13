@@ -1,5 +1,8 @@
 
 <script>
+    export let label0;
+    export let label1;
+    export let label2 = null;
     let active = 0;
 </script>
 
@@ -53,20 +56,22 @@
         class={`outline contrast ${active === 0 ? "selected" : "unselected"}`}
         on:click={() => active = 0}
     >
-        Expenditure
+        {label0}
     </button>
     <button
         class={`outline contrast ${active === 1 ? "selected" : "unselected"}`}
         on:click={() => active = 1}
     >
-        Income
+        {label1}
     </button>
-    <button
-        class={`outline contrast ${active === 2 ? "selected" : "unselected"}`}
-        on:click={() => active = 2}
-    >
-        Profit-Loss
-    </button>
+    {#if label2 !== null}
+        <button
+            class={`outline contrast ${active === 2 ? "selected" : "unselected"}`}
+            on:click={() => active = 2}
+        >
+            {label2}
+        </button>
+    {/if}
 </div>
 
 <article>

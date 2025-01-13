@@ -4,6 +4,8 @@
 
 import * as d3 from 'd3';
 
+const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
+
 function _ynab(token, endpoint, params, i) {
 	return new Promise((resolve, reject) =>
 		fetch(url(endpoint, params), {
@@ -231,7 +233,7 @@ function parsePayee(payee_name, payee_id) {
 
 const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
 
-export async function loadIncome(monthstamps, ynabToken, budgetId) {
+export async function loadIncome(monthstamps, ynabToken) {
 	// get all income transactions since the earliest date in the array
 	const sortedMonthstamps = monthstamps.sort(d3.ascending);
 	const firstMonthstamp = sortedMonthstamps[0];
@@ -273,10 +275,10 @@ export async function loadIncome(monthstamps, ynabToken, budgetId) {
 	)
 
 	// TODO: add any missing months
-	return data;
+	return parse(data).map(c => ({...c, is_income: true}));
 }
 
-export async function loadExpenditure(monthstamps, ynabToken, budgetId) {
+export async function loadExpenditure(monthstamps, ynabToken) {
 	const responses = await Promise.all(
 		monthstamps.map(monthstamp => {
 			const monthString = parseMonthstamp(monthstamp).dateString;
@@ -286,7 +288,20 @@ export async function loadExpenditure(monthstamps, ynabToken, budgetId) {
 	return parse(responses);
 }
 
-export async function loadTransfers(monthstamps, ynabToken, budgetId, forSankey) {
+export async function fetchData(monthstamps, ynabToken) {
+	const income = await loadIncome(monthstamps, ynabToken);
+	const expenditure = await loadExpenditure(monthstamps, ynabToken);
+	const transfers = await loadTransfers(monthstamps, ynabToken);
+
+	return [
+		...income,
+		...expenditure.map(d => ({...d, activity: -d.activity})),
+		...transfers.map(d => ({...d, activity: -d.activity}))
+	];
+
+}
+
+export async function loadTransfers(monthstamps, ynabToken, forSankey) {
 	// get all transactions since the earliest date in the array
 	const sortedMonthstamps = monthstamps.sort(d3.ascending);
 	const firstMonthstamp = sortedMonthstamps[0];
@@ -319,10 +334,11 @@ export async function loadTransfers(monthstamps, ynabToken, budgetId, forSankey)
 	)
 	const mortgageCategories = mortgageTransactions.map(
 		t => ({
+			is_income: false,
 			activity: t.amount / 1000,
 			category_id: "mortgage",
 			category: "Mortgage Amortisation",
-			group: forSankey ? "Mortgage" : "House",
+			group: forSankey ? "Mortgage" : "House",  // TODO use new Sankey category
 			group_id: forSankey ? "gMortgage" : "ac164e0b-237d-4a6f-8f95-618760ea9207",
 			monthstamp: monthstampFromDateString(t["date"])
 		})
@@ -333,13 +349,14 @@ export async function loadTransfers(monthstamps, ynabToken, budgetId, forSankey)
 	const owingsTransactions = await getTransactions(owingsAccountId);
 	const owingsCategories = owingsTransactions.map(
 		t => ({
+			// TODO: add yearly etc
+			is_income: false,
 			activity: t.amount / 1000,
 			category_id: "owings",
 			category: "Owings",
 			group: forSankey ? "Owings" : "Regular",
 			group_id: forSankey ? "gOwings" : "449c5313-e397-4aa7-91f2-400c49ef1301",
-			month: monthOfDateString(t["date"]),
-			note: "%yearly%",
+			monthstamp: monthstampFromDateString(t["date"])
 		})
 	)
 

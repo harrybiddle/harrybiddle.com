@@ -88,6 +88,11 @@
         font-weight: bold;
         background: var(--pico-color-slate-50);
     }
+    .level2 {
+        font-weight: bold;
+        background: var(--pico-color-slate-100);
+        text-transform: uppercase;
+    }
     .label {
         padding-left: 10px;
     }
