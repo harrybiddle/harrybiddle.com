@@ -69,95 +69,46 @@
      */
 
     const p = p => 100 * p / totalWidth;
-    const y = i => i / 70 * 50;
-
-    const fontSizePx = 5;
-    const marginRight = 0.3;  // i.e. 30%
-    const k = 1 - marginRight;
-
-    const viewboxX = 200;
-    const textPadding = viewboxX * 0.01;
-
 </script>
 
-<svg viewbox="0 0 {viewboxX} 70" width="100%">
+<style>
+    div {
+        font-size: large;
+    }
+    .bar {
+        height: 20px;
+        margin: 5px 0px 5px 0px;
+    }
+</style>
+
+<div style="display: flex; flex-direction: column;">
     <!-- income -->
-    <rect
-        x="{k * (100 - p(income))}%"
-        y="0"
-        height="{y(10)}"
-        width="{k * p(income)}%"
-        fill="{colours.teal}"
-    ></rect>
-    <text
-        x="{viewboxX * k + textPadding}"
-        y=0
-        dy="{fontSizePx}px"
-        font-size="{fontSizePx}px"
-        color="{colours.teal}"
-    >{format(income)} Income</text>
+    <div style="display: flex; align-items: center; justify-content: flex-end">
+        <div class="bar" style="width: {p(income)}%; background-color: {colours.teal};"></div>
+        <div style="position: absolute; left: {100 + 2}%; white-space: nowrap; color: {colours.teal}">{format(income)} Income</div>
+    </div>
 
     <!-- scheduled -->
-    <rect
-        x="{k * (100 - p(scheduled))}%"
-        y="{y(15)}"
-        height="{y(10)}"
-        width="{k * p(scheduled)}%"
-        fill="{colours.grey}"
-    ></rect>
-    <text
-        x="{viewboxX * k + textPadding}"
-        y="{y(15)}"
-        dy="{fontSizePx}px"
-        font-size="{fontSizePx}px"
-        color="grey"
-    >{format(scheduled)} Scheduled</text>
+    <div style="display: flex; align-items: center; justify-content: flex-end">
+        <div class="bar" style="width: {p(scheduled)}%; background-color: {colours.grey};"></div>
+        <div style="position: absolute; left: {100 + 2}%; white-space: nowrap; color: grey">{format(scheduled)} Income</div>
+    </div>
 
     <!-- yearly flexible -->
-    <rect
-        x="{k * (100 - p(scheduled) - p(yearlyFlexible))}%"
-        y="{y(30)}"
-        height="{y(10)}"
-        width="{k * p(yearlyFlexible)}%"
-        fill="{colours.grey}"
-    ></rect>
-    <text
-        x="{k * (100 - p(scheduled)) + textPadding}%"
-        y="{y(30)}"
-        dy="{fontSizePx}px"
-        font-size="{fontSizePx}px"
-        color="grey"
-    >{format(yearlyFlexible)} Yearly flexible</text>
+    <div style="display: flex; align-items: center; justify-content: flex-end">
+        <div class="bar" style="width: {p(yearlyFlexible)}%; margin-right: {p(scheduled)}%; background-color: {colours.grey};"></div>
+        <div style="position: absolute; left: {100 - p(scheduled) + 2}%; white-space: nowrap; color: grey">{format(yearlyFlexible)} Yearly flexible</div>
+    </div>
 
     <!-- monthly flexible -->
-    <rect
-        x="{k * (100 - p(scheduled) - p(yearlyFlexible) - p(monthlyFlexible))}%"
-        y="{y(45)}"
-        height="{y(10)}"
-        width="{k * p(monthlyFlexible)}%"
-        fill="{colours.grey}"
-    ></rect>
-    <text
-        x="{k * (100 - p(scheduled) - p(yearlyFlexible)) + textPadding}%"
-        y="{y(45)}"
-        dy="{fontSizePx}px"
-        font-size="{fontSizePx}px"
-        color="grey"
-    >{format(monthlyFlexible)} Monthly flexible</text>
+    <div style="display: flex; align-items: center; justify-content: flex-end">
+        <div class="bar" style="width: {p(monthlyFlexible)}%; margin-right: {p(scheduled + yearlyFlexible)}%; background-color: {colours.grey};"></div>
+        <div style="position: absolute; left: {100 - p(scheduled + yearlyFlexible) + 2}%; white-space: nowrap; color: grey">{format(monthlyFlexible)} Monthly flexible</div>
+    </div>
 
-    <!-- savings -->
-    <rect
-        x="0"
-        y="{y(60)}"
-        height={y(10)}
-        width="{k * p(Math.abs(saving))}%"
-        fill="{saving < 0 ? colours.red : colours.green}"
-    ></rect>
-    <text
-        x="{k * p(Math.abs(saving)) + textPadding}%"
-        y="{y(60)}"
-        dy="{fontSizePx}px"
-        font-size="{fontSizePx}px"
-        color="{saving < 0 ? colours.red : colours.green}"
-    >{format(Math.abs(saving))}{saving < 0 ? " Overspend": " Saving"}</text>
-</svg>
+    <!-- savings/overspend -->
+    <div style="display: flex; align-items: center;">
+        <div class="bar" style="width: {p(Math.abs(saving))}%; background-color: {saving < 0 ? colours.red : colours.green};"></div>
+        <div style="position: absolute; left: {p(Math.abs(saving)) + 2}%; white-space: nowrap; color: {saving < 0 ? colours.red : colours.green}">{format(saving)}{saving < 0 ? " Overspend" : " Saving"}</div>
+    </div>
+</div>

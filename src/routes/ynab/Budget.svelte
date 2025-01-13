@@ -95,28 +95,3 @@
     {categoriesYearlyFlexible}
     {categoriesYearlyScheduled}
 />
-
-
-<h3>Flexible budget</h3>
-<Tabs label0="Monthly" label1="Yearly">
-    <!-- Monthly Flexible Budget -->
-    <div slot="tab0">
-        <BudgetMonthlyFlexible categories={categoriesMonthlyFlexible} pNow={pNowMonth} pLines={pLinesMonth} />
-    </div>
-     <!-- TODO: Yearly Flexible Budget -->
-    <div slot="tab1">
-        <BudgetMonthlyFlexible categories={categoriesYearlyFlexible} pNow={pNowYear} pLines={pLinesYear} />
-    </div>
-</Tabs>
-
-<h3>Scheduled</h3>
-<Tabs label0="Monthly" label1="Yearly">
-    <!-- TODO: Monthly Scheduled Budget -->
-    <div slot="tab0">
-        <BudgetMonthlyFlexible categories={categoriesMonthlyScheduled} pNow={pNowMonth} pLines={pLinesMonth} />
-    </div>
-    <!-- Monthly Flexible Budget -->
-    <div slot="tab1">
-        <BudgetMonthlyFlexible categories={categoriesYearlyScheduled} pNow={pNowYear} pLines={pLinesYear} />
-    </div>
-</Tabs>
