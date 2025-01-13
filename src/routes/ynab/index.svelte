@@ -8,7 +8,7 @@
 	import MonthRangePicker from './MonthRangePicker.svelte';
 	import Tabs from './Tabs.svelte';
 
-    import { constructMonthstamp, loadProfitLoss, loadExpenditure, loadIncome } from "./ynab.js";
+    import { constructMonthstamp, loadProfitLoss, loadExpenditure, loadIncome, loadExpenditureAndTransfers } from "./ynab.js";
 
     const inputtedTokenValue = writable();
 
@@ -66,7 +66,7 @@
             else {
                 const ynabToken = localStorage.getItem("ynabToken")
                 profitLossPromise = loadProfitLoss(monthstamps, ynabToken);
-                expenditureHistoryPromise = loadExpenditure(monthstamps, ynabToken);
+                expenditureHistoryPromise = loadExpenditureAndTransfers(monthstamps, ynabToken);
                 incomeHistoryPromise = loadIncome(monthstamps, ynabToken);
             }
         }

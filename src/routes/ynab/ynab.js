@@ -136,54 +136,20 @@ export function parseBudget(budget) {
 	);
 }
 
-export function noteIsExclude(note) {
-	return (note || "").includes("%exclude%")
-}
-
-export function noteIsMonthly(note) {
-	return (note || "").includes("%monthly%")
-}
-
-export function noteIsYearly(note) {
-	return (note || "").includes("%yearly%")
-}
-
-export function humanMonth(dateObject) {
-	const months = [
-		'January',
-		'February',
-		'March',
-		'April',
-		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December'
-	];
-	const monthIndex = dateObject.getMonth();
-	return months[monthIndex];
-}
-
-export function getMonthFromString(monthString) {
-	return humanMonth(new Date(monthString));
-}
-
 export const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 export const formatZero = x => (Math.abs(x) < 5 ? '-' : format(x));
 
-function unroll(rollup, keys, label = 'value', p = {}) {
-	return Array.from(rollup, ([key, value]) =>
-		value instanceof Map
-			? unroll(value, keys.slice(1), label, Object.assign({}, { ...p, [keys[0]]: key }))
-			: Object.assign({}, { ...p, [keys[0]]: key, ...value })
-	).flat();
-}
 
 
 export function groupedSumBudgetedActivity(iterable, getters, level) {
+	function unroll(rollup, keys, label = 'value', p = {}) {
+		return Array.from(rollup, ([key, value]) =>
+			value instanceof Map
+				? unroll(value, keys.slice(1), label, Object.assign({}, { ...p, [keys[0]]: key }))
+				: Object.assign({}, { ...p, [keys[0]]: key, ...value })
+		).flat();
+	}
+
 	/* TODO: take groupGetter, nameGetter */
 
 	const asMap = d3.rollup(  // TODO: can we use flatRollup?
@@ -361,6 +327,13 @@ export async function loadTransfers(monthstamps, ynabToken, forSankey) {
 	)
 
 	return [...mortgageCategories, ...owingsCategories];
+}
+
+export async function loadExpenditureAndTransfers(monthstamps, ynabToken) {
+	const expenditure = await loadExpenditure(monthstamps, ynabToken);
+	const transfers = await loadTransfers(monthstamps, ynabToken);
+	return [...expenditure, ...transfers];
+
 }
 
 
