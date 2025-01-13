@@ -140,7 +140,7 @@
                 </div>
             </Tabs>
 
-                <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
+            <button type="button" on:click={clearYnabToken}>Clear YNAB token</button>
         {/if}
     {/if}
 </div>
