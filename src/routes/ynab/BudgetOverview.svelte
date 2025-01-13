@@ -76,39 +76,48 @@
         font-size: large;
     }
     .bar {
-        height: 20px;
+        height: 2em;
         margin: 5px 0px 5px 0px;
+        overflow: visible;
+        white-space: nowrap;
+
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding-right: 5px;
     }
 </style>
 
 <div style="display: flex; flex-direction: column;">
     <!-- income -->
-    <div style="display: flex; align-items: center; justify-content: flex-end">
-        <div class="bar" style="width: {p(income)}%; background-color: {colours.teal};"></div>
-        <div style="position: absolute; left: {100 + 2}%; white-space: nowrap; color: {colours.teal}">{format(income)} Income</div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end">
+        <div class="bar" style="width: {p(income)}%; background-color: {colours.teal}; color: white;">
+            Income {format(income)}
+        </div>
     </div>
 
     <!-- scheduled -->
-    <div style="display: flex; align-items: center; justify-content: flex-end">
-        <div class="bar" style="width: {p(scheduled)}%; background-color: {colours.grey};"></div>
-        <div style="position: absolute; left: {100 + 2}%; white-space: nowrap; color: grey">{format(scheduled)} Income</div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end">
+        <div class="bar" style="width: {p(scheduled)}%; background-color: {colours.grey}; color: grey">Scheduled {format(scheduled)}</div>
     </div>
 
     <!-- yearly flexible -->
-    <div style="display: flex; align-items: center; justify-content: flex-end">
-        <div class="bar" style="width: {p(yearlyFlexible)}%; margin-right: {p(scheduled)}%; background-color: {colours.grey};"></div>
-        <div style="position: absolute; left: {100 - p(scheduled) + 2}%; white-space: nowrap; color: grey">{format(yearlyFlexible)} Yearly flexible</div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end">
+        <div class="bar" style="width: {p(yearlyFlexible)}%; margin-right: {p(scheduled)}%; background-color: {colours.grey}; color: grey">
+            Yearly flexible {format(yearlyFlexible)}
+        </div>
     </div>
 
     <!-- monthly flexible -->
-    <div style="display: flex; align-items: center; justify-content: flex-end">
-        <div class="bar" style="width: {p(monthlyFlexible)}%; margin-right: {p(scheduled + yearlyFlexible)}%; background-color: {colours.grey};"></div>
-        <div style="position: absolute; left: {100 - p(scheduled + yearlyFlexible) + 2}%; white-space: nowrap; color: grey">{format(monthlyFlexible)} Monthly flexible</div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end">
+        <div class="bar" style="width: {p(monthlyFlexible)}%; margin-right: {p(scheduled + yearlyFlexible)}%; background-color: {colours.grey}; color: grey">
+            Monthly flexible {format(monthlyFlexible)}
+        </div>
     </div>
 
     <!-- savings/overspend -->
-    <div style="display: flex; align-items: center;">
+    <div style="display: flex; flex-direction: column;">
         <div class="bar" style="width: {p(Math.abs(saving))}%; background-color: {saving < 0 ? colours.red : colours.green};"></div>
-        <div style="position: absolute; left: {p(Math.abs(saving)) + 2}%; white-space: nowrap; color: {saving < 0 ? colours.red : colours.green}">{format(saving)}{saving < 0 ? " Overspend" : " Saving"}</div>
+        <div style="white-space: nowrap; color: {saving < 0 ? colours.red : colours.green}">{saving < 0 ? "Overspend " : "Saving "}{format(saving)}</div>
     </div>
 </div>
