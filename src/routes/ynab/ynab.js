@@ -288,7 +288,7 @@ export async function loadExpenditure(monthstamps, ynabToken) {
 	return parse(responses);
 }
 
-export async function fetchData(monthstamps, ynabToken) {
+export async function loadProfitLoss(monthstamps, ynabToken) {
 	const income = await loadIncome(monthstamps, ynabToken);
 	const expenditure = await loadExpenditure(monthstamps, ynabToken);
 	const transfers = await loadTransfers(monthstamps, ynabToken);
