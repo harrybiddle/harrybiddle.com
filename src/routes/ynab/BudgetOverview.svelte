@@ -20,7 +20,6 @@
 
         const expenditure = scheduled + monthlyFlexible + yearlyFlexible;
         totalWidth = Math.max(income, expenditure);
-        console.log(totalWidth);
 
         saving = income - expenditure;
     }
