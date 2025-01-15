@@ -12,7 +12,7 @@
     const calculateTotal = categories => d3.sum(categories, category => category.budgeted);
     const income = 6600;
 
-    let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0
+    let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0, savingColour = colours.green;
     $: {
         scheduled = calculateTotal(categoriesYearlyScheduled) / 12 + calculateTotal(categoriesMonthlyScheduled);
         monthlyFlexible = calculateTotal(categoriesMonthlyFlexible);
@@ -22,6 +22,7 @@
         totalWidth = Math.max(income, expenditure);
 
         saving = income - expenditure;
+        savingColour = saving < 0 ? colours.red : colours.green;
     }
 
     /*
@@ -74,100 +75,48 @@
 <style>
     div {
         height: 1.5em;
+        border: 1px solid lightgrey;
+        padding: 1px;
     }
-    table {
-        border-spacing: 0;
-        border-collapse: collapse;
-    }
-    td {
-        padding: 0;
-        padding: 3px 0px;
-        border: 0px;
-        padding-right: 5px;
-    }
-    td:first-child {
-        width: 100%;
-    }
-    td:nth-child(2) {
-        text-align: right;
-    }
-    td:not(:first-child) {
-        white-space: nowrap;
+    #container {
+        display: grid;
+        grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ".                income           income          income    income-amount           income-label"
+            ".                .                .               scheduled scheduled-amount        scheduled-label"
+            ".                .                yearly-flexible .         yearly-flexible-amount  yearly-flexible-label"
+            "monthly-flexible monthly-flexible .               .         monthly-flexible-amount monthly-flexible-label"
+            "savings          .                .               .         savings-amount          savings-label"
     }
 </style>
 
-<table>
-    <!-- income -->
-    <tr>
-        <td>
-            <div style="margin-left: auto; width: {p(income)}%; background-color: {colours.green}"></div>
-        </td>
-        <td style="color: {colours.green}">
-            {format(income)}
-        </td>
-        <td style="color: {colours.green}">
-            Income
-        </td>
-    </tr>
+<div
+    id="container"
+    style="grid-template-columns: {Math.abs(saving)}fr {monthlyFlexible - Math.abs(saving)}fr {yearlyFlexible}fr {scheduled}fr auto  auto;"
+>
+    <!-- Income -->
+    <div style="grid-area: income; background-color: {colours.green}"></div>
+    <div style="grid-area: income-amount; color: {colours.green}">{format(income)}</div>
+    <div style="grid-area: income-label; color: {colours.green}">Income</div>
+    <div style="grid-area: l"></div>
 
-    <!-- scheduled -->
-    <tr>
-        <td>
-            <div style="margin-left: auto; width: {p(scheduled)}%; background-color: lightgrey"></div>
-        </td>
-        <td style="color: grey">
-            {format(scheduled)}
-        </td>
-        <td style="color: grey">
-            Scheduled
-        </td>
-    </tr>
-    <!--
-    For demonstration, here is how we could underlay a "projected" amount
-    <tr>
-        <td>
-            <div style="height: 0px; overflow: visible">
-                <div style="margin-left: auto; width: {p(scheduled)}%; background-color: purple; z-index: -1; position: relative; top: -20px"></div>
-            </div>
-        </td>
-    </tr> -->
+    <!-- Scheduled -->
+    <div style="grid-area: scheduled; background-color: {colours.grey}"></div>
+    <div style="grid-area: scheduled-amount; color: {colours.grey}">{format(scheduled)}</div>
+    <div style="grid-area: scheduled-label; color: {colours.grey}">Scheduled</div>
 
-    <!-- yearly flexible -->
-    <tr>
-        <td>
-            <div style="margin-left: auto; margin-right: {p(scheduled)}%; width: {p(yearlyFlexible)}%; background-color: lightgrey"></div>
-        </td>
-        <td style="color: grey">
-            {format(yearlyFlexible)}
-        </td>
-        <td style="color: grey">
-            Yearly flexible
-        </td>
-    </tr>
+    <!-- Yearly flexible -->
+    <div style="grid-area: yearly-flexible; background-color: {colours.grey}"></div>
+    <div style="grid-area: yearly-flexible-amount; color: {colours.grey}">{format(yearlyFlexible)}</div>
+    <div style="grid-area: yearly-flexible-label; color: {colours.grey}">Yearly Flexible</div>
 
-    <!-- monthly flexible -->
-    <tr>
-        <td>
-            <div style="margin-left: {p(Math.max(0, saving))}%; width: {p(monthlyFlexible)}%; background-color: lightgrey"></div>
-        </td>
-        <td style="color: grey">
-            {format(monthlyFlexible)}
-        </td>
-        <td style="color: grey">
-            Monthly flexible
-        </td>
-    </tr>
+    <!-- Monthly flexible -->
+    <div style="grid-area: monthly-flexible; background-color: {colours.grey}"></div>
+    <div style="grid-area: monthly-flexible-amount; color: {colours.grey}">{format(monthlyFlexible)}</div>
+    <div style="grid-area: monthly-flexible-label; color: {colours.grey}">Monthly Flexible</div>
 
-    <!-- savings/overspend -->
-    <tr>
-        <td>
-            <div style="width: {p(Math.abs(saving))}%; background-color: {saving < 0 ? colours.red : colours.green};"></div>
-        </td>
-        <td style="color: {saving < 0 ? colours.red : colours.green}">
-            {format(Math.abs(saving))}
-        </td>
-        <td style="color: {saving < 0 ? colours.red : colours.green}">
-            {saving < 0 ? "Overspend " : "Saving "}
-        </td>
-    </tr>
-</table>
+    <!-- Savings -->
+    <div style="grid-area: savings; background-color: {savingColour}"></div>
+    <div style="grid-area: savings-amount; color: {savingColour}">{format(Math.abs(saving))}</div>
+    <div style="grid-area: savings-label; color: {savingColour}">{saving < 0 ? "Overspend" : "Savings"}</div>
+</div>
