@@ -29,23 +29,24 @@
 
     Positive savings
 
-         a (=0)               100
-     0   ┌───────────────────────┐
-         │                       │ income
-    10   └───────────────────────┘
-                           b   100
-    15                     ┌─────┐
-                           │     │ scheduled
-    25            c        └─────┘
-    30            ┌────────┐
-                  │        │ yearly flexible
-    40       d    └────────┘
-    45       ┌───┐
-             │   │ monthly flexible
-    55   0   └───┘
-    60   ┌──┐
-         │  │ savings
-    70   └──┘
+        a (=0)               100
+       ┌───────────────────────┐
+       │                       │ income
+       └───────────────────────┘
+       ┆                 b   100
+       ┆                 ┌─────┐
+       ┆                 │     │ scheduled
+       ┆        c        └─────┘
+       ┆        ┌────────┐
+       ┆        │        │ yearly flexible
+       ┆   d    └────────┘
+       ┆   ┌───┐
+       ┆   │   │ monthly flexible
+       0   └───┘
+       ┌──┐
+       │  │ savings
+       └──┘
+
 
     Negative savings
 
@@ -74,49 +75,79 @@
 
 <style>
     div {
-        height: 1.5em;
-        border: 1px solid lightgrey;
-        padding: 1px;
+        font-size: 0.9em;
     }
     #container {
         display: grid;
-        grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr auto auto;
+        grid-template-rows: repeat(5, 1fr);
+        grid-column-gap: 5px;
         grid-template-areas:
-            ".                income           income          income    income-amount           income-label"
-            ".                .                .               scheduled scheduled-amount        scheduled-label"
-            ".                .                yearly-flexible .         yearly-flexible-amount  yearly-flexible-label"
-            "monthly-flexible monthly-flexible .               .         monthly-flexible-amount monthly-flexible-label"
-            "savings          .                .               .         savings-amount          savings-label"
+            "svg income-amount           income-label"
+            "svg scheduled-amount        scheduled-label"
+            "svg yearly-flexible-amount  yearly-flexible-label"
+            "svg monthly-flexible-amount monthly-flexible-label"
+            "svg savings-amount          savings-label";
+        margin-bottom: 40px;
     }
+    #container > div {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .amount {
+        text-align: right
+    }
+
 </style>
 
-<div
-    id="container"
-    style="grid-template-columns: {Math.abs(saving)}fr {monthlyFlexible - Math.abs(saving)}fr {yearlyFlexible}fr {scheduled}fr auto  auto;"
->
-    <!-- Income -->
-    <div style="grid-area: income; background-color: {colours.green}"></div>
-    <div style="grid-area: income-amount; color: {colours.green}">{format(income)}</div>
+<div id="container">
+    <svg
+        viewBox="-1 0 102 50"
+        preserveAspectRatio="none"
+        style="grid-area: svg; height: 100%; width: 100%"
+    >
+        <!-- income -->
+        {#if true}
+            {@const x = 100 - p(income) }
+            {@const w = p(income) }
+
+            <rect x={x} y=2 width={w} height=6 fill="{colours.green}" stroke={colours.green} stroke-width="0.5px"></rect>
+            <line x1={x}     x2={x}     y1=8 y2=42 stroke={colours.green} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+            <line x1={x + w} x2={x + w} y1=8 y2=12 stroke={colours.green} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+        {/if}
+
+        <!-- scheduled -->
+        {#if true}
+            {@const x = 100 - p(scheduled)}
+            <rect x={x} y=12 width={p(scheduled)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
+            <line x1={x} x2={x} y1=18 y2=22 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+        {/if}
+
+        <!-- yearly flexible -->
+        {#if true}
+            {@const x = 100 - p(scheduled + yearlyFlexible)}
+            <rect x={x} y=22 width={p(yearlyFlexible)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
+            <line x1={x} x2={x} y1=28 y2=32 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+        {/if}
+
+        <!-- monthly flexible -->
+        {#if true}
+            <rect x=0 y=32 width={p(monthlyFlexible)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
+            <line x1=0 x2=0 y1=38 y2=42 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+        {/if}
+
+        <!-- savings -->
+        <rect x=0 y=42 width={p(Math.abs(saving))} height=6 fill={savingColour} stroke={savingColour} stroke-width="0.5px"></rect>
+    </svg>
+
+    <div style="grid-area: income-amount; color: {colours.green}" class="amount">{format(income)}</div>
     <div style="grid-area: income-label; color: {colours.green}">Income</div>
-    <div style="grid-area: l"></div>
-
-    <!-- Scheduled -->
-    <div style="grid-area: scheduled; background-color: {colours.grey}"></div>
-    <div style="grid-area: scheduled-amount; color: {colours.grey}">{format(scheduled)}</div>
-    <div style="grid-area: scheduled-label; color: {colours.grey}">Scheduled</div>
-
-    <!-- Yearly flexible -->
-    <div style="grid-area: yearly-flexible; background-color: {colours.grey}"></div>
-    <div style="grid-area: yearly-flexible-amount; color: {colours.grey}">{format(yearlyFlexible)}</div>
-    <div style="grid-area: yearly-flexible-label; color: {colours.grey}">Yearly Flexible</div>
-
-    <!-- Monthly flexible -->
-    <div style="grid-area: monthly-flexible; background-color: {colours.grey}"></div>
-    <div style="grid-area: monthly-flexible-amount; color: {colours.grey}">{format(monthlyFlexible)}</div>
-    <div style="grid-area: monthly-flexible-label; color: {colours.grey}">Monthly Flexible</div>
-
-    <!-- Savings -->
-    <div style="grid-area: savings; background-color: {savingColour}"></div>
-    <div style="grid-area: savings-amount; color: {savingColour}">{format(Math.abs(saving))}</div>
-    <div style="grid-area: savings-label; color: {savingColour}">{saving < 0 ? "Overspend" : "Savings"}</div>
+    <div style="grid-area: scheduled-amount; color: grey" class="amount">{format(scheduled)}</div>
+    <div style="grid-area: scheduled-label; color: grey">Scheduled</div>
+    <div style="grid-area: yearly-flexible-amount; color: grey" class="amount">{format(yearlyFlexible)}</div>
+    <div style="grid-area: yearly-flexible-label; color: grey">Yearly flexible</div>
+    <div style="grid-area: monthly-flexible-amount; color: grey" class="amount">{format(monthlyFlexible)}</div>
+    <div style="grid-area: monthly-flexible-label; color: grey">Monthly flexible</div>
+    <div style="grid-area: savings-amount; color: {savingColour}" class="amount">{format(saving)}</div>
+    <div style="grid-area: savings-label; color: {savingColour}">Savings</div>
 </div>

@@ -97,6 +97,7 @@
                 <button type="button" on:click={setYnabToken}>Submit</button>
             </article>
         {:else}
+            <h3>Budget</h3>
             {#await budgetPromise}
                 <p aria-busy="true">Loading data</p>
             {:then categories}
@@ -105,7 +106,7 @@
                 <p>Error</p><p>{error}</p>
             {/await}
 
-            <h2>History</h2>
+            <h3>History</h3>
             <MonthRangePicker bind:firstMonthstamp bind:lastMonthstamp />
 
             <Tabs label0="Expenditure" label1="Income" label2="Profit-Loss">

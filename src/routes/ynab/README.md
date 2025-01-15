@@ -27,6 +27,7 @@ The dashboard runs off an array of the following data structure:
 - Two predictions: what's been budgeted, and what is projected (based on an improved algorithm!)
 - Expand top transactions
 - Make both owings and mortgage amortisation a budget category in YNAB (i.e. make the "Owings" and "Mortgage" YNAb accounts assets rather than current accounts)
+- Ensure that budget is sufficient for upcoming payments
 
 ### History chart
 

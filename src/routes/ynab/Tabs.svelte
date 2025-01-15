@@ -3,6 +3,7 @@
     export let label0;
     export let label1;
     export let label2 = null;
+    export let label3 = null;
     let active = 0;
 </script>
 
@@ -72,6 +73,14 @@
             {label2}
         </button>
     {/if}
+    {#if label3 !== null}
+        <button
+            class={`outline contrast ${active === 3 ? "selected" : "unselected"}`}
+            on:click={() => active = 3}
+        >
+            {label3}
+        </button>
+    {/if}
 </div>
 
 <article>
@@ -81,5 +90,7 @@
         <slot name="tab1"></slot>
     {:else if active === 2}
         <slot name="tab2"></slot>
+    {:else if active === 3}
+        <slot name="tab3"></slot>
     {/if}
 </article>
