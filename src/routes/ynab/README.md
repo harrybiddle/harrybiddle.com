@@ -24,13 +24,17 @@ The dashboard runs off an array of the following data structure:
 
 ### Budget chart:
 
-- Two predictions: what's been budgeted, and what is projected (based on an improved algorithm!)
-- Expand top transactions
-- Make both owings and mortgage amortisation a budget category in YNAB (i.e. make the "Owings" and "Mortgage" YNAb accounts assets rather than current accounts)
+- Add boxes to the overview showing predicted amounts for the month
+- Expand top transactions when you click on a category budget row
+- Make the "Owings" YNAB accounts an asset rather than a current account and delete loadTransfers function
 - Ensure that budget is sufficient for upcoming payments
+- Animate overflowing labels (https://stackoverflow.com/questions/69228615/how-can-i-make-overflow-text-animate-from-left-to-right)
+- Better widget for scheduled payments
+- Don't expand "Regular" in the scheduled payments
 
 ### History chart
 
+- Consider grouping into yearly/monthly flexible/scheduled?
 - Serious simplification of code needed!
 - Add options for averaging. "Average over: timeframe, year, budget, none"
 - Profit/loss
