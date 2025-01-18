@@ -49,27 +49,51 @@
 
     // parsing of the budget data to a set of filtering/averaging choices
     function constructDefaultChoices(categories) {
+        const metadata = new Map(...[categories.map(c => [c.category_id, c])]);
+
         // we make an initial guess at which categories should be shown and averaged,
-        const shouldAverage = (category) => category.timeframe === "year";
-        const shouldShow = (category) => !["House Purchase", "Mortgage Amortisation", "Owings", "House"].includes(category.category);
+        function shouldAverage(hierarchyItem) {
+            const m = metadata.get(hierarchyItem.category_id);
+            if (m === undefined) return false;
+
+            return m.is_yearly;
+        }
+
+        function shouldShow(hierarchyItem) {
+            const m = metadata.get(hierarchyItem.category_id);
+            if (m === undefined) return true;
+
+            if (m.from_savings) return false;
+            if (m.category == "Owings") return false;
+            if (m.is_income) {
+                // define regular income
+                // TODO: harmonise with Sankey
+                if ((m.group === "Investments") && (m.category === "Interest")) return true
+                if (["Harry", "Louise"].includes(m.group)) return true
+                if ((m.group === "Other") && m.category.includes("Familienkasse")) return true;
+                return false
+            }
+            return true
+        }
 
         // construct choices
-        const hierarchy = makeHierarchy(categories);
+        const nonZero = categories.filter(c => Math.abs(c.activity) > 0);
+        const hierarchy = makeHierarchy(nonZero);
         const groups = d3.flatGroup(
             hierarchy,
             (c) => c.group_id,
             (c) => c.group,
         );
-        return groups.map(([group_id, group, cs]) => ({
+        return groups.map(([group_id, group, hierarchyItems]) => ({
             id: group_id,
             label: group,
             show: true,
             expanded: false,
-            children: cs.map((c) => ({
-                id: c.category_id,
-                label: c.category,
-                show: shouldShow(c),
-                average: shouldAverage(c),
+            children: hierarchyItems.map((hierarchyItem) => ({
+                id: hierarchyItem.category_id,
+                label: hierarchyItem.category,
+                show: shouldShow(hierarchyItem),
+                average: shouldAverage(hierarchyItem),
             })),
         }));
     }

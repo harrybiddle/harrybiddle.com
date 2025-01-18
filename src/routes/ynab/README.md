@@ -31,6 +31,7 @@ The dashboard runs off an array of the following data structure:
 - Animate overflowing labels (https://stackoverflow.com/questions/69228615/how-can-i-make-overflow-text-animate-from-left-to-right)
 - Better widget for scheduled payments
 - Don't expand "Regular" in the scheduled payments
+- Where to include budget from savings?
 
 ### History chart
 
@@ -61,3 +62,4 @@ The dashboard runs off an array of the following data structure:
   - "Income" and "Expenditure" headings for configuration
   - Stable configuration when changing time frame (i.e. persist configuration in browser during update of data from
   YNAB). Picker should store current state in a Storage of some kind and try to merge current state with new state when it is ...re-mounted? Updated?
+  - Add two levels: one for income vs expenditure, and one for the "Category |" in memo, particularly for holidays
