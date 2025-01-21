@@ -18,6 +18,23 @@ The dashboard runs off an array of the following data structure:
  | sankey_category   | enum       | ....   | |
  | monthstamp        | integer    |        | |
 
+### Change to split activity and budget
+
+The Budget component needs:
+
+ - a list of monthly categories with the budget & activity, divided into flexible & scheduled
+   only need the information for the latest month
+ - a list of yearly categories with the budget & activity, divided into flexible & scheduled
+   need the budgeted amount for the year plus the total spent this year so far
+ - note: both only from_savings=False
+
+The History component needs:
+
+ - a list of monthly categories, one for each month with the activity
+   also whether to show or hide by default (i.e. from_savings or not)
+ - a list of yearly categories, one for each month with the activity that month
+ - a map of yearly categories to the budget for the current year
+
 ## To-do's
 
 - Font size and scale is a mess!
