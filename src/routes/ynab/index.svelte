@@ -8,7 +8,7 @@
 	import MonthRangePicker from './MonthRangePicker.svelte';
 	import Tabs from './Tabs.svelte';
 
-    import { constructMonthstamp, loadProfitLoss, loadExpenditure, loadIncome, loadExpenditureAndTransfers } from "./ynab.js";
+    import { constructMonthstamp, loadProfitLoss, loadExpenditureActivity, loadExpenditureMetadata, loadIncome, loadExpenditureAndTransfers } from "./ynab.js";
 
     const inputtedTokenValue = writable();
 
@@ -39,7 +39,7 @@
     }
 
     // Fetching budget
-    let budgetPromise = null
+    let budgetPromise = null;
     $: {
         const firstMonthstampOfYear = constructMonthstamp(today.getFullYear(), 0);
         const monthstamps = rangeArray(firstMonthstampOfYear, currentMonthstamp + 1);
@@ -47,7 +47,10 @@
             if (!ynabTokenIsInLocalStorage()) budgetPromise = null;
             else {
                 const ynabToken = localStorage.getItem("ynabToken")
-                budgetPromise = loadExpenditure(monthstamps, ynabToken);
+                budgetPromise = Promise.all([
+                    loadExpenditureActivity(monthstamps, ynabToken),
+                    loadExpenditureMetadata(monthstamps, ynabToken),
+                ])
             }
         }
     }
@@ -100,8 +103,8 @@
             <h3>Budget</h3>
             {#await budgetPromise}
                 <p aria-busy="true">Loading data</p>
-            {:then categories}
-                <Budget {categories} monthstamp={currentMonthstamp} day={today.getDate()} />
+            {:then [activity, metadata]}
+                <Budget {activity} {metadata} monthstamp={currentMonthstamp} day={today.getDate()} />
             {:catch error}
                 <p>Error</p><p>{error}</p>
             {/await}

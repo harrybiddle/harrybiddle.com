@@ -6,7 +6,8 @@
 
     import * as d3 from 'd3';
 
-    export let categories;  // all data, array
+    export let activity;    // an array of category ids and their activity
+    export let metadata;    // a map of category id to metadata and budget
     export let monthstamp;  // current monthstamp, int
     export let day;         // current day of month, int
 
@@ -19,6 +20,13 @@
     let pNowMonth = 0, pNowYear = 0;
     let pLinesMonth = [];
     $: {
+        // join activity and budget data
+        const categoryIds = new Set();
+        activity.forEach(entry => {categoryIds.add(entry.category_id)});
+        [...metadata.keys()].forEach(categoryId => {categoryIds.add(categoryId)});
+
+        const categories = [];
+
         // ------------------------------------------------------------------------- //
         // sort the data into four different buckets
         // ------------------------------------------------------------------------- //

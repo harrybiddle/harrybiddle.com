@@ -118,11 +118,6 @@ export function parseMonth(budgetCategory) {
 	};
 }
 
-function monthOfDateString(dateString) {
-	const date = new Date(dateString);
-	return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
 export function parseBudget(budget) {
 	return (
 		budget.month.categories
@@ -138,8 +133,6 @@ export function parseBudget(budget) {
 
 export const format = x => d3.format(',.2r')(Math.round(x / 10) * 10);
 export const formatZero = x => (Math.abs(x) < 5 ? '-' : format(x));
-
-
 
 export function groupedSumBudgetedActivity(iterable, getters, level) {
 	function unroll(rollup, keys, label = 'value', p = {}) {
@@ -244,19 +237,45 @@ export async function loadIncome(monthstamps, ynabToken) {
 	return parse(data).map(c => ({...c, is_income: true}));
 }
 
-export async function loadExpenditure(monthstamps, ynabToken) {
+async function loadExpenditure(monthstamps, ynabToken) {
 	const responses = await Promise.all(
 		monthstamps.map(monthstamp => {
 			const monthString = parseMonthstamp(monthstamp).dateString;
 			return ynab(ynabToken, `budgets/${budgetId}/months/${monthString}`, {})
 		})
 	)
-	return parse(responses);
+	return parse(responses)
+}
+
+export async function loadExpenditureActivity(monthstamps, ynabToken) {
+	const categories = await loadExpenditure(monthstamps, ynabToken);
+	return categories.map(category => ({
+		category_id: category.category_id,
+		activity: category.activity,
+	}));
+
+export async function loadExpenditureMetadata(monthstamps, ynabToken) {
+	const categories = await loadExpenditure(monthstamps, ynabToken);
+	return new Map(...categories.map(category => [
+		category.id,
+		({
+			is_income: category.is_income,
+			is_scheduled: category.is_scheduled,
+			is_yearly: category.is_yearly,
+			with_now: category.with_now,
+			from_savings: category.from_savings,
+			group_id: category.group_id,
+			group: category.group,
+			category: category.category,
+			category_id: category.category_id,
+			budgeted: category.budgeted,
+		})
+	]))
 }
 
 export async function loadProfitLoss(monthstamps, ynabToken) {
 	const income = await loadIncome(monthstamps, ynabToken);
-	const expenditure = await loadExpenditure(monthstamps, ynabToken);
+	const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
 	const transfers = await loadTransfers(monthstamps, ynabToken);
 
 	return [
@@ -330,7 +349,7 @@ export async function loadTransfers(monthstamps, ynabToken, forSankey) {
 }
 
 export async function loadExpenditureAndTransfers(monthstamps, ynabToken) {
-	const expenditure = await loadExpenditure(monthstamps, ynabToken);
+	const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
 	const transfers = await loadTransfers(monthstamps, ynabToken);
 	return [...expenditure, ...transfers];
 
