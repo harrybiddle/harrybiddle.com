@@ -63,7 +63,6 @@
             const m = metadata.get(hierarchyItem.category_id);
             if (m === undefined) return true;
 
-            if (!m.should_show) return false;
             if (m.is_income) {
                 // define regular income
                 // TODO: harmonise with Sankey
@@ -72,6 +71,7 @@
                 if ((m.group === "Other") && m.category.includes("Familienkasse")) return true;
                 return false
             }
+            if (!m.should_show) return false;
             return true
         }
 

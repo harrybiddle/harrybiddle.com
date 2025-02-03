@@ -474,17 +474,13 @@ export async function loadDataForBudget(today, ynabToken) {
 
 
 export async function loadProfitLoss(monthstamps, ynabToken) {
-	return [];
-	// const income = await loadIncome(monthstamps, ynabToken);
-	// const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
-	// const transfers = await loadTransfers(monthstamps, ynabToken);
+	const income = await loadIncome(monthstamps, ynabToken);
+	const expenditure = await fetchDataForExpenditureHistory(monthstamps, ynabToken);
 
-	// return [
-	// 	...income,
-	// 	...expenditure.map(d => ({...d, activity: -d.activity})),
-	// 	...transfers.map(d => ({...d, activity: -d.activity}))
-	// ];
-
+	return [
+		...income,
+		...expenditure.map(d => ({...d, activity: -d.activity})),
+	];
 }
 
 export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
