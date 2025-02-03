@@ -9,7 +9,7 @@
     export let categoriesYearlyFlexible;
     export let categoriesYearlyScheduled;
 
-    const calculateTotal = categories => d3.sum(categories, category => category.budgeted);
+    const calculateTotal = categories => d3.sum(categories, category => category.budget);
     const income = 7000;
 
     let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0, savingColour = colours.green;

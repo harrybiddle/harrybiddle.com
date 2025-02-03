@@ -1,81 +1,33 @@
 <script>
-    import { parseMonthstamp, constructMonthstamp } from "./ynab"
+    import { parseMonthstamp } from "./ynab"
     import BudgetMonthlyFlexible from "./BudgetMonthlyFlexible.svelte";
     import BudgetOverview from "./BudgetOverview.svelte";
     import Tabs from "./Tabs.svelte";
 
-    import * as d3 from 'd3';
+    /*
+        An array of objects with the following properties:
 
-    export let activity;    // an array of category ids and their activity
-    export let metadata;    // a map of category id to metadata and budget
+        | with_now
+        | scheduled
+        | budget
+        | activity
+        | category_id
+        | category
+        | group_id
+        | group
+
+        The first array should represent monthly budgeted amounts,
+        and the second yearly.
+    */
+    export let categoriesMonthly = [];
+    export let categoriesYearly = [];
     export let monthstamp;  // current monthstamp, int
     export let day;         // current day of month, int
-
-    let categoriesMonthlyFlexible = [];
-    let categoriesMonthlyScheduled = [];
-    let categoriesYearlyScheduled = [];
-    let categoriesYearlyFlexible = [];
 
     const pLinesYear = Array.from({ length: 11 }, (_, i) => (i + 1) / 12);
     let pNowMonth = 0, pNowYear = 0;
     let pLinesMonth = [];
     $: {
-        // join activity and budget data
-        const categoryIds = new Set();
-        activity.forEach(entry => {categoryIds.add(entry.category_id)});
-        [...metadata.keys()].forEach(categoryId => {categoryIds.add(categoryId)});
-
-        const categories = [];
-
-        // ------------------------------------------------------------------------- //
-        // sort the data into four different buckets
-        // ------------------------------------------------------------------------- //
-        const today = new Date();
-        const firstMonthstampOfYear = constructMonthstamp(today.getFullYear(), 0);
-        categories.forEach(category => {
-            if (category.from_savings) {
-                // skip
-            }
-            else if (category.is_yearly) {
-                if ((firstMonthstampOfYear <= category.monthstamp) && (category.monthstamp <= monthstamp)) {
-                    if (category.is_scheduled) {
-                        categoriesYearlyScheduled.push(category);
-                    } else {
-                        categoriesYearlyFlexible.push(category)
-                    }
-                }
-            }
-            else {
-                // monthly - keep this month only
-                if (category.monthstamp === monthstamp) {
-                    if (category.is_scheduled) {
-                        categoriesMonthlyScheduled.push(category);
-                    }
-                    else {
-                        categoriesMonthlyFlexible.push(category);
-                    }
-                }
-            }
-        });
-
-        // ------------------------------------------------------------------------- //
-        // hack yearly amounts to be the right total!
-        // TODO: how to handle this more elegantly?
-        // ------------------------------------------------------------------------- //
-        function hack(categories) {
-            return d3.flatRollup(
-                categories,
-                _categories => ({
-                    ..._categories[0],
-                    activity: d3.sum(_categories, c => c.activity),
-                    budgeted: 12 * d3.sum(_categories, c => c.budgeted) / _categories.length,
-                }),
-                category => category.category_id,
-            ).map(([_, c]) => c)
-        }
-        categoriesYearlyScheduled = hack(categoriesYearlyScheduled);
-        categoriesYearlyFlexible = hack(categoriesYearlyFlexible);
-
         // ------------------------------------------------------------------------- //
         // calculate progress through month
         // ------------------------------------------------------------------------- //
@@ -94,33 +46,52 @@
         pNowYear = (month + 1 + pNowMonth) / 12;
     }
 
+    const isScheduled = c => c.is_scheduled;
+    const isFlexible = c => !c.is_scheduled;
 </script>
 
 <!-- Budget Overview -->
 <BudgetOverview
-    {categoriesMonthlyFlexible}
-    {categoriesMonthlyScheduled}
-    {categoriesYearlyFlexible}
-    {categoriesYearlyScheduled}
+    categoriesMonthlyFlexible={categoriesMonthly.filter(isFlexible)}
+    categoriesMonthlyScheduled={categoriesMonthly.filter(isScheduled)}
+    categoriesYearlyFlexible={categoriesYearly.filter(isFlexible)}
+    categoriesYearlyScheduled={categoriesYearly.filter(isScheduled)}
 />
 
 
 <Tabs label0="Monthly flexible" label1="Yearly flexible" label2="Scheduled">
-    <!-- Monthly Flexible Budget -->
+    <!-- Monthly Flexible -->
     <div slot="tab0">
-        <BudgetMonthlyFlexible categories={categoriesMonthlyFlexible} pNow={pNowMonth} pLines={pLinesMonth} />
+        <BudgetMonthlyFlexible
+            categories={categoriesMonthly.filter(isFlexible)}
+            pNow={pNowMonth}
+            pLines={pLinesMonth}
+        />
     </div>
-     <!-- Yearly Flexible Budget -->
+
+    <!-- Yearly Flexible -->
     <div slot="tab1">
-        <BudgetMonthlyFlexible categories={categoriesYearlyFlexible} pNow={pNowYear} pLines={pLinesYear} />
+        <BudgetMonthlyFlexible
+            categories={categoriesYearly.filter(isFlexible)}
+            pNow={pNowYear}
+            pLines={pLinesYear}
+        />
     </div>
 
     <!-- Scheduled -->
     <div slot="tab2">
         <p style="margin-top: 20px; margin-bottom: 20px">Monthly:</p>
-        <BudgetMonthlyFlexible categories={categoriesMonthlyScheduled} pNow={pNowMonth} pLines={pLinesMonth} />
+        <BudgetMonthlyFlexible
+            categories={categoriesMonthly.filter(isScheduled)}
+            pNow={pNowMonth}
+            pLines={pLinesMonth}
+        />
 
         <p style="margin-top: 20px; margin-bottom: 20px">Yearly:</p>
-        <BudgetMonthlyFlexible categories={categoriesYearlyScheduled} pNow={pNowYear} pLines={pLinesYear} />
+        <BudgetMonthlyFlexible
+            categories={categoriesYearly.filter(isScheduled)}
+            pNow={pNowYear}
+            pLines={pLinesYear}
+        />
     </div>
 </Tabs>

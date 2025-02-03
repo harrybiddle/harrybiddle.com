@@ -1,8 +1,5 @@
-/*
- * TODO: better function and variable names!
- */
-
 import * as d3 from 'd3';
+import { mergeWith, keyBy, values } from 'lodash';
 
 const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
 
@@ -80,22 +77,13 @@ export function parseMonth(budgetCategory) {
 
 			{
 				"is_income":    false,
-				"is_scheduled": true/false,
-				"timeframe":    "year"/"month"/"day",
 				"group_id":     string,
 				"group":        string,
 				"category":     string,
 				"category_id":  string,
 				"activity":     float
-
 			}
 	*/
-
-	// the timeframe is "yearly" if we have a goal, regardless of the due date of the
-	// goal, and "monthly" if %monthly% is in the note
-	const goal = budgetCategory.goal_target;
-	const isYearly = Math.abs(goal) > 0;
-	const budgetedMillicents = isYearly ? (goal / 12) : budgetCategory.budgeted;
 
 	// British spelling for 'Uncategorized'
 	let categoryGroupName = budgetCategory.category_group_name;
@@ -105,16 +93,11 @@ export function parseMonth(budgetCategory) {
 
 	return {
 		is_income: false,
-		is_scheduled: (budgetCategory.note || "").includes("%scheduled%"),
-		is_yearly: isYearly,
-		with_now: (budgetCategory.note || "").includes("%now%"),
-		from_savings: (budgetCategory.note || "").includes("%from_savings%"),
 		group_id: budgetCategory.category_group_id,
 		group: categoryGroupName,
 		category: budgetCategory.name,
 		category_id: budgetCategory.id,
 		activity: -budgetCategory.activity / 1000,
-		budgeted: budgetedMillicents / 1000,
 	};
 }
 
@@ -192,6 +175,110 @@ function parsePayee(payee_name, payee_id) {
 
 const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
 
+async function loadMonthlyBudgetFor(currentMonthDateObject) {
+
+	/* Fetch an array of objects like
+		{
+			category_group_name: "Car"
+			name: "Petrol"
+			id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
+			scheduled: "FALSE"
+			with_now: "FALSE"
+			2025-01: "133"
+			2025-02: "133"
+			... etc
+		}
+	*/
+	let data = await d3.csv(
+		"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBwxAcU1N4A021x1EB9J3nmlXc78RrYP2fbD-e3Kqx_R3BXq9mfDf5Y3yyVNgfEPDZlqyTf5su_mv0/pub?gid=0&single=true&output=csv"
+	);
+
+	/* Parse to an array of objects like
+		{
+			id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
+			is_scheduled: false
+			with_now: false
+			budget: 133
+		}
+	*/
+	const currentMonthString = currentMonthDateObject.toISOString().slice(0, 7); // YYYY-MM
+	data = data.map((d) => ({
+		category_id: d.category_id,
+		is_scheduled: booleanValues.get(d.scheduled),
+		with_now: booleanValues.get(d.with_now),
+		budget: parseFloat(d[currentMonthString].replace(/,/g, ""))
+	}));
+
+	// Error if we have any nulls - indicating one or more column headers weren't expectead
+	data.forEach((item) => {
+		if (
+			item.category_id == null ||
+			item.is_scheduled == null ||
+			item.with_now == null ||
+			item.budget == null
+		) {
+			throw new Error(
+				"Missing or undefined value found in item: " + JSON.stringify(item)
+			);
+		}
+	});
+
+	return data;
+}
+
+const booleanValues = new Map([
+	["FALSE", false],
+	["TRUE", true]
+]);
+
+async function loadYearlyBudget() {
+
+	/* Fetch an array of objects like
+		{
+			category_group_name: "Car"
+			name: "Car Insurance"
+			id: "4dc8e93e-7b2a-4282-9af1-fafaaefb95b8"
+			scheduled: "TRUE"
+			with_now: "FALSE"
+			budget: "871"
+		}
+	*/
+	let data = await d3.csv(
+		"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBwxAcU1N4A021x1EB9J3nmlXc78RrYP2fbD-e3Kqx_R3BXq9mfDf5Y3yyVNgfEPDZlqyTf5su_mv0/pub?gid=885055322&single=true&output=csv"
+	);
+
+	/* Parse to an array of objects like
+		{
+			id: "4dc8e93e-7b2a-4282-9af1-fafaaefb95b8"
+			scheduled: true
+			with_now: false
+			budget: 871
+		}
+	*/
+	data = data.map((d) => ({
+		category_id: d.category_id,
+		is_scheduled: booleanValues.get(d.scheduled),
+		with_now: booleanValues.get(d.with_now),
+		budget: parseFloat(d.budget.replace(/,/g, ""))
+	}));
+
+	// Error if we have any nulls - indicating one or more column headers weren't expectead
+	data.forEach((item) => {
+		if (
+			item.category_id == null ||
+			item.is_scheduled == null ||
+			item.with_now == null ||
+			item.budget == null
+		) {
+			throw new Error(
+				"Missing or undefined value found in item: " + JSON.stringify(item)
+			);
+		}
+	});
+
+	return data;
+}
+
 export async function loadIncome(monthstamps, ynabToken) {
 	// get all income transactions since the earliest date in the array
 	const sortedMonthstamps = monthstamps.sort(d3.ascending);
@@ -237,7 +324,11 @@ export async function loadIncome(monthstamps, ynabToken) {
 	return parse(data).map(c => ({...c, is_income: true}));
 }
 
-async function loadExpenditure(monthstamps, ynabToken) {
+export function rangeArray(a, b) {
+	return Array.from({ length: b - a }, (_, i) => a + i);
+}
+
+async function fetchCategoriesFromYnab(monthstamps, ynabToken) {
 	const responses = await Promise.all(
 		monthstamps.map(monthstamp => {
 			const monthString = parseMonthstamp(monthstamp).dateString;
@@ -247,42 +338,125 @@ async function loadExpenditure(monthstamps, ynabToken) {
 	return parse(responses)
 }
 
-export async function loadExpenditureActivity(monthstamps, ynabToken) {
-	const categories = await loadExpenditure(monthstamps, ynabToken);
-	return categories.map(category => ({
-		category_id: category.category_id,
-		activity: category.activity,
-	}));
-
-export async function loadExpenditureMetadata(monthstamps, ynabToken) {
-	const categories = await loadExpenditure(monthstamps, ynabToken);
-	return new Map(...categories.map(category => [
-		category.id,
-		({
-			is_income: category.is_income,
-			is_scheduled: category.is_scheduled,
-			is_yearly: category.is_yearly,
-			with_now: category.with_now,
-			from_savings: category.from_savings,
-			group_id: category.group_id,
-			group: category.group,
-			category: category.category,
-			category_id: category.category_id,
-			budgeted: category.budgeted,
-		})
-	]))
+function outerJoin(list1, list2, key) {
+	return values(
+		mergeWith(
+			keyBy(list1, key),
+			keyBy(list2, key),
+			(objValue, srcValue) => mergeWith(objValue, srcValue, (a, b) => a ?? b)
+		)
+	);
 }
 
-export async function loadProfitLoss(monthstamps, ynabToken) {
-	const income = await loadIncome(monthstamps, ynabToken);
-	const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
-	const transfers = await loadTransfers(monthstamps, ynabToken);
+export async function loadDataForBudget(today, ynabToken) {
 
-	return [
-		...income,
-		...expenditure.map(d => ({...d, activity: -d.activity})),
-		...transfers.map(d => ({...d, activity: -d.activity}))
-	];
+	// fetch budget information from Google sheets
+	const monthlyBudget = await loadMonthlyBudgetFor(today);
+	const yearlyBudget = await loadYearlyBudget();
+
+	// fetch category hierarchy and activity information from YNAB
+	const firstMonthstampOfYear = constructMonthstamp(today.getFullYear(), 0);
+	const monthstampToday = constructMonthstampFromDateObject(today);
+	const monthstampsSoFarThisYear = rangeArray(firstMonthstampOfYear, monthstampToday + 1);
+	const categories = await fetchCategoriesFromYnab(monthstampsSoFarThisYear, ynabToken);
+
+	// Google sheets defines which categories are monthly vs. yearly
+	const monthlyCategoryIds = new Set(monthlyBudget.map(d => d.category_id));
+	const yearlyCategoryIds = new Set(yearlyBudget.map(d => d.category_id));
+
+	// A category should not be both monthly and yearly!
+	const hasOverlap = [...monthlyCategoryIds].some(id => yearlyCategoryIds.has(id));
+	if (hasOverlap) {
+		console.warn("Warning: Some categories exist in both monthly and yearly budgets");
+	}
+
+	// filter YNAB categories to yearly ones
+	const yearlyCategories = categories.filter((c) =>
+		yearlyCategoryIds.has(c.category_id)
+	);
+
+	// sum up activity over the whole year
+	const yearlyCategoriesOverWholeYear = d3
+		.flatRollup(
+			yearlyCategories,
+			(_categories) => ({
+				is_income: _categories[0].is_income,
+				group_id: _categories[0].group_id,
+				group: _categories[0].group,
+				category: _categories[0].category,
+				category_id: _categories[0].category_id,
+				activity: d3.sum(_categories, (c) => c.activity)
+			}),
+			// group by keys
+			(d) => d.is_income,
+			(d) => d.group_id,
+			(d) => d.group,
+			(d) => d.category,
+			(d) => d.category_id
+		)
+		.map(([is_income, group_id, group, category, category_id, row]) => row);
+
+	// merge in information
+	const joinedYearly = outerJoin(
+		yearlyBudget,
+		yearlyCategoriesOverWholeYear,
+		"category_id"
+	);
+
+	// add any missing properties
+	const defaultYearlyProperties = {
+		is_income: false,
+		group_id: "unknown-group-id",
+		group: "Unknown",
+		category: "Unknown",
+		category_id: "unknown-category-id",
+		activity: 0,
+		budget: 0
+	};
+	const yearly = joinedYearly.map((item) => ({
+		...defaultYearlyProperties,
+		...item
+	}));
+
+	// monthly categories
+	const nonYearlyCategories = categories.filter(
+		(c) => (c.monthstamp === 24301) & !yearlyCategoryIds.has(c.category_id)
+	);
+
+	// merge in information
+	const joined = outerJoin(monthlyBudget, nonYearlyCategories, "category_id");
+
+	// add any missing properties
+	const defaultProperties = {
+		monthstamp: 24301,
+		is_income: false,
+		group_id: "unknown-group-id",
+		group: "Unknown",
+		category: "Unknown",
+		category_id: "unknown-category-id",
+		activity: 0,
+		budget: 0
+	};
+	const monthly = joined.map((item) => ({ ...defaultProperties, ...item }));
+
+	// remove zero items
+	const notZero = (d) => Math.abs(d.activity) > 1 || Math.abs(d.budget) > 1;
+
+	return { yearly: yearly.filter(notZero), monthly: monthly.filter(notZero) };
+}
+
+
+export async function loadProfitLoss(monthstamps, ynabToken) {
+	return [];
+	// const income = await loadIncome(monthstamps, ynabToken);
+	// const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
+	// const transfers = await loadTransfers(monthstamps, ynabToken);
+
+	// return [
+	// 	...income,
+	// 	...expenditure.map(d => ({...d, activity: -d.activity})),
+	// 	...transfers.map(d => ({...d, activity: -d.activity}))
+	// ];
 
 }
 
@@ -349,9 +523,10 @@ export async function loadTransfers(monthstamps, ynabToken, forSankey) {
 }
 
 export async function loadExpenditureAndTransfers(monthstamps, ynabToken) {
-	const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
-	const transfers = await loadTransfers(monthstamps, ynabToken);
-	return [...expenditure, ...transfers];
+	return [];
+	// const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
+	// const transfers = await loadTransfers(monthstamps, ynabToken);
+	// return [...expenditure, ...transfers];
 
 }
 
@@ -387,7 +562,10 @@ export function constructMonthstamp(year, month) {
 	return 12 * year + month;
 }
 
+export function constructMonthstampFromDateObject(dateObject) {
+	return constructMonthstamp(dateObject.getUTCFullYear(), dateObject.getUTCMonth())
+}
+
 export function currentMonthstamp() {
-	const date = new Date();
-	return constructMonthstamp(date.getUTCFullYear(), date.getUTCMonth());
+	return constructMonthstampFromDateObject(new Date());
 }
