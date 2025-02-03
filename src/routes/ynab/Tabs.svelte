@@ -83,7 +83,7 @@
     {/if}
 </div>
 
-<article>
+<article style="padding-top: var(--block-spacing-horizontal)">
     {#if active === 0}
         <slot name="tab0"></slot>
     {:else if active === 1}

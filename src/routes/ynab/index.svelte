@@ -99,7 +99,11 @@
                 <button type="button" on:click={setYnabToken}>Submit</button>
             </article>
         {:else}
-            <h3>Budget</h3>
+            <h3>Budget
+                <span style="font-size: medium; font-weight: normal; margin-left: 10px">
+                    <a href="https://docs.google.com/spreadsheets/d/1IsFU9ZVMnjgPZKjRL3sbfUH9xiI_EcfYurxNUROtGpI">Edit</a>
+                </span>
+            </h3>
             {#await budgetPromise}
                 <p aria-busy="true">Loading data</p>
             {:then data}
