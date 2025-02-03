@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { mergeWith, keyBy, values } from 'lodash';
+import _ from 'lodash';
 
 const budgetId = "9c952968-39f3-46e3-aa87-1166c2cb4a37";
 
@@ -366,11 +366,11 @@ async function fetchCategoriesFromYnab(monthstamps, ynabToken) {
 }
 
 function outerJoin(list1, list2, key) {
-	return values(
-		mergeWith(
-			keyBy(list1, key),
-			keyBy(list2, key),
-			(objValue, srcValue) => mergeWith(objValue, srcValue, (a, b) => a ?? b)
+	return _.values(
+		_.mergeWith(
+			_.keyBy(list1, key),
+			_.keyBy(list2, key),
+			(objValue, srcValue) => _.mergeWith(objValue, srcValue, (a, b) => a ?? b)
 		)
 	);
 }
