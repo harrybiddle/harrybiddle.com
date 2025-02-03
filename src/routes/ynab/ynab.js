@@ -175,13 +175,40 @@ function parsePayee(payee_name, payee_id) {
 
 const incomeCategoryId = "f9fc70b0-df3c-42a9-a49b-76a1e90c4fe8";
 
-async function loadMonthlyBudgetFor(currentMonthDateObject) {
+async function fetchFromSavingsFromGoogleSheets() {
+	let data = await d3.csv(
+		"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBwxAcU1N4A021x1EB9J3nmlXc78RrYP2fbD-e3Kqx_R3BXq9mfDf5Y3yyVNgfEPDZlqyTf5su_mv0/pub?gid=1391042149&single=true&output=csv"
+	);
+
+	/* Parse to an array of objects like
+		{
+			category_id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
+		}
+	*/
+	data = data.map((d) => ({
+		category_id: d.category_id
+	}));
+
+	// Error if we have any nulls - indicating one or more column headers weren't expectead
+	data.forEach((item) => {
+		if (
+			item.category_id == null
+		) {
+			throw new Error(
+				"Missing or undefined value found in item: " + JSON.stringify(item)
+			);
+		}
+	});
+
+	return data;
+}
+async function fetchMonthlyBudgetFromGoogleSheetsForMonth(currentMonthDateObject) {
 
 	/* Fetch an array of objects like
 		{
 			category_group_name: "Car"
 			name: "Petrol"
-			id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
+			category_id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
 			scheduled: "FALSE"
 			with_now: "FALSE"
 			2025-01: "133"
@@ -195,7 +222,7 @@ async function loadMonthlyBudgetFor(currentMonthDateObject) {
 
 	/* Parse to an array of objects like
 		{
-			id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
+			category_id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
 			is_scheduled: false
 			with_now: false
 			budget: 133
@@ -204,8 +231,8 @@ async function loadMonthlyBudgetFor(currentMonthDateObject) {
 	const currentMonthString = currentMonthDateObject.toISOString().slice(0, 7); // YYYY-MM
 	data = data.map((d) => ({
 		category_id: d.category_id,
-		is_scheduled: booleanValues.get(d.scheduled),
-		with_now: booleanValues.get(d.with_now),
+		is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
+		with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
 		budget: parseFloat(d[currentMonthString].replace(/,/g, ""))
 	}));
 
@@ -226,12 +253,12 @@ async function loadMonthlyBudgetFor(currentMonthDateObject) {
 	return data;
 }
 
-const booleanValues = new Map([
+const booleanValuesUsedByGoogleSheets = new Map([
 	["FALSE", false],
 	["TRUE", true]
 ]);
 
-async function loadYearlyBudget() {
+async function fetchYearlyBudgetFromGoogleSheets() {
 
 	/* Fetch an array of objects like
 		{
@@ -257,8 +284,8 @@ async function loadYearlyBudget() {
 	*/
 	data = data.map((d) => ({
 		category_id: d.category_id,
-		is_scheduled: booleanValues.get(d.scheduled),
-		with_now: booleanValues.get(d.with_now),
+		is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
+		with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
 		budget: parseFloat(d.budget.replace(/,/g, ""))
 	}));
 
@@ -351,8 +378,8 @@ function outerJoin(list1, list2, key) {
 export async function loadDataForBudget(today, ynabToken) {
 
 	// fetch budget information from Google sheets
-	const monthlyBudget = await loadMonthlyBudgetFor(today);
-	const yearlyBudget = await loadYearlyBudget();
+	const monthlyBudget = await fetchMonthlyBudgetFromGoogleSheetsForMonth(today);
+	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets();
 
 	// fetch category hierarchy and activity information from YNAB
 	const firstMonthstampOfYear = constructMonthstamp(today.getFullYear(), 0);
@@ -460,74 +487,24 @@ export async function loadProfitLoss(monthstamps, ynabToken) {
 
 }
 
-export async function loadTransfers(monthstamps, ynabToken, forSankey) {
-	// get all transactions since the earliest date in the array
-	const sortedMonthstamps = monthstamps.sort(d3.ascending);
-	const firstMonthstamp = sortedMonthstamps[0];
+export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
 
-	async function getTransactions(accountId) {
-		const sinceDate = parseMonthstamp(firstMonthstamp).dateString;
-		const response = await ynab(
-			ynabToken,
-			`budgets/${budgetId}/accounts/${accountId}/transactions`,
-			{ since_date: sinceDate },
-		);
+	// fetch activity from YNAB
+	const categories = await fetchCategoriesFromYnab(monthstamps, ynabToken);
 
-		// filter transactions to ones that fall in or before the last
-		// month in the array
-		const lastMonthstamp = sortedMonthstamps[sortedMonthstamps.length - 1];
-		const firstDateOfNextMonth = parseMonthstamp(lastMonthstamp + 1).date;
-		let transactions = response.transactions.filter(
-			t => new Date(t["date"]) < firstDateOfNextMonth
-		);
+	// Google sheets defines which categories are monthly vs. yearly
+	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets();
+	const yearlyCategoryIds = new Set(yearlyBudget.map(d => d.category_id));
+	const fromSavingsBudget = await fetchFromSavingsFromGoogleSheets();
+	const fromSavingsBudgetIds = new Set(fromSavingsBudget.map(d => d.category_id));
 
-		// ignore zero transactions
-		return transactions.filter(t => Math.abs(t.amount) > 0);
-	}
-
-	// mortgage transactions
-	const mortgageAccountId = "a85376eb-0669-4039-b208-c68938917384";
-	let mortgageTransactions = await getTransactions(mortgageAccountId)
-	mortgageTransactions = mortgageTransactions.filter(
-		t => t.memo !== "Take out Mortgage"
-	)
-	const mortgageCategories = mortgageTransactions.map(
-		t => ({
-			is_income: false,
-			activity: t.amount / 1000,
-			category_id: "mortgage",
-			category: "Mortgage Amortisation",
-			group: forSankey ? "Mortgage" : "House",  // TODO use new Sankey category
-			group_id: forSankey ? "gMortgage" : "ac164e0b-237d-4a6f-8f95-618760ea9207",
-			monthstamp: monthstampFromDateString(t["date"])
-		})
-	)
-
-	// owings transactions
-	const owingsAccountId = "645be5f7-3a5d-4723-a6e9-97929eaf658d";
-	const owingsTransactions = await getTransactions(owingsAccountId);
-	const owingsCategories = owingsTransactions.map(
-		t => ({
-			// TODO: add yearly etc
-			is_income: false,
-			activity: t.amount / 1000,
-			category_id: "owings",
-			category: "Owings",
-			group: forSankey ? "Owings" : "Regular",
-			group_id: forSankey ? "gOwings" : "449c5313-e397-4aa7-91f2-400c49ef1301",
-			monthstamp: monthstampFromDateString(t["date"])
-		})
-	)
-
-	return [...mortgageCategories, ...owingsCategories];
-}
-
-export async function loadExpenditureAndTransfers(monthstamps, ynabToken) {
-	return [];
-	// const expenditure = await loadExpenditureActivity(monthstamps, ynabToken);
-	// const transfers = await loadTransfers(monthstamps, ynabToken);
-	// return [...expenditure, ...transfers];
-
+	// yearly categories should be averaged by default
+    // from savings categories should be hidden by default
+	return categories.map(c => ({
+		...c,
+		should_average: yearlyCategoryIds.has(c.category_id),
+		should_show: !fromSavingsBudgetIds.has(c.category_id)
+	}))
 }
 
 

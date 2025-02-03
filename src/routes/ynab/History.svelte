@@ -56,15 +56,14 @@
             const m = metadata.get(hierarchyItem.category_id);
             if (m === undefined) return false;
 
-            return m.is_yearly;
+            return m.should_average;
         }
 
         function shouldShow(hierarchyItem) {
             const m = metadata.get(hierarchyItem.category_id);
             if (m === undefined) return true;
 
-            if (m.from_savings) return false;
-            if (m.category == "Owings") return false;
+            if (!m.should_show) return false;
             if (m.is_income) {
                 // define regular income
                 // TODO: harmonise with Sankey
