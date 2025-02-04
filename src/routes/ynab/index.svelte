@@ -49,7 +49,7 @@
             if (!ynabTokenIsInLocalStorage()) budgetPromise = null;
             else {
                 const ynabToken = localStorage.getItem("ynabToken")
-                budgetPromise = loadDataForBudget(today, ynabToken);
+                budgetPromise = loadDataForBudget(currentMonthstamp, ynabToken);
             }
         }
     }

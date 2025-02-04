@@ -189,20 +189,12 @@ async function fetchFromSavingsFromGoogleSheets() {
 		category_id: d.category_id
 	}));
 
-	// Error if we have any nulls - indicating one or more column headers weren't expectead
-	data.forEach((item) => {
-		if (
-			item.category_id == null
-		) {
-			throw new Error(
-				"Missing or undefined value found in item: " + JSON.stringify(item)
-			);
-		}
-	});
+	validateObjectProperties(data, ["category_id"]);
 
 	return data;
 }
-async function fetchMonthlyBudgetFromGoogleSheetsForMonth(currentMonthDateObject) {
+
+async function fetchMonthlyBudgetFromGoogleSheets() {
 
 	/* Fetch an array of objects like
 		{
@@ -216,41 +208,29 @@ async function fetchMonthlyBudgetFromGoogleSheetsForMonth(currentMonthDateObject
 			... etc
 		}
 	*/
-	let data = await d3.csv(
+	const wideData = await d3.csv(
 		"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBwxAcU1N4A021x1EB9J3nmlXc78RrYP2fbD-e3Kqx_R3BXq9mfDf5Y3yyVNgfEPDZlqyTf5su_mv0/pub?gid=0&single=true&output=csv"
 	);
 
-	/* Parse to an array of objects like
-		{
-			category_id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
-			is_scheduled: false
-			with_now: false
-			budget: 133
-		}
-	*/
-	const currentMonthString = currentMonthDateObject.toISOString().slice(0, 7); // YYYY-MM
-	data = data.map((d) => ({
-		category_id: d.category_id,
-		is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
-		with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
-		budget: parseFloat(d[currentMonthString].replace(/,/g, ""))
-	}));
+	const longData = wideData.flatMap(d => Object.entries(d)
+		.filter(([key]) => /^\d{4}-\d{2}$/.test(key)) // Match YYYY-MM format
+		.map(([yearMonthString, budget]) => {
+			const [yearString, monthString] = yearMonthString.split("-");
+			return {
+				category_id: d.category_id,
+				is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
+				with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
+				budget: parseFloat(budget.replace(/,/g, "")),
+				monthstamp: constructMonthstamp(
+					parseInt(yearString), parseInt(monthString) - 1
+				),
+			}
+		})
+	);
 
-	// Error if we have any nulls - indicating one or more column headers weren't expectead
-	data.forEach((item) => {
-		if (
-			item.category_id == null ||
-			item.is_scheduled == null ||
-			item.with_now == null ||
-			item.budget == null
-		) {
-			throw new Error(
-				"Missing or undefined value found in item: " + JSON.stringify(item)
-			);
-		}
-	});
+	validateObjectProperties(longData, ["category_id", "is_scheduled", "with_now", "budget", "monthstamp"]);
 
-	return data;
+	return longData;
 }
 
 const booleanValuesUsedByGoogleSheets = new Map([
@@ -290,18 +270,7 @@ async function fetchYearlyBudgetFromGoogleSheets() {
 	}));
 
 	// Error if we have any nulls - indicating one or more column headers weren't expectead
-	data.forEach((item) => {
-		if (
-			item.category_id == null ||
-			item.is_scheduled == null ||
-			item.with_now == null ||
-			item.budget == null
-		) {
-			throw new Error(
-				"Missing or undefined value found in item: " + JSON.stringify(item)
-			);
-		}
-	});
+	validateObjectProperties(data, ["category_id", "is_scheduled", "with_now", "budget"]);
 
 	return data;
 }
@@ -375,27 +344,35 @@ function outerJoin(list1, list2, key) {
 	);
 }
 
-export async function loadDataForBudget(today, ynabToken) {
+export async function loadDataForBudget(monthstamp, ynabToken) {
 
 	// fetch budget information from Google sheets
-	const monthlyBudget = await fetchMonthlyBudgetFromGoogleSheetsForMonth(today);
+	let monthlyBudget = await fetchMonthlyBudgetFromGoogleSheets();
+	monthlyBudget = monthlyBudget.filter(c => c.monthstamp === monthstamp);
 	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets();
+	const fromSavingsBudget = await fetchFromSavingsFromGoogleSheets();
 
 	// fetch category hierarchy and activity information from YNAB
-	const firstMonthstampOfYear = constructMonthstamp(today.getFullYear(), 0);
-	const monthstampToday = constructMonthstampFromDateObject(today);
-	const monthstampsSoFarThisYear = rangeArray(firstMonthstampOfYear, monthstampToday + 1);
-	const categories = await fetchCategoriesFromYnab(monthstampsSoFarThisYear, ynabToken);
+	const { year } = parseMonthstamp(monthstamp);
+	const firstMonthstampOfYear = constructMonthstamp(year, 0);
+	const monthstampsSoFarThisYear = rangeArray(firstMonthstampOfYear, monthstamp + 1);
+	let categories = await fetchCategoriesFromYnab(monthstampsSoFarThisYear, ynabToken);
 
 	// Google sheets defines which categories are monthly vs. yearly
+	// TODO: remove from_savings categories
 	const monthlyCategoryIds = new Set(monthlyBudget.map(d => d.category_id));
 	const yearlyCategoryIds = new Set(yearlyBudget.map(d => d.category_id));
+	const fromSavingsCategoryIds = new Set(fromSavingsBudget.map(d => d.category_id));
 
 	// A category should not be both monthly and yearly!
+	// TODO: include from_savings
 	const hasOverlap = [...monthlyCategoryIds].some(id => yearlyCategoryIds.has(id));
 	if (hasOverlap) {
 		console.warn("Warning: Some categories exist in both monthly and yearly budgets");
 	}
+
+	// remove from_savings categories
+	categories = categories.filter(c => !fromSavingsCategoryIds.has(c.category_id));
 
 	// filter YNAB categories to yearly ones
 	const yearlyCategories = categories.filter((c) =>
@@ -483,10 +460,37 @@ export async function loadProfitLoss(monthstamps, ynabToken) {
 	];
 }
 
+function validateObjectProperties(objects, properties) {
+	objects.forEach((item) =>
+		properties.forEach(property => {
+			if (item[property] == null) {
+				throw new Error(
+					`Missing or undefined value for ${property} found in item: ` + JSON.stringify(item)
+				);
+			}
+		})
+	);
+}
+
+async function getCategoryGroups(ynabToken) {
+
+}
+
 export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
 
+	// divide monthstamps into future (including today) and past
+	const currentMonthstamp_ = currentMonthstamp();
+	const isFuture = monthstamp => monthstamp >= currentMonthstamp_;
+	const isPast = monthstamp => !isFuture(monthstamp);
+	const futureMonthstamps = monthstamps.filter(isFuture)
+	const pastMonthstamps = monthstamps.filter(isPast)
+
+	/* --------------------------------------------------------------------------------
+	 Data from the past
+	-------------------------------------------------------------------------------- */
+
 	// fetch activity from YNAB
-	const categories = await fetchCategoriesFromYnab(monthstamps, ynabToken);
+	const categories = await fetchCategoriesFromYnab(pastMonthstamps, ynabToken);
 
 	// Google sheets defines which categories are monthly vs. yearly
 	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets();
@@ -496,11 +500,50 @@ export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
 
 	// yearly categories should be averaged by default
     // from savings categories should be hidden by default
-	return categories.map(c => ({
+	const historicalData = categories.map(c => ({
 		...c,
+		in_future: false,
 		should_average: yearlyCategoryIds.has(c.category_id),
 		should_show: !fromSavingsBudgetIds.has(c.category_id)
+	}));
+
+	/* --------------------------------------------------------------------------------
+	Data from the future
+
+	TODO:
+		- add group and category information
+		- include yearly categories
+	-------------------------------------------------------------------------------- */
+	let budgetCategories = await fetchMonthlyBudgetFromGoogleSheets();
+	budgetCategories = budgetCategories.filter(c => futureMonthstamps.includes(c.monthstamp));
+	const futureData = budgetCategories.map(c => ({
+		...c,
+		in_future: true,
+		should_average: yearlyCategoryIds.has(c.category_id),
+		should_show: !fromSavingsBudgetIds.has(c.category_id),
+		activity: c.budget,
 	}))
+
+	/* --------------------------------------------------------------------------------
+	Combine
+	-------------------------------------------------------------------------------- */
+	const data = [...historicalData, ...futureData];
+	validateObjectProperties(
+		historicalData,
+		[
+			"activity",
+			"category_id",
+			"category",
+			"group_id",
+			"group",
+			"in_future",
+			"monthstamp",
+			"should_average",
+			"should_show",
+		]
+	)
+
+	return data;
 }
 
 
