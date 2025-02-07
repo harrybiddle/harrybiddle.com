@@ -15,12 +15,13 @@
     import * as Plot from '@observablehq/plot';
 
     import PlotContainer from "../../lib/PlotContainer.svelte";
-    import { format, parseMonthstamp } from "./ynab";
+    import { currentMonthstamp, format, parseMonthstamp } from "./ynab";
 
     export let data;
     export let monthstamps;
 
     const monthstampToDate = monthstamp => parseMonthstamp(monthstamp).date;
+    const _currentMonthstamp = currentMonthstamp();
 
     let dates = [];
     let dataWithDates = [];
@@ -42,6 +43,7 @@
     }
 
     const formatDate = d3.utcFormat("%b");
+    const opacity = item => (item.monthstamp >= _currentMonthstamp ? 0.65 : 1);
 
 </script>
 
@@ -62,6 +64,7 @@
                         y: "activity",
                         fill: "name",
                         tip: { format: {y: format, x: formatDate, fy: false, fill: true} },
+                        opacity: opacity,
                     },
                 ),
                 Plot.text(
@@ -72,7 +75,8 @@
                         text: d => format(d.activity),
                         lineAnchor: "middle",
                         textAnchor: "middle",
-                        dy: -12
+                        dy: -12,
+                        fillOpacity: opacity,
                     },
                 ),
             ],

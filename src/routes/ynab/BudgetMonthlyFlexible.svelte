@@ -1,22 +1,3 @@
-<!--
-    @SparkBarCatchup
-
-    Expects an array of objects like:
-
-        {
-            "monthstamp": 24300,
-            "is_income": false,
-            "is_scheduled": false,
-            "is_yearly": false,
-            "with_now": false,
-            "group_id": "d98ee767-55cd-4ebf-aef8-4c04ec828914",
-            "group": "Car",
-            "category": "Petrol",
-            "category_id": "25a313d2-8c32-42eb-b7ea-cfb6ed5310ba",
-            "activity": 0,
-            "budget": 0
-        }
--->
 <script>
     /* To-do:
      *   - Add text for "last updated" (latest transaction)
@@ -25,6 +6,8 @@
      */
     import BudgetRow from "./BudgetRow.svelte";
     import Accordion from "./Accordion.svelte";
+
+    import { validateAndFilterObjects } from "./ynab"
 
     import * as d3 from 'd3';
 
@@ -35,6 +18,21 @@
     let groups  = [];
 
     $: {
+
+        // validate inputs
+        categories = validateAndFilterObjects(
+            categories,
+            [
+                "activity",
+                "budget",
+                "category_id",
+                "category",
+                "group_id",
+                "group",
+                "with_now",
+            ]
+        );
+
         // group the categories into groups and add in the group total
         // we also sort the groups and categories so the biggest are at the top
         const nonzeroCategories = categories.filter(d => (d.activity || d.budget));

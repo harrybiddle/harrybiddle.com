@@ -33,8 +33,7 @@ function memoize(fn) {
 	return (...args) => {
 		const serializedArgs = serializer(args);
 
-		if (_cache[serializedArgs])
-			return console.log('Return cached result of', serializedArgs) || _cache[serializedArgs];
+		if (_cache[serializedArgs]) return _cache[serializedArgs];
 
 		return (_cache[serializedArgs] = fn.apply(null, args));
 	};
@@ -189,7 +188,7 @@ async function fetchFromSavingsFromGoogleSheets() {
 		category_id: d.category_id
 	}));
 
-	validateObjectProperties(data, ["category_id"]);
+	validateAndFilterObjects(data, ["category_id"]);
 
 	return data;
 }
@@ -200,6 +199,7 @@ async function fetchMonthlyBudgetFromGoogleSheets() {
 		{
 			category_group_name: "Car"
 			name: "Petrol"
+			category_group_id: "5b818b21-6bdf-4078-8522-6d4eb6987270"
 			category_id: "ed6fde50-45fd-4d2c-9663-22d74c18a83a"
 			scheduled: "FALSE"
 			with_now: "FALSE"
@@ -218,6 +218,9 @@ async function fetchMonthlyBudgetFromGoogleSheets() {
 			const [yearString, monthString] = yearMonthString.split("-");
 			return {
 				category_id: d.category_id,
+				category: d.name,
+				group_id: d.category_group_id,
+				group: d.category_group_name,
 				is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
 				with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
 				budget: parseFloat(budget.replace(/,/g, "")),
@@ -228,7 +231,16 @@ async function fetchMonthlyBudgetFromGoogleSheets() {
 		})
 	);
 
-	validateObjectProperties(longData, ["category_id", "is_scheduled", "with_now", "budget", "monthstamp"]);
+	validateAndFilterObjects(longData, [
+		"budget",
+		"category_id",
+		"category",
+		"group_id",
+		"group",
+		"is_scheduled",
+		"monthstamp",
+		"with_now",
+	]);
 
 	return longData;
 }
@@ -244,6 +256,7 @@ async function fetchYearlyBudgetFromGoogleSheets() {
 		{
 			category_group_name: "Car"
 			name: "Car Insurance"
+			category_group_id: "5b818b21-6bdf-4078-8522-6d4eb6987270",
 			id: "4dc8e93e-7b2a-4282-9af1-fafaaefb95b8"
 			scheduled: "TRUE"
 			with_now: "FALSE"
@@ -256,7 +269,10 @@ async function fetchYearlyBudgetFromGoogleSheets() {
 
 	/* Parse to an array of objects like
 		{
-			id: "4dc8e93e-7b2a-4282-9af1-fafaaefb95b8"
+			category_id: "4dc8e93e-7b2a-4282-9af1-fafaaefb95b8",
+			category: "Car Insurance",
+			group_id: "5b818b21-6bdf-4078-8522-6d4eb6987270",
+			group: "Car"
 			scheduled: true
 			with_now: false
 			budget: 871
@@ -264,13 +280,26 @@ async function fetchYearlyBudgetFromGoogleSheets() {
 	*/
 	data = data.map((d) => ({
 		category_id: d.category_id,
+		category: d.name,
+		group_id: d.category_group_id,
+		group: d.category_group_name,
 		is_scheduled: booleanValuesUsedByGoogleSheets.get(d.scheduled),
 		with_now: booleanValuesUsedByGoogleSheets.get(d.with_now),
 		budget: parseFloat(d.budget.replace(/,/g, ""))
 	}));
 
-	// Error if we have any nulls - indicating one or more column headers weren't expectead
-	validateObjectProperties(data, ["category_id", "is_scheduled", "with_now", "budget"]);
+	validateAndFilterObjects(
+		data,
+		[
+			"budget",
+			"category_id",
+			"category",
+			"group_id",
+			"group",
+			"is_scheduled",
+			"with_now",
+		],
+	);
 
 	return data;
 }
@@ -347,9 +376,15 @@ function outerJoin(list1, list2, key) {
 export async function loadDataForBudget(monthstamp, ynabToken) {
 
 	// fetch budget information from Google sheets
-	let monthlyBudget = await fetchMonthlyBudgetFromGoogleSheets();
-	monthlyBudget = monthlyBudget.filter(c => c.monthstamp === monthstamp);
-	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets();
+	const monthlyBudget = await fetchMonthlyBudgetFromGoogleSheets().then(
+		data => validateAndFilterObjects(
+			data.filter(c => c.monthstamp === monthstamp),
+			["budget", "category_id", "is_scheduled", "with_now"],
+		)
+	);
+	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets().then(
+		data => validateAndFilterObjects(data, ["budget", "category_id", "is_scheduled", "with_now"])
+	);
 	const fromSavingsBudget = await fetchFromSavingsFromGoogleSheets();
 
 	// fetch category hierarchy and activity information from YNAB
@@ -384,21 +419,23 @@ export async function loadDataForBudget(monthstamp, ynabToken) {
 		.flatRollup(
 			yearlyCategories,
 			(_categories) => ({
-				is_income: _categories[0].is_income,
+				activity: d3.sum(_categories, (c) => c.activity),
+				category_id: _categories[0].category_id,
+				category: _categories[0].category,
 				group_id: _categories[0].group_id,
 				group: _categories[0].group,
-				category: _categories[0].category,
-				category_id: _categories[0].category_id,
-				activity: d3.sum(_categories, (c) => c.activity)
+				is_income: _categories[0].is_income,
+				with_now: _categories[0].with_now,
 			}),
 			// group by keys
 			(d) => d.is_income,
 			(d) => d.group_id,
 			(d) => d.group,
 			(d) => d.category,
-			(d) => d.category_id
+			(d) => d.category_id,
+			(d) => d.with_now,
 		)
-		.map(([is_income, group_id, group, category, category_id, row]) => row);
+		.map(([is_income, group_id, group, category, category_id, with_now, row]) => row);
 
 	// merge in information
 	const joinedYearly = outerJoin(
@@ -409,22 +446,23 @@ export async function loadDataForBudget(monthstamp, ynabToken) {
 
 	// add any missing properties
 	const defaultYearlyProperties = {
-		is_income: false,
+		activity: 0,
+		budget: 0,
+		category_id: "unknown-category-id",
+		category: "Unknown",
 		group_id: "unknown-group-id",
 		group: "Unknown",
-		category: "Unknown",
-		category_id: "unknown-category-id",
-		activity: 0,
-		budget: 0
+		is_income: false,
+		is_scheduled: false,
+		with_now: false,
 	};
 	const yearly = joinedYearly.map((item) => ({
-		...defaultYearlyProperties,
-		...item
+		...defaultYearlyProperties, ...item
 	}));
 
 	// monthly categories
 	const nonYearlyCategories = categories.filter(
-		(c) => (c.monthstamp === 24301) & !yearlyCategoryIds.has(c.category_id)
+		(c) => (c.monthstamp === monthstamp) & !yearlyCategoryIds.has(c.category_id)
 	);
 
 	// merge in information
@@ -432,21 +470,34 @@ export async function loadDataForBudget(monthstamp, ynabToken) {
 
 	// add any missing properties
 	const defaultProperties = {
-		monthstamp: 24301,
-		is_income: false,
-		group_id: "unknown-group-id",
-		group: "Unknown",
-		category: "Unknown",
-		category_id: "unknown-category-id",
-		activity: 0,
-		budget: 0
+		...defaultYearlyProperties,
+		monthstamp: monthstamp
 	};
 	const monthly = joined.map((item) => ({ ...defaultProperties, ...item }));
 
 	// remove zero items
 	const notZero = (d) => Math.abs(d.activity) > 1 || Math.abs(d.budget) > 1;
 
-	return { yearly: yearly.filter(notZero), monthly: monthly.filter(notZero) };
+	const data = { yearly: yearly.filter(notZero), monthly: monthly.filter(notZero) };
+
+	[...Object.values(data)].forEach(array =>
+		validateAndFilterObjects(
+			array,
+			[
+				"activity",
+				"budget",
+				"category_id",
+				"category",
+				"group_id",
+				"group",
+				"is_income",
+				"is_scheduled",
+				"with_now",
+			]
+		)
+	)
+
+	return data;
 }
 
 
@@ -460,20 +511,38 @@ export async function loadProfitLoss(monthstamps, ynabToken) {
 	];
 }
 
-function validateObjectProperties(objects, properties) {
-	objects.forEach((item) =>
+export function validateAndFilterObjects(objects, properties) {
+	/* Checks if each object in the array contains all the required properties. If any
+	 * property is missing or undefined, it throws an error. It returns a new array
+	 * where each object only includes the specified properties.
+	 *
+	 * Example:
+	 *
+	 *   const data = [
+	 *     { name: "Alice", age: 25, extra: "remove this"     },
+	 *     { name: "Bob",   age: 30, extra: "remove this too" },
+	 *   ];
+	 *
+	 * Would return
+	 *
+	 *     { name: "Alice", age: 25 },
+	 * 	   { name: "Bob",   age: 30 },
+	 */
+	return objects.map(item => {
 		properties.forEach(property => {
-			if (item[property] == null) {
+			if (item?.[property] == null) {
 				throw new Error(
-					`Missing or undefined value for ${property} found in item: ` + JSON.stringify(item)
+					`Missing or undefined value for ${property} found in item: ${JSON.stringify(item)}`
 				);
 			}
-		})
-	);
-}
-
-async function getCategoryGroups(ynabToken) {
-
+		});
+		return properties.reduce(
+			(acculumator, property) => ({
+				...acculumator, [property]: item[property],
+			}),
+			{},  // initial value
+		);
+	});
 }
 
 export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
@@ -528,8 +597,8 @@ export async function fetchDataForExpenditureHistory(monthstamps, ynabToken) {
 	Combine
 	-------------------------------------------------------------------------------- */
 	const data = [...historicalData, ...futureData];
-	validateObjectProperties(
-		historicalData,
+	validateAndFilterObjects(
+		data,
 		[
 			"activity",
 			"category_id",

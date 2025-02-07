@@ -1,5 +1,5 @@
 <script>
-    import { parseMonthstamp } from "./ynab"
+    import { parseMonthstamp, validateAndFilterObjects } from "./ynab"
     import BudgetMonthlyFlexible from "./BudgetMonthlyFlexible.svelte";
     import BudgetOverview from "./BudgetOverview.svelte";
     import Tabs from "./Tabs.svelte";
@@ -28,6 +28,26 @@
     let pNowMonth = 0, pNowYear = 0;
     let pLinesMonth = [];
     $: {
+
+        // check inputs
+        const validate = data =>
+            validateAndFilterObjects(
+                data,
+                [
+                    "activity",
+                    "budget",
+                    "category_id",
+                    "category",
+                    "group_id",
+                    "group",
+                    "is_scheduled",
+                    "with_now",
+                ]
+            );
+        categoriesMonthly = validate(categoriesMonthly);
+        categoriesYearly = validate(categoriesYearly);
+
+
         // ------------------------------------------------------------------------- //
         // calculate progress through month
         // ------------------------------------------------------------------------- //
