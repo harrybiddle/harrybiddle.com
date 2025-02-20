@@ -58,13 +58,17 @@
     // TODO: split into expenditure, income & cashflow history
     let monthstamps = [];
     let profitLossPromise = null;
-    let incomeHistoryPromise = null;
     let expenditureHistoryPromise = null;
+    let incomeHistoryPromise = null;
     $: {
         monthstamps = rangeArray(firstMonthstamp, lastMonthstamp + 1);
 
         if (localStorageIsDefined()) {
-            if (!ynabTokenIsInLocalStorage()) historyPromise = null;
+            if (!ynabTokenIsInLocalStorage()) {
+                profitLossPromise = null;
+                expenditureHistoryPromise = null;
+                incomeHistoryPromise = null;
+            }
             else {
                 const ynabToken = localStorage.getItem("ynabToken")
                 profitLossPromise = loadProfitLoss(monthstamps, ynabToken);
