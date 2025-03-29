@@ -8,11 +8,22 @@
     export let categoriesMonthlyScheduled;
     export let categoriesYearlyFlexible;
     export let categoriesYearlyScheduled;
+    export let p1;  // TODO rename
 
     const calculateTotal = categories => d3.sum(categories, category => category.budget);
     const income = 7000;
 
-    let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0, savingColour = colours.green;
+    function getStandardDeviation(p1) {
+        // these numbers are based on an analysis done in the "patchwork" project,
+        // named "projecting_monthly_spend.qmd"
+        if (p1 <= 0.2) return 0.50;
+        if (p1 > 0.2 && p1 <= 0.4) return 0.19;
+        if (p1 > 0.4 && p1 <= 0.6) return 0.14;
+        if (p1 > 0.6 && p1 <= 0.8) return 0.10;
+        if (p1 > 0.8) return 0.07;
+    }
+
+    let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0, savingColour = colours.green, projectedSaving = null;
     $: {
         scheduled = calculateTotal(categoriesYearlyScheduled) / 12 + calculateTotal(categoriesMonthlyScheduled);
         monthlyFlexible = calculateTotal(categoriesMonthlyFlexible);
@@ -23,6 +34,21 @@
 
         saving = income - expenditure;
         savingColour = saving < 0 ? colours.red : colours.green;
+
+        if (p1 !== null) {
+            const monthlyFlexibleExpenditureSoFar =  d3.sum(categoriesMonthlyFlexible, category => category.activity);
+            const projectedMonthlyFlexibleExpenditure = monthlyFlexibleExpenditureSoFar / p1;
+            const adjustSaving = newMonthlyFlexible =>  saving + monthlyFlexible - newMonthlyFlexible;
+            const standardDeviation = getStandardDeviation(p1);
+            projectedSaving = [
+                // lower bound
+                adjustSaving(projectedMonthlyFlexibleExpenditure * (1 + standardDeviation)),
+                // expected
+                adjustSaving(projectedMonthlyFlexibleExpenditure),
+                 // upper bound
+                adjustSaving(projectedMonthlyFlexibleExpenditure * (1 - standardDeviation)),
+            ]
+        }
     }
 
     /*
@@ -140,6 +166,25 @@
 
         <!-- savings -->
         <rect x=0 y=42 width={p(Math.abs(saving))} height=6 fill={savingColour} stroke={savingColour} stroke-width="0.5px"></rect>
+
+        <!-- projected savings -->
+        {#if projectedSaving !== null}
+            <!-- bounds -->
+            <rect
+                x={p(Math.abs(saving - projectedSaving[0]))}
+                y={42 + 0.5} width={p(projectedSaving[2] - projectedSaving[0])}
+                height={6 - 1}
+                fill-opacity="0"
+                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
+            ></rect>
+
+            <!-- expected -->
+            <line
+                x1={p(Math.abs(saving - projectedSaving[1]))} x2={p(Math.abs(saving - projectedSaving[1]))}
+                y1={42 + 0.5} y2={42 + 6 - 0.5}
+                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
+            ></line>
+        {/if}
     </svg>
 
     <!-- income -->

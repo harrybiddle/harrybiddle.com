@@ -28,7 +28,6 @@
     let pNowMonth = 0, pNowYear = 0;
     let pLinesMonth = [];
     $: {
-
         // check inputs
         const validate = data =>
             validateAndFilterObjects(
@@ -46,7 +45,6 @@
             );
         categoriesMonthly = validate(categoriesMonthly);
         categoriesYearly = validate(categoriesYearly);
-
 
         // ------------------------------------------------------------------------- //
         // calculate progress through month
@@ -76,6 +74,7 @@
     categoriesMonthlyScheduled={categoriesMonthly.filter(isScheduled)}
     categoriesYearlyFlexible={categoriesYearly.filter(isFlexible)}
     categoriesYearlyScheduled={categoriesYearly.filter(isScheduled)}
+    p1={pNowMonth}
 />
 
 
