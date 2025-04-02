@@ -38,16 +38,15 @@
         if (p1 !== null) {
             const monthlyFlexibleExpenditureSoFar =  d3.sum(categoriesMonthlyFlexible, category => category.activity);
             const projectedMonthlyFlexibleExpenditure = monthlyFlexibleExpenditureSoFar / p1;
-            const adjustSaving = newMonthlyFlexible =>  saving + monthlyFlexible - newMonthlyFlexible;
-            const standardDeviation = getStandardDeviation(p1);
+            const errorMargin = monthlyFlexible * getStandardDeviation(p1);
             projectedSaving = [
                 // lower bound
-                adjustSaving(projectedMonthlyFlexibleExpenditure * (1 + standardDeviation)),
+                projectedMonthlyFlexibleExpenditure + errorMargin,
                 // expected
-                adjustSaving(projectedMonthlyFlexibleExpenditure),
+                projectedMonthlyFlexibleExpenditure,
                  // upper bound
-                adjustSaving(projectedMonthlyFlexibleExpenditure * (1 - standardDeviation)),
-            ]
+                Math.max(0, projectedMonthlyFlexibleExpenditure - errorMargin),
+            ];
         }
     }
 
@@ -169,19 +168,32 @@
 
         <!-- projected savings -->
         {#if projectedSaving !== null}
+            {@const x = 100 - p(scheduled + yearlyFlexible + projectedSaving[1])}
+            {@const x0 = x - p(projectedSaving[2] - projectedSaving[1])}
+            {@const x1 = x + p(projectedSaving[1] - projectedSaving[0])}
+
             <!-- bounds -->
-            <rect
-                x={p(Math.abs(saving - projectedSaving[0]))}
-                y={42 + 0.5} width={p(projectedSaving[2] - projectedSaving[0])}
-                height={6 - 1}
+            <line
+                y1={42 + 3} y2={42 + 3}
+                x1={x0}
+                x2={x1}
                 fill-opacity="0"
                 stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
-            ></rect>
+            ></line>
+            <line
+                x1={x0} x2={x0} y1={42 + 3 - 1} y2={42 + 3 + 1}
+                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
+            ></line>
+            <line
+                x1={x1} x2={x1} y1={42 + 3 - 1} y2={42 + 3 + 1}
+                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
+            ></line>
 
             <!-- expected -->
             <line
-                x1={p(Math.abs(saving - projectedSaving[1]))} x2={p(Math.abs(saving - projectedSaving[1]))}
-                y1={42 + 0.5} y2={42 + 6 - 0.5}
+                x1={x}
+                x2={x}
+                y1={42 + 3 - 2} y2={42 + 3 + 2}
                 stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
             ></line>
         {/if}
