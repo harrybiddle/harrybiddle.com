@@ -23,7 +23,14 @@
         if (p1 > 0.8) return 0.07;
     }
 
-    let scheduled = 0, monthlyFlexible = 0, yearlyFlexible = 0, totalWidth = 0, saving = 0, savingColour = colours.green, projectedSaving = null;
+    let scheduled = 0;
+    let monthlyFlexible = 0;
+    let yearlyFlexible = 0;
+    let totalWidth = 0;
+    let saving = 0;
+    let savingColour = colours.green;
+    let projectedMonthlyFlexibleExpenditure = null;
+    let projectedSaving = null;
     $: {
         scheduled = calculateTotal(categoriesYearlyScheduled) / 12 + calculateTotal(categoriesMonthlyScheduled);
         monthlyFlexible = calculateTotal(categoriesMonthlyFlexible);
@@ -37,15 +44,15 @@
 
         if (p1 !== null) {
             const monthlyFlexibleExpenditureSoFar =  d3.sum(categoriesMonthlyFlexible, category => category.activity);
-            const projectedMonthlyFlexibleExpenditure = monthlyFlexibleExpenditureSoFar / p1;
-            const errorMargin = monthlyFlexible * getStandardDeviation(p1);
+            projectedMonthlyFlexibleExpenditure = monthlyFlexibleExpenditureSoFar / p1;
+            const errorMarginEuros = monthlyFlexible * getStandardDeviation(p1);
             projectedSaving = [
                 // lower bound
-                projectedMonthlyFlexibleExpenditure + errorMargin,
+                projectedMonthlyFlexibleExpenditure + errorMarginEuros,
                 // expected
                 projectedMonthlyFlexibleExpenditure,
                  // upper bound
-                Math.max(0, projectedMonthlyFlexibleExpenditure - errorMargin),
+                Math.max(0, projectedMonthlyFlexibleExpenditure - errorMarginEuros),
             ];
         }
     }
@@ -94,8 +101,10 @@
         │   │ savings
         └───┘
      */
-
-    const p = p => 100 * p / totalWidth;
+    const getMaxX = () => {
+        const m = Math.max(monthlyFlexible, projectedMonthlyFlexibleExpenditure || monthlyFlexible);
+        return 1.03 * Math.max(income, scheduled + yearlyFlexible + m);
+    }
 </script>
 
 <style>
@@ -128,74 +137,74 @@
 
 <div id="container">
     <svg
-        viewBox="-1 0 102 50"
+        viewBox={`0 0 ${getMaxX()} 50`}
         preserveAspectRatio="none"
         style="grid-area: svg; height: 100%; width: 100%"
     >
-        <!-- income -->
         {#if true}
-            {@const x = 100 - p(income) }
-            {@const w = p(income) }
+        {@const xa = income}
+        {@const xb = scheduled + yearlyFlexible + monthlyFlexible}
+        {@const strokeWidth = getMaxX() / 200}
 
-            <rect x={x} y=2 width={w} height=6 fill="{colours.green}" stroke={colours.green} stroke-width="0.5px"></rect>
-            <line x1={x}     x2={x}     y1=8 y2=42 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
-            <line x1={x + w} x2={x + w} y1=8 y2=12 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
-        {/if}
+        <g transform={`scale(-1,1) translate(-${getMaxX()},0)`}>
+            <!-- income -->
+            <rect x=0 y=2 width={income} height=6 fill="{colours.green}" stroke={colours.green} stroke-width="0.5px"></rect>
+            <line x1=0 x2=0 y1=8 y2=42 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
+            <line x1={income} x2={income} y1=8 y2=42 stroke={colours.grey} stroke-width={strokeWidth} stroke-dasharray="2 1" ></line>
 
-        <!-- scheduled -->
-        {#if true}
-            {@const x = 100 - p(scheduled)}
-            <rect x={x} y=12 width={p(scheduled)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
-            <line x1={x} x2={x} y1=18 y2=22 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
-        {/if}
+            <!-- scheduled -->
+            <rect x=0 y=12 width={scheduled} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
 
-        <!-- yearly flexible -->
-        {#if true}
-            {@const x = 100 - p(scheduled + yearlyFlexible)}
-            <rect x={x} y=22 width={p(yearlyFlexible)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
-            <line x1={x} x2={x} y1=28 y2=32 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
-        {/if}
+            <!-- yearly flexible -->
+            <rect x={scheduled} y=22 width={yearlyFlexible} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
 
-        <!-- monthly flexible -->
-        {#if true}
-        {@const x = 100 - p(scheduled + yearlyFlexible + monthlyFlexible)}
-            <rect x={x} y=32 width={p(monthlyFlexible)} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
-            <line x1={x} x2={x} y1=38 y2=42 stroke={colours.grey} stroke-width="0.5px" stroke-dasharray="2 1" ></line>
-        {/if}
+            <!-- monthly flexible -->
+            {#if true}
+                {@const width = monthlyFlexible}
+                {@const x1 = scheduled + yearlyFlexible}
+                {@const x2 = x1 + width}
 
-        <!-- savings -->
-        <rect x=0 y=42 width={p(Math.abs(saving))} height=6 fill={savingColour} stroke={savingColour} stroke-width="0.5px"></rect>
+                <rect x={x1} y=32 width={width} height=6 fill="{colours.grey}" stroke={colours.grey} stroke-width="0.5px"></rect>
+                <line x1={x2} x2={x2} y1=38 y2=42 stroke={savingColour} stroke-width={strokeWidth} stroke-dasharray="2 1" ></line>
+            {/if}
 
-        <!-- projected savings -->
-        {#if projectedSaving !== null}
-            {@const x = 100 - p(scheduled + yearlyFlexible + projectedSaving[1])}
-            {@const x0 = x - p(projectedSaving[2] - projectedSaving[1])}
-            {@const x1 = x + p(projectedSaving[1] - projectedSaving[0])}
+            <!-- savings -->
+            {#if true}
+                {@const x = Math.min(xa, xb)}
+                <rect x={x} y=42 width={Math.abs(saving)} height=6 fill={savingColour} stroke={savingColour} stroke-width="0.5px"></rect>
+            {/if}
 
-            <!-- bounds -->
-            <line
-                y1={42 + 3} y2={42 + 3}
-                x1={x0}
-                x2={x1}
-                fill-opacity="0"
-                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
-            ></line>
-            <line
-                x1={x0} x2={x0} y1={42 + 3 - 1} y2={42 + 3 + 1}
-                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
-            ></line>
-            <line
-                x1={x1} x2={x1} y1={42 + 3 - 1} y2={42 + 3 + 1}
-                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
-            ></line>
+            <!-- projected savings -->
+            {#if projectedSaving !== null}
+                {@const x = scheduled + yearlyFlexible + projectedSaving[1]}
+                {@const x0 = scheduled + yearlyFlexible + projectedSaving[2]}
+                {@const x1 = scheduled + yearlyFlexible + projectedSaving[0]}
 
-            <!-- expected -->
-            <line
-                x1={x}
-                x2={x}
-                y1={42 + 3 - 2} y2={42 + 3 + 2}
-                stroke="#56C7D2" stroke-width="0.4px" style="mix-blend-mode: color-burn;"
-            ></line>
+                <!-- bounds -->
+                <line
+                    y1={42 + 3} y2={42 + 3}
+                    x1={x0}
+                    x2={x1}
+                    stroke="#56C7D2" stroke-width="0.5" style="mix-blend-mode: color-burn;"
+                ></line>
+                <line
+                    x1={x0} x2={x0} y1={42 + 3 - 1} y2={42 + 3 + 1}
+                    stroke="#56C7D2" stroke-width={strokeWidth} style="mix-blend-mode: color-burn;"
+                ></line>
+                <line
+                    x1={x1} x2={x1} y1={42 + 3 - 1} y2={42 + 3 + 1}
+                    stroke="#56C7D2" stroke-width={strokeWidth} style="mix-blend-mode: color-burn;"
+                ></line>
+
+                <!-- expected -->
+                <line
+                    x1={x}
+                    x2={x}
+                    y1={42 + 3 - 2} y2={42 + 3 + 2}
+                    stroke="#56C7D2" stroke-width={strokeWidth} style="mix-blend-mode: color-burn;"
+                ></line>
+            {/if}
+        </g>
         {/if}
     </svg>
 
