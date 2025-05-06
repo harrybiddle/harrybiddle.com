@@ -114,6 +114,7 @@
                 <p aria-busy="true">Loading data</p>
             {:then data}
                 <Budget
+                    income={data.income}
                     categoriesMonthly={data.monthly}
                     categoriesYearly={data.yearly}
                     monthstamp={currentMonthstamp}

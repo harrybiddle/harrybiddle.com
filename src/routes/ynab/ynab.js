@@ -245,6 +245,52 @@ async function fetchMonthlyBudgetFromGoogleSheets() {
 	return longData;
 }
 
+
+async function fetchMonthlyIncomeFromGoogleSheets() {
+
+	/* Fetch an array of objects like
+		{
+			name: "Harry"
+			2025-01: "3400"
+			2025-02: "3400"
+			... etc
+		}
+
+	And returns an array of objects like
+
+		{
+			name: "Harry"
+			income: 3400
+			monthstamp: 24305
+		}
+	*/
+	const wideData = await d3.csv(
+		"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBwxAcU1N4A021x1EB9J3nmlXc78RrYP2fbD-e3Kqx_R3BXq9mfDf5Y3yyVNgfEPDZlqyTf5su_mv0/pub?gid=638114548&single=true&output=csv"
+	);
+
+	const longData = wideData.flatMap(d => Object.entries(d)
+		.filter(([key]) => /^\d{4}-\d{2}$/.test(key)) // Match YYYY-MM format
+		.map(([yearMonthString, cellValue]) => {
+			const [yearString, monthString] = yearMonthString.split("-");
+			return {
+				category: d.name,
+				income: parseFloat(cellValue.replace(/,/g, "")),
+				monthstamp: constructMonthstamp(
+					parseInt(yearString), parseInt(monthString) - 1
+				),
+			}
+		})
+	);
+
+	validateAndFilterObjects(longData, [
+		"category",
+		"income",
+		"monthstamp",
+	]);
+
+	return longData;
+}
+
 const booleanValuesUsedByGoogleSheets = new Map([
 	["FALSE", false],
 	["TRUE", true]
@@ -382,6 +428,14 @@ export async function loadDataForBudget(monthstamp, ynabToken) {
 			["budget", "category_id", "is_scheduled", "with_now"],
 		)
 	);
+	const monthlyIncome = await fetchMonthlyIncomeFromGoogleSheets().then(
+		data => validateAndFilterObjects(
+			data.filter(c => c.monthstamp === monthstamp),
+			["income"],
+		)
+	);
+	const income = d3.sum(monthlyIncome, d => d.income);
+
 	const yearlyBudget = await fetchYearlyBudgetFromGoogleSheets().then(
 		data => validateAndFilterObjects(data, ["budget", "category_id", "is_scheduled", "with_now"])
 	);
@@ -478,24 +532,25 @@ export async function loadDataForBudget(monthstamp, ynabToken) {
 	// remove zero items
 	const notZero = (d) => Math.abs(d.activity) > 1 || Math.abs(d.budget) > 1;
 
-	const data = { yearly: yearly.filter(notZero), monthly: monthly.filter(notZero) };
+	const data = { yearly: yearly.filter(notZero), monthly: monthly.filter(notZero), income: income };
 
-	[...Object.values(data)].forEach(array =>
-		validateAndFilterObjects(
-			array,
-			[
-				"activity",
-				"budget",
-				"category_id",
-				"category",
-				"group_id",
-				"group",
-				"is_income",
-				"is_scheduled",
-				"with_now",
-			]
-		)
-	)
+	const validate = array => validateAndFilterObjects(
+		array,
+		[
+			"activity",
+			"budget",
+			"category_id",
+			"category",
+			"group_id",
+			"group",
+			"is_income",
+			"is_scheduled",
+			"with_now",
+		]
+	);
+
+	validate(data.yearly);
+	validate(data.monthly)
 
 	return data;
 }

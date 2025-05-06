@@ -4,6 +4,7 @@
 
     import * as d3 from 'd3';
 
+    export let income;
     export let categoriesMonthlyFlexible;
     export let categoriesMonthlyScheduled;
     export let categoriesYearlyFlexible;
@@ -11,7 +12,6 @@
     export let p1;  // TODO rename
 
     const calculateTotal = categories => d3.sum(categories, category => category.budget);
-    const income = 7000;
 
     function getStandardDeviation(p1) {
         // these numbers are based on an analysis done in the "patchwork" project,

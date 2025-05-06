@@ -19,6 +19,7 @@
         The first array should represent monthly budgeted amounts,
         and the second yearly.
     */
+    export let income = 0;
     export let categoriesMonthly = [];
     export let categoriesYearly = [];
     export let monthstamp;  // current monthstamp, int
@@ -70,6 +71,7 @@
 
 <!-- Budget Overview -->
 <BudgetOverview
+    income={income}
     categoriesMonthlyFlexible={categoriesMonthly.filter(isFlexible)}
     categoriesMonthlyScheduled={categoriesMonthly.filter(isScheduled)}
     categoriesYearlyFlexible={categoriesYearly.filter(isFlexible)}
